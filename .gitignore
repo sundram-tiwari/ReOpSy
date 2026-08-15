@@ -12,7 +12,6 @@ app/.env
 # Database & Data
 backend/db/data/
 database.sqlite
-app/src/data/dailyFeed.json
 
 # Expo/React Native Web
 .expo/

@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-08-15T10:20:01.720Z",
+  "topics": {
+    "ml": [],
+    "dl": [],
+    "nlp": [
+      {
+        "id": "oa:W7126018663",
+        "originalTitle": "Sentiment Analysis Performance of Lora-Enhanced Llm's",
+        "catchyTitle": "Boosting Sentiment Analysis: How LoRA Supercharges DistilBERT on Social Media",
+        "summary": "This study evaluates eight machine learning, deep learning, and transformer models for Twitter sentiment analysis. Fine-tuning DistilBERT with LoRA achieved the highest accuracy at 82.38%. The findings highlight that parameter-efficient fine-tuning significantly outperforms traditional approaches in short-text classification.",
+        "authors": [
+          "Tunahan TİMUÇİN"
+        ],
+        "source": "openalex",
+        "year": 2026,
+        "url": "https://doi.org/10.5281/zenodo.18418625",
+        "pdfUrl": null,
+        "topics": [
+          "nlp"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7105983794",
+        "originalTitle": "Comparing and Contrasting Forced Aligned Acoustic Models for Vernacular Speech",
+        "catchyTitle": "Tuning in to Vernacular: Testing Forced Alignment on Appalachian English",
+        "summary": "This study evaluated the Montreal Forced Aligner on Appalachian English using a pretrained model compared to manual alignment. With low error rates between 0.54% and 1.3%, the aligner handled dialect variations effectively. Researchers can reliably use this tool for vernacular speech analysis on high-quality recordings.",
+        "authors": [
+          "Cox, Amy",
+          "Dunlop, Tamsin",
+          "Oliver, Rachel",
+          "Koston, Kasia",
+          "Wong, Leo",
+          "Yang, Nicky"
+        ],
+        "source": "openalex",
+        "year": 2026,
+        "url": "https://doi.org/10.5281/zenodo.17611079",
+        "pdfUrl": null,
+        "topics": [
+          "nlp"
+        ],
+        "likes": 0
+      }
+    ],
+    "cv": [
+      {
+        "id": "oa:W7122505737",
+        "originalTitle": "A Lightweight Browser-Based Facial Recognition Framework for Preventing Impersonation in Computer-Based Examinations",
+        "catchyTitle": "Stopping Exam Cheaters: Lightweight Real-Time Facial Recognition for Browser-Based Testing",
+        "summary": "This study introduces a browser-based facial recognition system to prevent student impersonation in computer-based exams. Built with face-api.js and liveness detection, it achieved 94.7% verification accuracy with fast response times. The scalable framework offers a secure biometric solution that upholds academic integrity.",
+        "authors": [
+          "Muyideen Abdulraheem"
+        ],
+        "source": "openalex",
+        "year": 2026,
+        "url": "https://doi.org/10.5281/zenodo.18210304",
+        "pdfUrl": null,
+        "topics": [
+          "cv"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7172203383",
+        "originalTitle": "A REVIEW OF MULTIBAND IMAGING TECHNIQUES IN AGRICULTURE",
+        "catchyTitle": "Seeing Beyond Visible Light: How Multiband Imaging is Transforming Modern Agriculture",
+        "summary": "This review explores multiband imaging techniques that capture multiple spectral bands across the electromagnetic spectrum. By surpassing standard single-channel vision, this approach provides deeper analytical insights. Consequently, it plays a vital role in advancing precision agriculture to boost food production.",
+        "authors": [
+          "Indian Journal of Science and Research"
+        ],
+        "source": "openalex",
+        "year": 2026,
+        "url": "https://doi.org/10.5281/zenodo.21757274",
+        "pdfUrl": null,
+        "topics": [
+          "cv"
+        ],
+        "likes": 0
+      }
+    ],
+    "ai-health": [],
+    "llm": [],
+    "robotics": [],
+    "cybersecurity": [
+      {
+        "id": "oa:W7164999407",
+        "originalTitle": "CLOUD SECURITY AND RESILIENCE: PRINCIPLES AND BEST PRACTICES",
+        "catchyTitle": "CLOUD SECURITY AND RESILIENCE: PRINCIPLES AND BEST PRACTICES",
+        "summary": "The rise in the demand for cloud computing services has made it a thing of importance tomake its security and resilience an importance topic. Also, several important features and challenges forcloud computing environments including availability, security and resilience was x-rayed.Finally, Principles and best practices for a secured and a resilient cloud were also considered.",
+        "authors": [
+          "Augustine Chidiebere Onuora",
+          "Goodluck Ikwudiuto Emereonye"
+        ],
+        "source": "openalex",
+        "year": 2027,
+        "url": "https://doi.org/10.5281/zenodo.20737148",
+        "pdfUrl": null,
+        "topics": [
+          "cybersecurity"
+        ],
+        "likes": 0
+      }
+    ],
+    "data-science": [],
+    "bio": [
+      {
+        "id": "oa:W7123291006",
+        "originalTitle": "A protein language model unveils the E. coli pangenome functional landscape regulating host proteostasis",
+        "catchyTitle": "A protein language model unveils the E. coli pangenome functional landscape regulating host proteostasis",
+        "summary": "Extended Data for the Article: A protein language model unveils the E. coli pangenome functional landscape regulating host proteostasis Summary: libraries-barcodes: barcodes and associated metadata used to demultiplex the C. elegans RNA-seq for the mono-association experiments between E. coli strains and C. elegans RNA_lexogen_worm_norm_batch: DESeq2 normalised and batch corrected counts for the RNA-seq data experiment.",
+        "authors": [
+          "Daniel Martínez‐Martínez",
+          "Andreea Aprodu",
+          "Cassandra Backes",
+          "Filipe Cabreiro"
+        ],
+        "source": "openalex",
+        "year": 2029,
+        "url": "https://doi.org/10.5281/zenodo.18221759",
+        "pdfUrl": null,
+        "topics": [
+          "bio"
+        ],
+        "likes": 0
+      }
+    ]
+  }
+}
