@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: reopsy-frontend
+    env: static
+    buildCommand: cd app && npm install && npx expo export -p web
+    staticPublishPath: app/dist
