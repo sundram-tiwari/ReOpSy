@@ -2,7 +2,7 @@
 
 **Research, one swipe at a time.**
 
-ReOpSy is a swipe-first reading habit app for scientific papers. Open it, get a
+ReOpSy (**Re**search **Op**erating **Sy**stem) is a swipe-first reading habit app for scientific papers. Open it, get a
 small hand-picked deck of recent papers in the fields you care about, swipe right
 to save, left to skip, up to open. Everything lives on your device — no accounts,
 no tracking, nothing to breach.
