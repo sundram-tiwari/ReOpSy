@@ -1,0 +1,22 @@
+{
+  "//": "Compiles ONLY the pure logic layer and its tests. Nothing here may import React Native, which is exactly the property we want to enforce: if someone adds a `react-native` import to src/logic, this build breaks.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022"],
+    "outDir": "testbuild",
+    "rootDir": "src",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["src/logic/**/*.ts", "src/types.ts"]
+}

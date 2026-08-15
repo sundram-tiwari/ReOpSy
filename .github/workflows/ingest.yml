@@ -1,0 +1,105 @@
+name: Nightly ingest
+
+on:
+  schedule:
+    # 02:15 UTC = 07:45 IST. Off-peak for both OpenAlex and arXiv.
+    - cron: '15 2 * * *'
+  workflow_dispatch:
+    inputs:
+      topics:
+        description: 'Comma-separated topics, or "all"'
+        required: false
+        default: 'all'
+      limit:
+        description: 'Records per source per topic'
+        required: false
+        default: '40'
+      dry:
+        description: 'Dry run (no database writes)'
+        type: boolean
+        required: false
+        default: false
+
+# Two ingests writing at once would race on the upsert. One at a time.
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No install step: the pipeline has zero npm dependencies by design.
+      - name: Run tests
+        working-directory: backend
+        run: npm test
+
+      - name: Ingest
+        working-directory: backend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
+        run: |
+          node ingest/ingest.js \
+            --topics "${{ github.event.inputs.topics || secrets.INGEST_TOPICS || 'all' }}" \
+            --limit "${{ github.event.inputs.limit || secrets.INGEST_LIMIT || '40' }}" \
+            --days 30 \
+            ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
+
+  # A silent failure is the failure mode that actually bites: the job stops
+  # working, the data goes stale, and nobody notices for a month. This opens an
+  # issue so the repo owner gets an email.
+  notify:
+    needs: ingest
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Nightly ingest failed — ${new Date().toISOString().slice(0, 10)}`;
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'ingest-failure',
+            });
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body: `Failed again: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              });
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              labels: ['ingest-failure'],
+              body: [
+                'The scheduled ingest job failed.',
+                '',
+                `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                '',
+                'Usual causes, in order of likelihood:',
+                '- an expired or rotated `SUPABASE_SERVICE_KEY`',
+                '- OpenAlex or arXiv rate limiting (429) — usually resolves itself',
+                '- a schema change that broke the upsert',
+                '',
+                'The app keeps serving whatever is already in the database, and falls',
+                'back to its built-in demo set if that is empty, so this is not urgent.',
+              ].join('\n'),
+            });
