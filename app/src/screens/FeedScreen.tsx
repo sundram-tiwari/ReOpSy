@@ -88,19 +88,20 @@ export const FeedScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         ) : activePapers.length > 0 ? (
-          <FlatList
-            ref={flatListRef}
-            data={activePapers}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <PaperCard paper={item} cardHeight={containerHeight > 0 ? containerHeight : undefined} />
-            )}
-            pagingEnabled={Platform.OS === 'ios'}
-            snapToInterval={containerHeight > 0 ? containerHeight : undefined}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            showsVerticalScrollIndicator={false}
-            getItemLayout={containerHeight > 0 ? (_, index) => ({
+            <FlatList
+              ref={flatListRef}
+              data={activePapers}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <PaperCard paper={item} cardHeight={containerHeight > 0 ? containerHeight : undefined} />
+              )}
+              pagingEnabled={true}
+              snapToInterval={containerHeight > 0 ? containerHeight : undefined}
+              snapToAlignment="start"
+              decelerationRate="fast"
+              showsVerticalScrollIndicator={false}
+              style={Platform.OS === 'web' ? { scrollSnapType: 'y mandatory', overflowY: 'auto' } as any : undefined}
+              getItemLayout={containerHeight > 0 ? (_, index) => ({
               length: containerHeight,
               offset: containerHeight * index,
               index,

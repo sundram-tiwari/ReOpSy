@@ -33,46 +33,52 @@ export const PaperCard: React.FC<Props> = ({ paper, cardHeight }) => {
   };
 
   return (
-    <View style={[styles.cardContainer, cardHeight ? { height: cardHeight } : { minHeight: SCREEN_HEIGHT - HEADER_OFFSET }]}>
-      <View style={styles.content}>
-        
-        <View style={styles.topSection}>
-          <View style={styles.tagContainer}>
-            <Feather name={topicIcon as any} size={12} color={colors.textDim} style={{ marginRight: 4 }} />
-            <Text style={styles.tagText}>{topicLabel}</Text>
-          </View>
+    <View style={[
+      styles.cardContainer, 
+      cardHeight ? { height: cardHeight } : { minHeight: SCREEN_HEIGHT - HEADER_OFFSET },
+      Platform.OS === 'web' ? { scrollSnapAlign: 'start' } as any : {}
+    ]}>
+      <View style={styles.cardInner}>
+        <View style={styles.content}>
+          
+          <View style={styles.topSection}>
+            <View style={styles.tagContainer}>
+              <Feather name={topicIcon as any} size={12} color={colors.textDim} style={{ marginRight: 4 }} />
+              <Text style={styles.tagText}>{topicLabel}</Text>
+            </View>
 
-          <Text style={styles.title}>
-            {paper.catchyTitle || paper.originalTitle}
-          </Text>
+            <Text style={styles.title}>
+              {paper.catchyTitle || paper.originalTitle}
+            </Text>
 
-          <Text style={styles.summary}>
-            {paper.summary}
-          </Text>
-        </View>
-
-        <View style={styles.bottomSection}>
-          <View style={styles.metadataContainer}>
-            <Text style={styles.metadataText}>
-              {formatAuthors(paper.authors)}{paper.year ? ` · ${paper.year}` : ''}{paper.venue ? ` · ${paper.venue}` : ''}
+            <Text style={styles.summary}>
+              {paper.summary}
             </Text>
           </View>
 
-          <TouchableOpacity 
-            style={styles.linkRow} 
-            onPress={handleOpenLink}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityLabel="Credits and Paper Link"
-          >
-            <Feather name="external-link" size={16} color={colors.textDim} />
-            <Text style={[styles.linkText, { marginLeft: spacing.s }]}>Credits & Paper Link</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.bottomSection}>
+            <View style={styles.metadataContainer}>
+              <Text style={styles.metadataText}>
+                {formatAuthors(paper.authors)}{paper.year ? ` · ${paper.year}` : ''}{paper.venue ? ` · ${paper.venue}` : ''}
+              </Text>
+            </View>
 
+            <TouchableOpacity 
+              style={styles.linkRow} 
+              onPress={handleOpenLink}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel="Credits and Paper Link"
+            >
+              <Feather name="external-link" size={16} color={colors.textDim} />
+              <Text style={[styles.linkText, { marginLeft: spacing.s }]}>Credits & Paper Link</Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+        
+        <ActionBar paper={paper} />
       </View>
-      
-      <ActionBar paper={paper} />
     </View>
   );
 };
@@ -81,12 +87,27 @@ const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: colors.bg,
     flexDirection: 'column',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+  },
+  cardInner: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
   content: {
     flex: 1,
-    padding: spacing.l,
-    paddingTop: spacing.m,
+    padding: spacing.xl,
+    paddingTop: spacing.l,
     justifyContent: 'space-between',
   },
   topSection: {
