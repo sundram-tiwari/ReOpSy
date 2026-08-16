@@ -18,9 +18,9 @@ const GoogleLogo = () => (
 
 export const DrawerContent = (props: DrawerContentComponentProps) => {
   const { streak, savedPapers, likedPapers, clearCache } = useAppState();
-  const { user, signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle, signOut } = useAuth();
 
-  const handleLogout = () => {
+  const handleClearData = () => {
     Alert.alert(
       "Clear Data",
       "This will remove all your saved papers, likes, and streak history. Are you sure?",
@@ -128,7 +128,7 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
       
       <TouchableOpacity 
         style={styles.menuItem} 
-        onPress={handleLogout}
+        onPress={handleClearData}
         activeOpacity={0.7}
         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         accessibilityLabel="Clear app data"
@@ -136,6 +136,19 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
         <Feather name="trash-2" size={20} color={colors.danger} style={{ marginRight: spacing.m }} />
         <Text style={[styles.menuItemText, { color: colors.danger }]}>Clear App Data</Text>
       </TouchableOpacity>
+
+      {user && (
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={signOut}
+          activeOpacity={0.7}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityLabel="Sign out of account"
+        >
+          <Feather name="log-out" size={20} color={colors.text} style={{ marginRight: spacing.m }} />
+          <Text style={styles.menuItemText}>Sign Out</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.footerLinkTouch} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
