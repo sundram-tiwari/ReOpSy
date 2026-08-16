@@ -14,7 +14,7 @@ const db = new sqlite3.Database(dbPath);
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS papers (
-      id TEXT PRIMARY KEY,
+      id TEXT,
       topic TEXT,
       originalTitle TEXT,
       catchyTitle TEXT,
@@ -25,9 +25,41 @@ db.serialize(() => {
       venue TEXT,
       url TEXT,
       pdfUrl TEXT,
-      fetchedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      fetchedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id, topic)
     )
   `);
+
+  // Migrate existing table if topic is not part of primary key
+  db.all(`PRAGMA table_info(papers)`, (err, rows) => {
+    if (!err && Array.isArray(rows) && rows.length > 0) {
+      const topicCol = rows.find(r => r.name === 'topic');
+      if (topicCol && topicCol.pk === 0) {
+        db.serialize(() => {
+          db.run(`CREATE TABLE IF NOT EXISTS papers_migrated (
+            id TEXT,
+            topic TEXT,
+            originalTitle TEXT,
+            catchyTitle TEXT,
+            summary TEXT,
+            authors TEXT,
+            source TEXT,
+            year INTEGER,
+            venue TEXT,
+            url TEXT,
+            pdfUrl TEXT,
+            fetchedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id, topic)
+          )`);
+          db.run(`INSERT OR IGNORE INTO papers_migrated (id, topic, originalTitle, catchyTitle, summary, authors, source, year, venue, url, pdfUrl, fetchedAt)
+                  SELECT id, topic, originalTitle, catchyTitle, summary, authors, source, year, venue, url, pdfUrl, fetchedAt FROM papers`);
+          db.run(`DROP TABLE papers`);
+          db.run(`ALTER TABLE papers_migrated RENAME TO papers`);
+        });
+      }
+    }
+  });
+
   // Try to add venue column if it doesn't exist
   db.run(`ALTER TABLE papers ADD COLUMN venue TEXT`, (err) => {
     // Ignore error if column already exists
@@ -40,9 +72,9 @@ db.serialize(() => {
 function insertPaper(topic, paper) {
   return new Promise((resolve, reject) => {
     const stmt = db.prepare(`
-      INSERT OR IGNORE INTO papers (
-        id, topic, originalTitle, catchyTitle, summary, authors, source, year, venue, url, pdfUrl
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO papers (
+        id, topic, originalTitle, catchyTitle, summary, authors, source, year, venue, url, pdfUrl, fetchedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(

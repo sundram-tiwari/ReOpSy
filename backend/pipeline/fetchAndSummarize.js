@@ -17,8 +17,11 @@ async function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function main() {
-  loadEnv(path.join(__dirname, '..', '.env'));
+async function fetchAndSummarize(options = {}) {
+  const envPath = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(envPath)) {
+    loadEnv(envPath);
+  }
   const apiKeys = {
     gemini: process.env.GEMINI_API_KEY,
     mistral: process.env.MISTRAL_API_KEY,
@@ -28,14 +31,18 @@ async function main() {
     console.warn('⚠️ No API keys set for LLM title generation.');
   }
 
-  const dryRun = process.argv.includes('--dry');
-  const limitPerSource = 5; // Fetch up to 5 from each, dedupe, then take top 10
+  const dryRun = options.dryRun !== undefined ? options.dryRun : process.argv.includes('--dry');
+  const limitPerSource = options.limitPerSource || 5;
   const fromDate = isoDaysAgo(30);
+  const outPath = options.outputFeedPath || path.join(__dirname, '..', '..', 'app', 'src', 'data', 'dailyFeed.json');
 
   const feedData = {
     generatedAt: new Date().toISOString(),
     topics: {}
   };
+
+  let topicsProcessed = 0;
+  let totalPapers = 0;
 
   for (const topic of ALL_SLUGS) {
     console.log(`\nProcessing topic: ${topic}`);
@@ -60,10 +67,11 @@ async function main() {
       console.error(`  arXiv failed: ${e.message}`);
     }
 
-    // 3. Dedupe
+    // 3. Dedupe and filter (accept summary or abstract)
     const { papers: deduped } = dedupe(collected);
-    const validPapers = deduped.filter(p => p.abstract && p.title && p.url).slice(0, 10);
+    const validPapers = deduped.filter(p => (p.summary || p.abstract) && p.title && p.url).slice(0, 10);
     console.log(`  Fetched ${validPapers.length} valid papers for ${topic}.`);
+    topicsProcessed++;
 
     // 4. Summarize & Title Generation
     if (validPapers.length > 0 && !dryRun) {
@@ -71,6 +79,9 @@ async function main() {
         const p = validPapers[j];
         
         let summary = await fetchTldr(p.title);
+        if (!summary && p.summary) {
+          summary = p.summary;
+        }
         if (!summary) {
           summary = fallbackSummarize(p.abstract || p.title, p.title);
         }
@@ -106,6 +117,24 @@ async function main() {
     if (!dryRun) {
        let latestPapers = await getLatestPapersForTopic(topic, 10);
        
+       // Fallback to validPapers if DB is empty for any reason
+       if (latestPapers.length === 0 && validPapers.length > 0) {
+         latestPapers = validPapers.map(p => ({
+           id: p.id,
+           originalTitle: p.title,
+           catchyTitle: p.title,
+           summary: p.summary || (p.abstract ? fallbackSummarize(p.abstract, p.title) : 'No abstract available.'),
+           authors: p.authors || [],
+           source: p.source,
+           year: p.year,
+           venue: p.venue || p.source,
+           url: p.url,
+           pdfUrl: p.pdf_url,
+           topics: [topic],
+           likes: 0
+         }));
+       }
+
        // CRITICAL: NEVER write an empty array.
        if (latestPapers.length === 0) {
          console.warn(`  No papers found for topic ${topic} in DB. Adding dummy entry.`);
@@ -126,27 +155,39 @@ async function main() {
        }
        
        feedData.topics[topic] = latestPapers;
+       totalPapers += latestPapers.length;
+    } else {
+      totalPapers += validPapers.length;
     }
   }
 
   if (dryRun) {
     console.log('\nDRY RUN COMPLETE.');
-    return;
+    return { success: true, topicsProcessed, totalPapers };
   }
 
   // Write to frontend data folder
-  const outPath = path.join(__dirname, '..', '..', 'app', 'src', 'data', 'dailyFeed.json');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(feedData, null, 2), 'utf8');
   console.log(`\n✅ Feed generated at ${outPath}`);
   
-  // Close DB connection
-  db.close();
+  return { success: true, topicsProcessed, totalPapers };
 }
 
 if (require.main === module) {
-  main().catch(err => {
-    console.error(err);
-    process.exit(1);
-  });
+  fetchAndSummarize({ dryRun: process.argv.includes('--dry') })
+    .then(() => {
+      if (!process.argv.includes('--dry')) {
+        db.close();
+      }
+      process.exit(0);
+    })
+    .catch(err => {
+      console.error(err);
+      process.exit(1);
+    });
 }
+
+module.exports = {
+  fetchAndSummarize
+};

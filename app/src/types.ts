@@ -31,3 +31,11 @@ export interface StreakState {
   freezesEarned: number;
   totalDays: number;
 }
+
+export interface UserApiConfig {
+  provider: 'Gemini' | 'Mistral' | 'Grok' | 'Custom' | string;
+  apiKey: string;
+  endpoint?: string;
+  customTopic?: string;
+}
+

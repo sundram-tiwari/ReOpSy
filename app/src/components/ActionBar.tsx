@@ -19,11 +19,12 @@ export const ActionBar: React.FC<Props> = ({ paper }) => {
 
   const handleShare = async () => {
     try {
-      const message = `${paper.catchyTitle}\n\nRead more: ${paper.url}`;
+      const title = paper.catchyTitle || paper.originalTitle;
+      const message = `${title}\n\nRead more: ${paper.url}`;
       await Share.share({
         message,
         url: paper.url, // iOS only
-        title: paper.catchyTitle // Android only
+        title // Android only
       });
     } catch (error) {
       console.error(error);
@@ -36,10 +37,12 @@ export const ActionBar: React.FC<Props> = ({ paper }) => {
         style={styles.iconButton} 
         onPress={() => toggleLikePaper(paper)}
         activeOpacity={0.7}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityLabel={`Like paper, ${displayLikes} likes`}
       >
         <Feather 
           name="thumbs-up" 
-          size={24} 
+          size={20} 
           color={liked ? colors.primary : colors.textDim} 
         />
         <Text style={[styles.likeLabel, liked && styles.activeLabel]}>
@@ -51,10 +54,12 @@ export const ActionBar: React.FC<Props> = ({ paper }) => {
         style={styles.iconButton} 
         onPress={() => toggleSavePaper(paper)}
         activeOpacity={0.7}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityLabel={saved ? "Remove paper from bookmarks" : "Save paper to bookmarks"}
       >
         <Feather 
           name="bookmark" 
-          size={24} 
+          size={20} 
           color={saved ? colors.primary : colors.textDim} 
         />
       </TouchableOpacity>
@@ -63,8 +68,10 @@ export const ActionBar: React.FC<Props> = ({ paper }) => {
         style={styles.iconButton} 
         onPress={handleShare}
         activeOpacity={0.7}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityLabel="Share paper"
       >
-        <Feather name="share-2" size={24} color={colors.textDim} />
+        <Feather name="share-2" size={20} color={colors.textDim} />
       </TouchableOpacity>
     </View>
   );
@@ -76,8 +83,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: spacing.m,
-    paddingBottom: spacing.l,
+    paddingBottom: spacing.m,
     backgroundColor: colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: colors.cardBorder,
   },
   iconButton: {
     flexDirection: 'row',
@@ -85,9 +94,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: colors.accent,
-    minWidth: 60,
+    minWidth: 48,
     minHeight: 48,
   },
   likeLabel: {

@@ -16,12 +16,16 @@ create table if not exists public.topics (
 );
 
 insert into public.topics (slug, label, blurb, sort_order) values
-  ('ml',      'Machine Learning',           'Learning theory, optimisation, architectures', 10),
-  ('nlp',     'Language & NLP',             'Language models, parsing, translation',        20),
-  ('cv',      'Computer Vision',            'Recognition, generation, 3D, video',           30),
-  ('systems', 'Systems & Networks',         'Distributed systems, databases, compilers',    40),
-  ('hci',     'Human-Computer Interaction', 'Interfaces, accessibility, studies of use',    50),
-  ('bio',     'Computational Biology',      'Genomics, protein structure, bioinformatics',  60)
+  ('ml',            'Machine Learning',           'Learning theory, optimisation, architectures',                 10),
+  ('dl',            'Deep Learning',              'Neural networks, deep architectures, representation learning',   20),
+  ('nlp',           'Language & NLP',             'Language models, parsing, translation',                        30),
+  ('cv',            'Computer Vision',            'Recognition, generation, 3D, video',                           40),
+  ('ai-health',     'AI in Mental Health',        'Clinical applications, mental health, psychiatry',             50),
+  ('llm',           'Large Language Models',      'Foundational models, alignment, prompting',                    60),
+  ('robotics',      'Robotics & Control',         'Autonomous systems, manipulation, control theory',             70),
+  ('cybersecurity', 'Cybersecurity & AI',         'Adversarial robustness, threat detection, privacy',            80),
+  ('data-science',  'Data Science',               'Statistical learning, analytics, data mining',                 90),
+  ('bio',           'Computational Biology',      'Genomics, protein structure, bioinformatics',                  100)
 on conflict (slug) do update
   set label = excluded.label,
       blurb = excluded.blurb,

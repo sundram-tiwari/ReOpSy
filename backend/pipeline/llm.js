@@ -4,32 +4,47 @@
  * Generate a catchy title using Gemini.
  */
 async function callGemini(prompt, apiKey) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-  const payload = {
-    contents: [{
-      role: 'user',
-      parts: [{ text: prompt }]
-    }],
-    generationConfig: {
-      temperature: 0.7
+  const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [{
+          role: 'user',
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7
+        }
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        lastError = new Error(`Gemini (${model}) Error: ${response.status} - ${errText}`);
+        continue;
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        lastError = new Error(`No text returned from Gemini (${model})`);
+        continue;
+      }
+      return text.trim().replace(/^["']|["']$/g, '');
+    } catch (err) {
+      lastError = err;
     }
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini Error: ${response.status} - ${errText}`);
   }
 
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('No text returned from Gemini');
-  return text.trim().replace(/^["']|["']$/g, '');
+  throw lastError || new Error('All Gemini models failed');
 }
 
 /**

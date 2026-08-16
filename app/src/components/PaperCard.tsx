@@ -12,11 +12,13 @@ const HEADER_OFFSET = 120;
 
 interface Props {
   paper: Paper;
+  cardHeight?: number;
 }
 
-export const PaperCard: React.FC<Props> = ({ paper }) => {
+export const PaperCard: React.FC<Props> = ({ paper, cardHeight }) => {
   const topicConfig = config.topics.find(t => paper.topics.includes(t.slug));
-  const topicLabel = topicConfig ? topicConfig.label : 'Research';
+  const topicLabel = topicConfig ? topicConfig.label : (paper.topics[0] ? (paper.topics[0] === 'custom' ? 'Custom Topic' : paper.topics[0]) : 'Research');
+  const topicIcon = topicConfig?.icon || 'book-open';
 
   const formatAuthors = (authors: string[]) => {
     if (!authors || authors.length === 0) return 'Unknown authors';
@@ -31,36 +33,42 @@ export const PaperCard: React.FC<Props> = ({ paper }) => {
   };
 
   return (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, cardHeight ? { height: cardHeight } : { minHeight: SCREEN_HEIGHT - HEADER_OFFSET }]}>
       <View style={styles.content}>
         
-        <View style={styles.tagContainer}>
-          <Feather name={(topicConfig?.icon || 'hash') as any} size={12} color={colors.textDim} style={{ marginRight: 4 }} />
-          <Text style={styles.tagText}>{topicLabel}</Text>
-        </View>
+        <View style={styles.topSection}>
+          <View style={styles.tagContainer}>
+            <Feather name={topicIcon as any} size={12} color={colors.textDim} style={{ marginRight: 4 }} />
+            <Text style={styles.tagText}>{topicLabel}</Text>
+          </View>
 
-        <Text style={styles.title}>
-          {paper.catchyTitle || paper.originalTitle}
-        </Text>
+          <Text style={styles.title}>
+            {paper.catchyTitle || paper.originalTitle}
+          </Text>
 
-        <Text style={styles.summary}>
-          {paper.summary}
-        </Text>
-
-        <View style={styles.metadataContainer}>
-          <Text style={styles.metadataText} numberOfLines={1}>
-            {formatAuthors(paper.authors)}{paper.year ? ` · ${paper.year}` : ''}{paper.venue ? ` · ${paper.venue}` : ''}
+          <Text style={styles.summary}>
+            {paper.summary}
           </Text>
         </View>
 
-        <TouchableOpacity 
-          style={styles.linkRow} 
-          onPress={handleOpenLink}
-          activeOpacity={0.7}
-        >
-          <Feather name="external-link" size={16} color={colors.textDim} />
-          <Text style={[styles.linkText, { marginLeft: spacing.s }]}>Credits & Paper Link</Text>
-        </TouchableOpacity>
+        <View style={styles.bottomSection}>
+          <View style={styles.metadataContainer}>
+            <Text style={styles.metadataText}>
+              {formatAuthors(paper.authors)}{paper.year ? ` · ${paper.year}` : ''}{paper.venue ? ` · ${paper.venue}` : ''}
+            </Text>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.linkRow} 
+            onPress={handleOpenLink}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Credits and Paper Link"
+          >
+            <Feather name="external-link" size={16} color={colors.textDim} />
+            <Text style={[styles.linkText, { marginLeft: spacing.s }]}>Credits & Paper Link</Text>
+          </TouchableOpacity>
+        </View>
 
       </View>
       
@@ -71,16 +79,21 @@ export const PaperCard: React.FC<Props> = ({ paper }) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    height: SCREEN_HEIGHT - HEADER_OFFSET,
     backgroundColor: colors.bg,
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
   content: {
     flex: 1,
-    padding: spacing.xl,
+    padding: spacing.l,
     paddingTop: spacing.m,
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
+  },
+  topSection: {
+    flexShrink: 1,
+  },
+  bottomSection: {
+    marginTop: spacing.s,
   },
   tagContainer: {
     alignSelf: 'flex-start',
@@ -98,18 +111,21 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h1,
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.text,
     marginBottom: spacing.s,
   },
   summary: {
     ...typography.body,
     fontSize: 16,
+    lineHeight: 24,
     fontWeight: 'normal',
     color: colors.textDim,
-    lineHeight: 28,
     marginBottom: spacing.m,
   },
   metadataContainer: {
-    marginBottom: spacing.m,
+    marginBottom: spacing.xs,
   },
   metadataText: {
     ...typography.caption,
@@ -118,8 +134,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
+    minHeight: 48,
     paddingVertical: spacing.s,
-    marginTop: spacing.m,
   },
   linkText: {
     ...typography.caption,

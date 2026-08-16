@@ -24,7 +24,12 @@ export const SavedScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={styles.backBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Go back"
+        >
           <Feather name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Saved Papers</Text>
@@ -48,11 +53,20 @@ export const SavedScreen = ({ navigation }: any) => {
               <TouchableOpacity 
                 style={styles.linkBtn} 
                 onPress={() => handleOpenLink(item.url)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.linkText}>Read full paper ↗</Text>
+                <Text style={styles.linkText}>Read full paper</Text>
+                <Feather name="external-link" size={14} color={colors.primary} style={{ marginLeft: 6 }} />
               </TouchableOpacity>
               
-              <TouchableOpacity onPress={() => handleUnsave(item)}>
+              <TouchableOpacity 
+                style={styles.trashBtn}
+                onPress={() => handleUnsave(item)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="Remove bookmark"
+              >
                 <Feather name="trash-2" size={20} color={colors.danger || '#ff4444'} />
               </TouchableOpacity>
             </View>
@@ -76,7 +90,10 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.cardBorder,
   },
   backBtn: {
-    padding: spacing.s,
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing.s,
   },
   headerTitle: {
@@ -110,6 +127,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
     borderRadius: 8,
+    minHeight: 48,
+    minWidth: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trashBtn: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   linkText: {
     ...typography.caption,

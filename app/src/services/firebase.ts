@@ -1,23 +1,51 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
-// Fill in firebaseConfig with your project's config from Firebase Console
+declare const process: {
+  env?: Record<string, string | undefined>;
+};
+
+// Support both EXPO_PUBLIC_* env vars and direct config fallback
+const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: env.EXPO_PUBLIC_FIREBASE_APP_ID || ""
 };
 
-export const isFirebaseConfigured = () => {
-  return firebaseConfig.apiKey !== "";
+/**
+ * Checks whether valid Firebase credentials have been provided.
+ * Returns false when running in unconfigured or offline mode.
+ */
+export const isFirebaseConfigured = (): boolean => {
+  return Boolean(
+    firebaseConfig.apiKey &&
+    firebaseConfig.apiKey.trim() !== "" &&
+    firebaseConfig.projectId &&
+    firebaseConfig.projectId.trim() !== ""
+  );
 };
 
-const app = isFirebaseConfigured() && !getApps().length ? initializeApp(firebaseConfig) : (getApps().length ? getApps()[0] : null);
-const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
 
-export { app, auth, db };
+if (isFirebaseConfigured()) {
+  try {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  } catch (error) {
+    console.warn("[Firebase] Initialization error:", error);
+    app = null;
+    auth = null;
+    db = null;
+  }
+}
+
+export { app, auth, db, firebaseConfig };

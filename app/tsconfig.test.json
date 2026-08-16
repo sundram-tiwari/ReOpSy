@@ -4,6 +4,7 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "ignoreDeprecations": "6.0",
     "lib": ["ES2022"],
     "outDir": "testbuild",
     "rootDir": "src",
@@ -18,5 +19,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/logic/**/*.ts", "src/types.ts"]
+  "include": ["src/logic/**/*.ts", "src/types.ts", "src/services/**/*.ts"]
 }

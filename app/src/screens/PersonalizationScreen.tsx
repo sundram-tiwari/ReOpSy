@@ -11,8 +11,13 @@ export const PersonalizationScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Personalization</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-          <Feather name="x" size={20} color={colors.text} />
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={styles.closeBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Close personalization"
+        >
+          <Feather name="x" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -40,9 +45,18 @@ export const PersonalizationScreen = ({ navigation }: any) => {
               <TouchableOpacity 
                 style={[styles.followBtn, isFollowing && styles.followingBtn]}
                 onPress={() => toggleTopic(topic.slug)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel={`${isFollowing ? 'Unfollow' : 'Follow'} ${topic.label}`}
               >
+                <Feather 
+                  name={isFollowing ? "check" : "plus"} 
+                  size={16} 
+                  color={isFollowing ? colors.text : colors.bg} 
+                  style={{ marginRight: 6 }} 
+                />
                 <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-                  {isFollowing ? '✓ Following' : '+ Follow'}
+                  {isFollowing ? 'Following' : 'Follow'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -66,6 +80,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.m,
     borderBottomWidth: 1,
     borderBottomColor: colors.cardBorder,
+    minHeight: 48,
   },
   headerTitle: {
     ...typography.h3,
@@ -73,8 +88,11 @@ const styles = StyleSheet.create({
   closeBtn: {
     position: 'absolute',
     right: spacing.m,
-    top: spacing.xl,
-    padding: spacing.s,
+    top: spacing.xl - 4,
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
@@ -86,6 +104,7 @@ const styles = StyleSheet.create({
     padding: spacing.l,
     borderBottomWidth: 1,
     borderBottomColor: colors.cardBorder,
+    minHeight: 48,
   },
   sectionTitle: {
     ...typography.h2,
@@ -98,6 +117,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.m,
     paddingHorizontal: spacing.l,
+    minHeight: 48,
   },
   topicInfo: {
     flex: 1,
@@ -112,10 +132,15 @@ const styles = StyleSheet.create({
     ...typography.caption,
   },
   followBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
     borderRadius: 20,
     backgroundColor: colors.text,
+    minHeight: 48,
+    minWidth: 48,
   },
   followingBtn: {
     backgroundColor: 'transparent',

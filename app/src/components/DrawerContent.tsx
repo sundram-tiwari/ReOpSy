@@ -41,7 +41,13 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
             </View>
           </>
         ) : (
-          <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
+          <TouchableOpacity 
+            style={styles.googleButton} 
+            onPress={signInWithGoogle}
+            activeOpacity={0.8}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Sign in with Google"
+          >
             <Feather name="log-in" size={20} color="#000" style={{ marginRight: spacing.s }} />
             <Text style={styles.googleButtonText}>Sign in with Google</Text>
           </TouchableOpacity>
@@ -74,7 +80,11 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
       <TouchableOpacity 
         style={styles.menuItem} 
         onPress={() => props.navigation.navigate('Personalization')}
+        activeOpacity={0.7}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityLabel="Personalize your feed"
       >
+        <Feather name="sliders" size={20} color={colors.text} style={{ marginRight: spacing.m }} />
         <Text style={styles.menuItemText}>Personalize your Feed</Text>
         <Text style={styles.badge}>Top picks</Text>
       </TouchableOpacity>
@@ -82,7 +92,11 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
       <TouchableOpacity 
         style={styles.menuItem} 
         onPress={() => props.navigation.navigate('Saved')}
+        activeOpacity={0.7}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityLabel="View saved papers"
       >
+        <Feather name="bookmark" size={20} color={colors.text} style={{ marginRight: spacing.m }} />
         <Text style={styles.menuItemText}>View Saved Papers</Text>
       </TouchableOpacity>
 
@@ -91,20 +105,35 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
       <TouchableOpacity 
         style={styles.menuItem}
         onPress={() => props.navigation.navigate('Settings')}
+        activeOpacity={0.7}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityLabel="Settings and support"
       >
         <Feather name="settings" size={20} color={colors.text} style={{ marginRight: spacing.m }} />
         <Text style={styles.menuItemText}>Settings & Support</Text>
       </TouchableOpacity>
       
-      <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+      <TouchableOpacity 
+        style={styles.menuItem} 
+        onPress={handleLogout}
+        activeOpacity={0.7}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        accessibilityLabel="Clear app data"
+      >
         <Feather name="trash-2" size={20} color={colors.danger} style={{ marginRight: spacing.m }} />
         <Text style={[styles.menuItemText, { color: colors.danger }]}>Clear App Data</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerLink}>Contact Us</Text>
-        <Text style={styles.footerLink}>Terms & Conditions</Text>
-        <Text style={styles.footerLink}>Privacy Policy</Text>
+        <TouchableOpacity style={styles.footerLinkTouch} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+          <Text style={styles.footerLink}>Contact Us</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerLinkTouch} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+          <Text style={styles.footerLink}>Terms & Conditions</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerLinkTouch} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+          <Text style={styles.footerLink}>Privacy Policy</Text>
+        </TouchableOpacity>
         <Text style={styles.version}>v2.0.0</Text>
       </View>
     </DrawerContentScrollView>
@@ -122,6 +151,7 @@ const styles = StyleSheet.create({
     padding: spacing.l,
     borderBottomWidth: 1,
     borderBottomColor: colors.cardBorder,
+    minHeight: 48,
   },
   avatar: {
     width: 50,
@@ -147,9 +177,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: spacing.m,
     borderRadius: 8,
     flex: 1,
+    minHeight: 48,
   },
   googleButtonText: {
     ...typography.body,
@@ -189,8 +221,9 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.l,
+    paddingVertical: spacing.m,
     paddingHorizontal: spacing.l,
+    minHeight: 48,
   },
   menuItemText: {
     ...typography.body,
@@ -214,9 +247,12 @@ const styles = StyleSheet.create({
     padding: spacing.l,
     marginTop: spacing.xl,
   },
+  footerLinkTouch: {
+    minHeight: 48,
+    justifyContent: 'center',
+  },
   footerLink: {
     ...typography.caption,
-    marginBottom: spacing.m,
   },
   version: {
     ...typography.small,
