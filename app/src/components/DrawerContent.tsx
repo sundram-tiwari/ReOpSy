@@ -17,26 +17,10 @@ const GoogleLogo = () => (
 );
 
 export const DrawerContent = (props: DrawerContentComponentProps) => {
-  const { streak, savedPapers, likedPapers, clearCache } = useAppState();
+  const { streak, savedPapers, likedPapers } = useAppState();
   const { user, signInWithGoogle, signOut } = useAuth();
 
-  const handleClearData = () => {
-    Alert.alert(
-      "Clear Data",
-      "This will remove all your saved papers, likes, and streak history. Are you sure?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Clear", 
-          style: "destructive", 
-          onPress: async () => {
-            await clearCache();
-            props.navigation.closeDrawer();
-          }
-        }
-      ]
-    );
-  };
+
 
   return (
     <DrawerContentScrollView {...props} style={styles.container}>
@@ -126,16 +110,6 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
         <Text style={styles.menuItemText}>Settings & Support</Text>
       </TouchableOpacity>
       
-      <TouchableOpacity 
-        style={styles.menuItem} 
-        onPress={handleClearData}
-        activeOpacity={0.7}
-        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-        accessibilityLabel="Clear app data"
-      >
-        <Feather name="trash-2" size={20} color={colors.danger} style={{ marginRight: spacing.m }} />
-        <Text style={[styles.menuItemText, { color: colors.danger }]}>Clear App Data</Text>
-      </TouchableOpacity>
 
       {user && (
         <TouchableOpacity 
