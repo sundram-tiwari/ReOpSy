@@ -257,7 +257,19 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!isLoaded) return;
 
     if (!user) {
-      lastHydratedUidRef.current = null;
+      if (lastHydratedUidRef.current !== null) {
+        // User just logged out, clear local cache to prevent data leaking
+        lastHydratedUidRef.current = null;
+        setFollowedTopics(['ml', 'ai-health']);
+        setActiveTopic('ml');
+        setSavedPapers([]);
+        setLikedPapers(new Set());
+        setStreak(initialStreak);
+        setOnboardingComplete(false);
+        setUserApiConfigState(null);
+        setCustomFeedDataState([]);
+        AsyncStorage.removeItem(STORAGE_KEY).catch(err => console.warn(err));
+      }
       return;
     }
 
