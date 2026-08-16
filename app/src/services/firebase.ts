@@ -6,16 +6,13 @@ declare const process: {
   env?: Record<string, string | undefined>;
 };
 
-// Support both EXPO_PUBLIC_* env vars and direct config fallback
-const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-
 const firebaseConfig = {
-  apiKey: env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "",
-  storageBucket: env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: env.EXPO_PUBLIC_FIREBASE_APP_ID || ""
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || ""
 };
 
 /**
