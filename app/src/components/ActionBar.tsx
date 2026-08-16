@@ -76,9 +76,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: spacing.m,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
-    backgroundColor: colors.card,
+    paddingBottom: spacing.l,
+    backgroundColor: colors.bg,
   },
   iconButton: {
     flexDirection: 'row',
@@ -89,6 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: colors.accent,
     minWidth: 60,
+    minHeight: 48,
   },
   likeLabel: {
     ...typography.bodyDim,

@@ -1,4 +1,5 @@
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useAppState } from '../state/AppState';
 import { colors, typography, spacing } from '../theme';
 
@@ -24,7 +25,7 @@ export const SavedScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <Feather name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Saved Papers</Text>
       </View>
@@ -52,7 +53,7 @@ export const SavedScreen = ({ navigation }: any) => {
               </TouchableOpacity>
               
               <TouchableOpacity onPress={() => handleUnsave(item)}>
-                <Text style={styles.deleteIcon}>🗑️</Text>
+                <Feather name="trash-2" size={20} color={colors.danger || '#ff4444'} />
               </TouchableOpacity>
             </View>
           </View>
@@ -77,10 +78,6 @@ const styles = StyleSheet.create({
   backBtn: {
     padding: spacing.s,
     marginRight: spacing.s,
-  },
-  backIcon: {
-    color: colors.text,
-    fontSize: 24,
   },
   headerTitle: {
     ...typography.h3,
@@ -118,9 +115,6 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.primary,
     fontWeight: '600',
-  },
-  deleteIcon: {
-    fontSize: 20,
   },
   empty: { ...typography.bodyDim, textAlign: 'center', marginTop: spacing.xxl }
 });

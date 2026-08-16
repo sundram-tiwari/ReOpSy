@@ -3,7 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Paper, StreakState } from '../types';
 import { initialStreak, recordActivity } from '../logic/streak';
 import dailyFeedJson from '../data/dailyFeed.json';
-
+import { useAuth } from '../hooks/useAuth';
+import { db, isFirebaseConfigured } from '../services/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 interface AppStateContext {
   followedTopics: string[];
   toggleTopic: (topic: string) => void;
@@ -21,6 +23,9 @@ interface AppStateContext {
   onboardingComplete: boolean;
   completeOnboarding: () => void;
   clearCache: () => Promise<void>;
+  userApiConfig: { provider: string; apiKey: string; endpoint?: string; customTopic?: string } | null;
+  setUserApiConfig: (config: { provider: string; apiKey: string; endpoint?: string; customTopic?: string } | null) => void;
+  clearUserApiConfig: () => void;
 }
 
 const AppContext = createContext<AppStateContext | null>(null);
@@ -32,7 +37,9 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [likedPapers, setLikedPapers] = useState<Set<string>>(new Set());
   const [streak, setStreak] = useState<StreakState>(initialStreak);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(false);
+  const [userApiConfig, setUserApiConfig] = useState<{ provider: string; apiKey: string; endpoint?: string; customTopic?: string } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { user } = useAuth();
 
   // Load feed from JSON
   const feedData = dailyFeedJson.topics as Record<string, Paper[]>;
@@ -47,6 +54,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setLikedPapers(new Set(parsed.likedPapers || []));
           setStreak(parsed.streak || initialStreak);
           setOnboardingComplete(parsed.onboardingComplete || false);
+          setUserApiConfig(parsed.userApiConfig || null);
           
           if (parsed.followedTopics && parsed.followedTopics.length > 0) {
              setActiveTopic(parsed.followedTopics[0]);
@@ -66,11 +74,16 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         savedPapers, 
         likedPapers: Array.from(likedPapers), 
         streak, 
-        onboardingComplete 
+        onboardingComplete,
+        userApiConfig 
       };
       AsyncStorage.setItem('reopsy_v2_state', JSON.stringify(stateToSave));
+      
+      if (user && isFirebaseConfigured() && db) {
+        setDoc(doc(db, 'users', user.uid), stateToSave, { merge: true }).catch(e => console.error("Failed to sync state to Firestore", e));
+      }
     }
-  }, [followedTopics, savedPapers, likedPapers, streak, onboardingComplete, isLoaded]);
+  }, [followedTopics, savedPapers, likedPapers, streak, onboardingComplete, userApiConfig, isLoaded, user]);
 
   const toggleTopic = (topic: string) => {
     setFollowedTopics(prev => {
@@ -140,7 +153,10 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       recordRead,
       onboardingComplete, 
       completeOnboarding: () => setOnboardingComplete(true),
-      clearCache
+      clearCache,
+      userApiConfig,
+      setUserApiConfig,
+      clearUserApiConfig: () => setUserApiConfig(null)
     }}>
       {children}
     </AppContext.Provider>

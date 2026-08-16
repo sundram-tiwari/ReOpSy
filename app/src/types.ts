@@ -7,9 +7,11 @@ export interface Paper {
   source: string;
   year: number | null;
   url: string;
+  venue: string | null;
   pdfUrl: string | null;
   topics: string[];
   likes: number;
+  contentLevel?: 1 | 2 | 3 | 4;
 }
 
 export interface Topic {

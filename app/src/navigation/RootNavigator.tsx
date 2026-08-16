@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FeedScreen } from '../screens/FeedScreen';
 import { SavedScreen } from '../screens/SavedScreen';
 import { PersonalizationScreen } from '../screens/PersonalizationScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { DrawerContent } from '../components/DrawerContent';
 import { colors } from '../theme';
 
@@ -54,6 +55,7 @@ export const RootNavigator = () => {
           options={{ presentation: 'modal' }}
         />
         <Stack.Screen name="Saved" component={SavedScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

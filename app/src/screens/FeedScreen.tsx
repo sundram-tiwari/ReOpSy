@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useAppState } from '../state/AppState';
 import { PaperCard } from '../components/PaperCard';
 import { TopicTabs } from '../components/TopicTabs';
@@ -8,8 +9,6 @@ import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const HEADER_OFFSET = 120; // Exact height of the card component
 
 type FeedScreenNavigationProp = CompositeNavigationProp<
   DrawerNavigationProp<any, 'Feed'>,
@@ -54,7 +53,7 @@ export const FeedScreen: React.FC<Props> = ({ navigation }) => {
           style={styles.menuButton} 
           onPress={() => navigation.openDrawer()}
         >
-          <Text style={styles.menuIcon}>☰</Text>
+          <Feather name="menu" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ReOpSy</Text>
         <View style={styles.placeholder} />
@@ -98,10 +97,6 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: spacing.s,
-  },
-  menuIcon: {
-    color: colors.text,
-    fontSize: 24,
   },
   headerTitle: {
     ...typography.h2,

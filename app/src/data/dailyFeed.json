@@ -1,8 +1,46 @@
 {
-  "generatedAt": "2026-08-15T10:20:01.720Z",
+  "generatedAt": "2026-08-16T06:25:46.777Z",
   "topics": {
-    "ml": [],
-    "dl": [],
+    "ml": [
+      {
+        "id": "dummy-ml-1786861552822",
+        "originalTitle": "No recent papers for ml",
+        "catchyTitle": "Check back later for ml",
+        "summary": "We could not find any recent papers for ml at this time.",
+        "authors": [
+          "ReOpSy System"
+        ],
+        "source": "system",
+        "year": 2026,
+        "venue": "System Notification",
+        "url": "#",
+        "pdfUrl": null,
+        "topics": [
+          "ml"
+        ],
+        "likes": 0
+      }
+    ],
+    "dl": [
+      {
+        "id": "dummy-dl-1786861557117",
+        "originalTitle": "No recent papers for dl",
+        "catchyTitle": "Check back later for dl",
+        "summary": "We could not find any recent papers for dl at this time.",
+        "authors": [
+          "ReOpSy System"
+        ],
+        "source": "system",
+        "year": 2026,
+        "venue": "System Notification",
+        "url": "#",
+        "pdfUrl": null,
+        "topics": [
+          "dl"
+        ],
+        "likes": 0
+      }
+    ],
     "nlp": [
       {
         "id": "oa:W7126018663",
@@ -14,6 +52,7 @@
         ],
         "source": "openalex",
         "year": 2026,
+        "venue": null,
         "url": "https://doi.org/10.5281/zenodo.18418625",
         "pdfUrl": null,
         "topics": [
@@ -36,6 +75,7 @@
         ],
         "source": "openalex",
         "year": 2026,
+        "venue": null,
         "url": "https://doi.org/10.5281/zenodo.17611079",
         "pdfUrl": null,
         "topics": [
@@ -55,6 +95,7 @@
         ],
         "source": "openalex",
         "year": 2026,
+        "venue": null,
         "url": "https://doi.org/10.5281/zenodo.18210304",
         "pdfUrl": null,
         "topics": [
@@ -72,6 +113,7 @@
         ],
         "source": "openalex",
         "year": 2026,
+        "venue": null,
         "url": "https://doi.org/10.5281/zenodo.21757274",
         "pdfUrl": null,
         "topics": [
@@ -80,9 +122,66 @@
         "likes": 0
       }
     ],
-    "ai-health": [],
-    "llm": [],
-    "robotics": [],
+    "ai-health": [
+      {
+        "id": "dummy-ai-health-1786861585229",
+        "originalTitle": "No recent papers for ai-health",
+        "catchyTitle": "Check back later for ai-health",
+        "summary": "We could not find any recent papers for ai-health at this time.",
+        "authors": [
+          "ReOpSy System"
+        ],
+        "source": "system",
+        "year": 2026,
+        "venue": "System Notification",
+        "url": "#",
+        "pdfUrl": null,
+        "topics": [
+          "ai-health"
+        ],
+        "likes": 0
+      }
+    ],
+    "llm": [
+      {
+        "id": "dummy-llm-1786861599941",
+        "originalTitle": "No recent papers for llm",
+        "catchyTitle": "Check back later for llm",
+        "summary": "We could not find any recent papers for llm at this time.",
+        "authors": [
+          "ReOpSy System"
+        ],
+        "source": "system",
+        "year": 2026,
+        "venue": "System Notification",
+        "url": "#",
+        "pdfUrl": null,
+        "topics": [
+          "llm"
+        ],
+        "likes": 0
+      }
+    ],
+    "robotics": [
+      {
+        "id": "dummy-robotics-1786861604376",
+        "originalTitle": "No recent papers for robotics",
+        "catchyTitle": "Check back later for robotics",
+        "summary": "We could not find any recent papers for robotics at this time.",
+        "authors": [
+          "ReOpSy System"
+        ],
+        "source": "system",
+        "year": 2026,
+        "venue": "System Notification",
+        "url": "#",
+        "pdfUrl": null,
+        "topics": [
+          "robotics"
+        ],
+        "likes": 0
+      }
+    ],
     "cybersecurity": [
       {
         "id": "oa:W7164999407",
@@ -95,6 +194,7 @@
         ],
         "source": "openalex",
         "year": 2027,
+        "venue": null,
         "url": "https://doi.org/10.5281/zenodo.20737148",
         "pdfUrl": null,
         "topics": [
@@ -103,7 +203,26 @@
         "likes": 0
       }
     ],
-    "data-science": [],
+    "data-science": [
+      {
+        "id": "dummy-data-science-1786861619528",
+        "originalTitle": "No recent papers for data-science",
+        "catchyTitle": "Check back later for data-science",
+        "summary": "We could not find any recent papers for data-science at this time.",
+        "authors": [
+          "ReOpSy System"
+        ],
+        "source": "system",
+        "year": 2026,
+        "venue": "System Notification",
+        "url": "#",
+        "pdfUrl": null,
+        "topics": [
+          "data-science"
+        ],
+        "likes": 0
+      }
+    ],
     "bio": [
       {
         "id": "oa:W7123291006",
@@ -118,6 +237,7 @@
         ],
         "source": "openalex",
         "year": 2029,
+        "venue": null,
         "url": "https://doi.org/10.5281/zenodo.18221759",
         "pdfUrl": null,
         "topics": [

@@ -49,7 +49,7 @@ export const PaperCard: React.FC<Props> = ({ paper }) => {
 
         <View style={styles.metadataContainer}>
           <Text style={styles.metadataText} numberOfLines={1}>
-            {formatAuthors(paper.authors)} · {paper.source} {paper.year ? `· ${paper.year}` : ''}
+            {formatAuthors(paper.authors)}{paper.year ? ` · ${paper.year}` : ''}{paper.venue ? ` · ${paper.venue}` : ''}
           </Text>
         </View>
 
@@ -58,7 +58,7 @@ export const PaperCard: React.FC<Props> = ({ paper }) => {
           onPress={handleOpenLink}
           activeOpacity={0.7}
         >
-          <Feather name="external-link" size={20} color={colors.primary} />
+          <Feather name="external-link" size={16} color={colors.textDim} />
           <Text style={[styles.linkText, { marginLeft: spacing.s }]}>Credits & Paper Link</Text>
         </TouchableOpacity>
 
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.xl,
     paddingTop: spacing.m,
-    justifyContent: 'flex-start',
+    justifyContent: 'space-evenly',
   },
   tagContainer: {
     alignSelf: 'flex-start',
@@ -102,6 +102,8 @@ const styles = StyleSheet.create({
   },
   summary: {
     ...typography.body,
+    fontSize: 16,
+    fontWeight: 'normal',
     color: colors.textDim,
     lineHeight: 28,
     marginBottom: spacing.m,
@@ -114,15 +116,13 @@ const styles = StyleSheet.create({
   },
   linkRow: {
     flexDirection: 'row',
-    backgroundColor: colors.accent,
-    padding: spacing.m,
-    borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingVertical: spacing.s,
+    marginTop: spacing.m,
   },
   linkText: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: '600',
+    ...typography.caption,
+    color: colors.textDim,
   },
 });

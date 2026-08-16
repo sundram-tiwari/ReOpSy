@@ -1,10 +1,13 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { DrawerContentScrollView, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { useAppState } from '../state/AppState';
+import { useAuth } from '../hooks/useAuth';
 import { colors, spacing, typography } from '../theme';
+import { Feather } from '@expo/vector-icons';
 
 export const DrawerContent = (props: DrawerContentComponentProps) => {
   const { streak, savedPapers, likedPapers, clearCache } = useAppState();
+  const { user, signInWithGoogle } = useAuth();
 
   const handleLogout = () => {
     Alert.alert(
@@ -27,20 +30,29 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
   return (
     <DrawerContentScrollView {...props} style={styles.container}>
       <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>R</Text>
-        </View>
-        <View>
-          <Text style={styles.appName}>ReOpSy</Text>
-          <Text style={styles.profileEmail}>research@reopsy.com</Text>
-        </View>
+        {user ? (
+          <>
+            <View style={styles.avatar}>
+              {user.photoURL ? null : <Text style={styles.avatarText}>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</Text>}
+            </View>
+            <View>
+              <Text style={styles.appName}>{user.displayName || 'User'}</Text>
+              <Text style={styles.profileEmail}>{user.email}</Text>
+            </View>
+          </>
+        ) : (
+          <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
+            <Feather name="log-in" size={20} color="#000" style={{ marginRight: spacing.s }} />
+            <Text style={styles.googleButtonText}>Sign in with Google</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Daily Digest</Text>
         <Text style={styles.cardBody}>
           {streak.current > 0 
-            ? `🔥 ${streak.current} day streak! Keep it up.` 
+            ? <><Feather name="zap" size={14} color={colors.primary} /> {streak.current} day streak! Keep it up.</> 
             : 'Read a paper today to start your streak.'}
         </Text>
       </View>
@@ -76,11 +88,16 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
 
       <View style={styles.divider} />
 
-      <TouchableOpacity style={styles.menuItem}>
+      <TouchableOpacity 
+        style={styles.menuItem}
+        onPress={() => props.navigation.navigate('Settings')}
+      >
+        <Feather name="settings" size={20} color={colors.text} style={{ marginRight: spacing.m }} />
         <Text style={styles.menuItemText}>Settings & Support</Text>
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+        <Feather name="trash-2" size={20} color={colors.danger} style={{ marginRight: spacing.m }} />
         <Text style={[styles.menuItemText, { color: colors.danger }]}>Clear App Data</Text>
       </TouchableOpacity>
 
@@ -125,6 +142,19 @@ const styles = StyleSheet.create({
   },
   profileEmail: {
     ...typography.caption,
+  },
+  googleButton: {
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.m,
+    borderRadius: 8,
+    flex: 1,
+  },
+  googleButtonText: {
+    ...typography.body,
+    color: '#000',
+    fontWeight: 'bold',
   },
   card: {
     backgroundColor: colors.card,

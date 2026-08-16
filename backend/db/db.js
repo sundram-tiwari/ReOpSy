@@ -22,11 +22,16 @@ db.serialize(() => {
       authors TEXT,
       source TEXT,
       year INTEGER,
+      venue TEXT,
       url TEXT,
       pdfUrl TEXT,
       fetchedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  // Try to add venue column if it doesn't exist
+  db.run(`ALTER TABLE papers ADD COLUMN venue TEXT`, (err) => {
+    // Ignore error if column already exists
+  });
 });
 
 /**
@@ -36,8 +41,8 @@ function insertPaper(topic, paper) {
   return new Promise((resolve, reject) => {
     const stmt = db.prepare(`
       INSERT OR IGNORE INTO papers (
-        id, topic, originalTitle, catchyTitle, summary, authors, source, year, url, pdfUrl
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, topic, originalTitle, catchyTitle, summary, authors, source, year, venue, url, pdfUrl
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -49,6 +54,7 @@ function insertPaper(topic, paper) {
       JSON.stringify(paper.authors || []),
       paper.source,
       paper.year,
+      paper.venue,
       paper.url,
       paper.pdfUrl,
       function(err) {
@@ -78,6 +84,7 @@ function getLatestPapersForTopic(topic, limit = 10) {
           authors: JSON.parse(row.authors),
           source: row.source,
           year: row.year,
+          venue: row.venue,
           url: row.url,
           pdfUrl: row.pdfUrl,
           topics: [row.topic], // Map DB structure to App type

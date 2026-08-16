@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useAppState } from '../state/AppState';
 import { config } from '../config';
 import { colors, spacing, typography } from '../theme';
@@ -11,7 +12,7 @@ export const PersonalizationScreen = ({ navigation }: any) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Personalization</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-          <Text style={styles.closeIcon}>✕</Text>
+          <Feather name="x" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -21,7 +22,7 @@ export const PersonalizationScreen = ({ navigation }: any) => {
             <Text style={typography.body}>Alerts</Text>
             <Text style={typography.caption}>Big updates only</Text>
           </View>
-          <Text style={styles.chevron}>›</Text>
+          <Feather name="chevron-right" size={24} color={colors.textDim} />
         </View>
 
         <Text style={styles.sectionTitle}>Topics for you</Text>
@@ -32,7 +33,7 @@ export const PersonalizationScreen = ({ navigation }: any) => {
           return (
             <View key={topic.slug} style={styles.topicRow}>
               <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>{topic.emoji} {topic.label}</Text>
+                <Text style={styles.topicName}>{topic.label}</Text>
                 <Text style={styles.topicFollowers}>{topic.blurb}</Text>
               </View>
               
@@ -75,10 +76,6 @@ const styles = StyleSheet.create({
     top: spacing.xl,
     padding: spacing.s,
   },
-  closeIcon: {
-    color: colors.text,
-    fontSize: 20,
-  },
   content: {
     flex: 1,
   },
@@ -89,10 +86,6 @@ const styles = StyleSheet.create({
     padding: spacing.l,
     borderBottomWidth: 1,
     borderBottomColor: colors.cardBorder,
-  },
-  chevron: {
-    color: colors.textDim,
-    fontSize: 24,
   },
   sectionTitle: {
     ...typography.h2,
