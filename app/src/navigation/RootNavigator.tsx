@@ -5,11 +5,20 @@ import { FeedScreen } from '../screens/FeedScreen';
 import { SavedScreen } from '../screens/SavedScreen';
 import { PersonalizationScreen } from '../screens/PersonalizationScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { AdminScreen } from '../screens/AdminScreen';
 import { DrawerContent } from '../components/DrawerContent';
 import { colors } from '../theme';
 
+export type RootStackParamList = {
+  MainDrawer: undefined;
+  Personalization: undefined;
+  Saved: undefined;
+  Settings: undefined;
+  Admin: undefined;
+};
+
 const Drawer = createDrawerNavigator();
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const DrawerNavigator = () => {
   return (
@@ -56,7 +65,9 @@ export const RootNavigator = () => {
         />
         <Stack.Screen name="Saved" component={SavedScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Admin" component={AdminScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
+

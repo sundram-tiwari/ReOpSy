@@ -1,49 +1,38 @@
-# BRIEFING — 2026-08-16T06:43:00Z
+# BRIEFING — 2026-08-16T11:45:00Z
 
 ## Mission
-Investigate Authentication, Firestore persistence, local storage, Settings screen, and API Key management across `app/` and `backend/` for ReOpSy Version 2 (R2, R4, R5).
+Explore the full ReOpSy workspace to enumerate all features (R1-R6), interface contracts, existing test harnesses, and design the comprehensive 4-tier E2E testing framework strategy.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: investigator, synthesizer
+- Roles: survey_explorer_3, feature_inventory, e2e_testing_specialist
 - Working directory: d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3
-- Original parent: 171058dd-3756-4f39-b6da-6cabf5623d41
-- Milestone: ReOpSy V2 Auth, State, Settings & Security Investigation
+- Original parent: d59e47a6-65c1-40b7-93f6-3ce57c9ea5dd
+- Milestone: Teamwork Preview Survey Phase
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement
-- Multi-level data architecture (R5) and security (API keys never logged or leaked)
-- Offline/logged-out fallback to AsyncStorage
-- Custom topic live fetch without disrupting defaults (R4)
+- Read-only investigation — do NOT implement application code
+- Output handoff.md in working directory
+- Notify orchestrator via send_message when done
 
 ## Current Parent
-- Conversation ID: 171058dd-3756-4f39-b6da-6cabf5623d41
-- Updated: 2026-08-16T06:43:00Z
+- Conversation ID: d59e47a6-65c1-40b7-93f6-3ce57c9ea5dd
+- Updated: 2026-08-16T11:45:00Z
 
 ## Investigation State
-- **Explored paths**:
-  - `app/src/services/firebase.ts`, `app/src/hooks/useAuth.ts`
-  - `app/src/state/AppState.tsx`, `app/src/types.ts`, `app/src/config.ts`
-  - `app/src/screens/SettingsScreen.tsx`, `app/src/screens/FeedScreen.tsx`, `app/src/screens/PersonalizationScreen.tsx`
-  - `app/src/components/TopicTabs.tsx`, `app/src/components/DrawerContent.tsx`
-  - `backend/pipeline/fetchAndSummarize.js`, `backend/pipeline/llm.js`, `backend/db/db.js`
+- **Explored paths**: `app/src/`, `backend/pipeline/`, `tests/`, `tests/helpers/`, `firestore.rules`, `.agents/ORIGINAL_REQUEST.md`, `TEST_INFRA.md`
 - **Key findings**:
-  - Identified 7 distinct gaps across R2, R4, and R5.
-  - G-01: Missing Firestore remote profile fetch (`getDoc`) on user login in `AppState.tsx`.
-  - G-02: Connection testing in `SettingsScreen.tsx` is currently a static alert stub.
-  - G-03: Settings API Key input lacks eye visibility toggle and masked bullet preview.
-  - G-04 & G-05: Missing live custom topic fetch pipeline (`customTopicFetcher.ts`) and missing dynamic custom topic tab in `TopicTabs.tsx`.
-  - G-06: Security rules and error-sanitization protocols needed to prevent API key leaks.
-  - Formulated 4-level content architecture model (Levels 1–4) and complete schema specifications.
-- **Unexplored areas**: None within the assigned Explorer 3 scope.
+  - Full inventory of 6 features (R1 Admin Auth & Whitelist, R2 Admin UI Dark Theme, R3 Flashcard Inline CRUD, R4 Pipeline Control & Queue, R5 API Usage Dashboard, R6 Prompt Editor & Whitelist) completed with exact functional boundaries.
+  - Interface contracts established for 7 Firestore collections (`admins`, `config`, `content`, `pipeline_runs`, `pipeline_queue`, `api_usage`, `users`), env vars, `useAuth` hook, and navigation routes.
+  - Complete 4-tier E2E testing architecture designed with 30+ Tier 1 tests, 30+ Tier 2 tests, 5 Tier 3 cross-feature combinations, and 3 Tier 4 real-world user scenarios.
+- **Unexplored areas**: None (Full survey complete).
 
 ## Key Decisions Made
-- Provided complete implementation specifications for `apiValidator.ts` and `customTopicFetcher.ts`.
-- Outlined Firestore schema (`/users/{userId}`) and security rules for strict user isolation.
-- Verified all acceptance criteria commands (`npx tsc --noEmit`, `npx expo export -p web`, `fetchAndSummarize.js --dry`).
+- Authored full survey report in `handoff.md` adhering to 5-component handoff protocol.
+- Detailed the async queue architecture between static Render web build and Firestore (`pipeline_queue` / `pipeline_runs`).
 
 ## Artifact Index
-- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/DISPATCH.md` — Incoming dispatches log
-- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/BRIEFING.md` — Persistent working memory
-- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/progress.md` — Activity and liveness log
-- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/handoff.md` — Full 5-component investigation report
+- d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/DISPATCH.md — Received task prompt
+- d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/BRIEFING.md — Working state and memory
+- d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/progress.md — Liveness heartbeat
+- d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_3/handoff.md — Final survey report

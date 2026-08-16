@@ -1,107 +1,85 @@
-# Project: ReOpSy Version 2
+# Project: ReOpSy "Mission Control" Admin Panel & Pipeline Integration
 
 ## Architecture
-ReOpSy Version 2 is a personalized, mobile-first flashcard platform for academic research papers. It comprises:
-1. **Backend Pipeline (`backend/`)**:
-   - Automated ingestion from OpenAlex and arXiv.
-   - Semantic Scholar API client for free extractive `tldr` extraction.
-   - Multi-LLM fallback engine (`Gemini -> Mistral -> Grok -> original title`) generating catchy titles and mobile-friendly flashcard summaries.
-   - SQLite persistent storage (`backend/db/data/database.sqlite`) retaining multi-topic research papers.
-   - Dry-run verification script (`node pipeline/fetchAndSummarize.js --dry`).
-2. **Frontend App (`app/`)**:
-   - React Native & Expo SDK 57 cross-platform client (iOS, Android, Web).
-   - Snap-scrolling flashcard feed with 48px touch targets, Feather vector icons, and seamless action bar footer.
-   - Firebase Auth Google sign-in and Firestore synchronization with zero-downtime offline `AsyncStorage` fallback.
-   - Settings UI for custom LLM API keys (Gemini, Mistral, Grok, Custom) with masked input and real connection validation.
-   - Live custom research topic search (arXiv + client LLM synthesis) isolated in a dedicated `"custom"` feed tab.
-3. **Multi-Level Content Architecture**:
-   - Level 1: Predefined 10 default topics shipped via `dailyFeed.json` & SQLite cache.
-   - Level 2: User-customized followed topics and bookmarks in Firestore / AsyncStorage.
-   - Level 3: User BYO-API credentials stored securely in private user document.
-   - Level 4: Highly specific live research queries synthesized on-demand without impacting default categories.
-
----
+- **Client Frontend**: Expo SDK 57 / React Native 0.86 / React 19 / React Native Web.
+  - Auth: Modular Firebase Web Auth (`useAuth.ts`), checking `EXPO_PUBLIC_ADMIN_EMAIL` and Firestore `admins/{email}`.
+  - Navigation: `@react-navigation/drawer` & `@react-navigation/native-stack`. Conditional "Mission Control" (Feather `shield` icon) in `DrawerContent.tsx` rendered strictly when `isAdmin === true`. Route `Admin` registered in `RootNavigator.tsx` with authorization guard.
+  - UI Shell & Theme: `AdminScreen.tsx` using `app/src/theme.ts` tokens (`#000000` bg, `#121212` card, `#2a2a2a` cardBorder, `#1d9bf0` primary, Feather icons, 48px touch targets). 4 Tab sections:
+    1. Flashcard Manager (`dailyFeed.json` grouped by topic, inline CRUD, Firestore `content` persistence, delete confirmation, search/filter).
+    2. Pipeline Control (10 topics trigger fetch via Firestore `pipeline_queue`, last run stats from `pipeline_runs`).
+    3. API Usage Dashboard (Summary cards + daily breakdown table from Firestore `api_usage`).
+    4. Settings & Config (System prompt editor for Firestore `config/system_prompt`, Super Admin dynamic whitelist manager for Firestore `admins`).
+- **Backend & Pipeline**: Node.js / Firestore Admin/Client SDK.
+  - `backend/pipeline/fetchAndSummarize.js`: Logs run execution metadata (timestamp, paper counts per topic, errors) to Firestore `pipeline_runs`. Reads pending tasks from `pipeline_queue`.
+  - `backend/pipeline/llm.js`: Dynamic system prompt retrieval from Firestore `config/system_prompt` (with fallback to hardcoded line 120 default). Logs every LLM API call (provider, status, timestamp, tokens) to Firestore `api_usage`.
+- **Security & Rules**: `app/firestore.rules` updated to restrict `admins`, `config`, `pipeline_runs`, `pipeline_queue`, `api_usage` to authenticated admin users only; `content` overrides read-only for public, write-only for admins; `users/{uid}` owner-only.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Predefined 10 Topics Feed | All 10 topics (`ml`, `dl`, `nlp`, `cv`, `ai-health`, `llm`, `robotics`, `cybersecurity`, `data-science`, `bio`) populated with real papers | M1 | ORIGINAL_REQUEST R1 |
-| 2 | Ingest Filter & Summary Fix | Fix `fetchAndSummarize.js` filter so non-CC-BY papers with abstracts/summaries are not dropped | M1 | Survey Explorer 1 |
-| 3 | Semantic Scholar TLDR | Fetch paper TLDR via Semantic Scholar API with 600ms rate limiting and fallback to extractive summary | M1 | ORIGINAL_REQUEST R1 |
-| 4 | Multi-LLM Fallback Chaining | Sequential title generation: `Gemini -> Mistral -> Grok -> original title` | M1 | ORIGINAL_REQUEST R1 |
-| 5 | SQLite Schema & Multi-Topic Key | Table `papers` with `PRIMARY KEY (id, topic)` and updated 10 topics seed schema | M1 | Survey Explorer 1 / R5 |
-| 6 | Dry Run CLI Processing | `node pipeline/fetchAndSummarize.js --dry` processes all 10 topics with 0 fatal errors | M1 | ORIGINAL_REQUEST Criteria |
-| 7 | Google Auth (Firebase Auth) | Google login support via Firebase Auth with user profile management | M2 | ORIGINAL_REQUEST R2 |
-| 8 | Firestore Remote Hydration | On Google login, hydrate profile, followed topics, bookmarks, likes, streak, and API config via `getDoc` | M2 | Survey Explorer 3 / R2 |
-| 9 | AsyncStorage Offline Fallback | Graceful local fallback when logged out or offline with zero crash risk | M2 | ORIGINAL_REQUEST R2 |
-| 10 | Mobile Snap-Scrolling | Precise viewport height measurement (`onLayout`), `snapToInterval`, `snapToAlignment="start"`, and `decelerationRate="fast"` | M3 | ORIGINAL_REQUEST R3 |
-| 11 | Touch Target Accessibility | Ensure all interactive buttons, tabs, pills, and links have minimum bounding box `>= 48x48px` | M3 | ORIGINAL_REQUEST R3 |
-| 12 | Feather Vector Icon Standardization | Replace all emoji literals and Unicode glyphs with `@expo/vector-icons` Feather components | M3 | ORIGINAL_REQUEST R3 |
-| 13 | Seamless Footer Action Area | Footer action bar seamlessly integrated into card background with safe-area insets | M3 | ORIGINAL_REQUEST R3 |
-| 14 | Typography Parity | Identical 16px font size for title and summary, no summary truncation | M3 | ORIGINAL_REQUEST R3 |
-| 15 | Settings Screen for API Keys | UI to configure Gemini, Mistral, Grok, or Custom API key with masked input and eye toggle | M4 | ORIGINAL_REQUEST R4 |
-| 16 | Live API Validator | Real HTTP health-check ping against Gemini, Mistral, Grok, or Custom endpoint (`apiValidator.ts`) | M4 | Survey Explorer 3 / R4 |
-| 17 | Custom Topic Live Fetcher | Search arXiv API for user custom query and synthesize flashcards via user LLM key (`customTopicFetcher.ts`) | M4 | ORIGINAL_REQUEST R4 |
-| 18 | Dynamic Custom Topic Tab | Dedicated `"custom"` pill in `TopicTabs.tsx` rendering custom paper deck without altering default categories | M4 | Survey Explorer 3 / R4 |
-| 19 | Secure Key Storage & Sanitization | Owner-only Firestore rules (`users/{userId}`), error log sanitization, no client log leaks | M4 | ORIGINAL_REQUEST R5 |
-| 20 | E2E Automated Test Suite | Comprehensive Tiers 1-4 tests (Category Partition, Boundary, Combinatorial, Real-World Workload) | E2E Track | ORIGINAL_REQUEST Criteria |
-| 21 | Programmatic Acceptance Verification | Run and pass `npx tsc --noEmit`, `npx expo export -p web`, and `fetchAndSummarize.js --dry` | M5 | ORIGINAL_REQUEST Criteria |
-
----
+| F1 | Admin Auth & Dynamic Whitelist | `useAuth` hook exposes `isAdmin`, checks `EXPO_PUBLIC_ADMIN_EMAIL` and Firestore `admins` | M1 | R1 |
+| F2 | Firestore Security Rules | Restrict `admins`, `config`, `pipeline_runs`, `pipeline_queue`, `api_usage`, `content` | M1 | R1, R6 |
+| F3 | Zero-DOM Leakage Navigation | Conditional Drawer item with Feather `shield` icon, zero DOM traces for non-admins | M2 | R1, R2 |
+| F4 | Admin Panel Shell & Dark Theme | `AdminScreen.tsx` with 4 tabs, theme tokens, Feather icons, 48px touch targets | M2 | R2 |
+| F5 | Flashcard Manager Inline CRUD | Grouped by 10 topics, inline editing of catchy title, summary, source, delete confirmation, search bar | M2 | R3 |
+| F6 | Flashcard Firestore Persistence | Edits and deletions persist to Firestore `content` collection and update UI feed | M2 | R3 |
+| F7 | Pipeline Run Logging | `fetchAndSummarize.js` logs timestamp, per-topic paper counts, errors to `pipeline_runs` | M3 | R4 |
+| F8 | Pipeline Control UI & Queue | Status display of last run + "Trigger Fetch" button per topic writing to `pipeline_queue` | M3 | R4 |
+| F9 | LLM API Usage Logging | `llm.js` logs provider (Gemini/Mistral/Grok), success/failure, timestamp to `api_usage` | M3 | R5 |
+| F10 | API Usage Dashboard UI | Daily aggregation table showing date, provider, total calls, successes, failures | M3 | R5 |
+| F11 | System Prompt Editor & Dynamic Loader | Text editor for title prompt stored in Firestore `config/system_prompt`, read dynamically in `llm.js` | M4 | R6 |
+| F12 | Admin Whitelist UI Manager | Super Admin UI to list, add, and remove admin emails in Firestore `admins` | M4 | R6 |
+| F13 | Full E2E Test Suite & Verification | Pass 100% E2E tests (Tiers 1-4) + Adversarial Coverage Hardening (Tier 5) + `tsc` + `expo export` | M5 | Acceptance Criteria |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| E2E | E2E Testing Suite | Test harness, unit tests, integration tests across Tiers 1-4 | none | **DONE** |
-| M1 | Backend Pipeline & Content | Predefined 10 topics, filter fix, Semantic Scholar TLDR, multi-LLM fallback, SQLite multi-topic schema | none | **DONE** |
-| M2 | Auth & Cloud Persistence | Firebase Google Auth, Firestore hydration on login, AsyncStorage fallback | none | **DONE** |
-| M3 | Mobile-First Flashcard UX | Snap-scrolling, >=48px touch targets, Feather icons, seamless footer, typography parity | none | **DONE** |
-| M4 | Settings & Custom Live Topic | User API keys UI, masked input, live API validator, custom topic live fetcher, dynamic custom tab, security | M2, M3 | **DONE** |
-| M5 | Final Programmatic & E2E Gate | Pass 100% E2E tests, `npx tsc`, `expo export -p web`, `fetchAndSummarize.js --dry`, Forensic Audit | M1, M2, M3, M4, E2E | **DONE** |
-
----
+| M1 | Auth, Permissions & Security | `useAuth.ts`, `EXPO_PUBLIC_ADMIN_EMAIL`, Firestore `admins` lookup, `app/firestore.rules` | none | DONE |
+| M2 | Navigation, Admin Shell & Flashcards | `RootNavigator.tsx`, `DrawerContent.tsx`, `AdminScreen.tsx`, Flashcard CRUD, Firestore `content` | M1 | DONE |
+| M3 | Pipeline Control & API Usage | `fetchAndSummarize.js`, `llm.js` usage logging, Pipeline & API Usage UI sections | M1 | DONE |
+| M4 | System Prompt Editor & Whitelist Manager | Settings section, Firestore `config` prompt in `llm.js`, Whitelist CRUD UI | M1, M2 | DONE |
+| M5 | E2E Integration, 100% Pass & Tier 5 Hardening | E2E test verification (Tiers 1-4), Tier 5 adversarial testing, `tsc`, `expo export -p web` | M1, M2, M3, M4 | DONE |
 
 ## Interface Contracts
 
-### 1. Backend Pipeline (`backend/pipeline/fetchAndSummarize.js`)
-- `fetchAndSummarize(options: { dryRun?: boolean, outputFeedPath?: string }): Promise<{ success: boolean, topicsProcessed: number, totalPapers: number }>`
-- Multi-LLM fallback: `generateCatchyTitle(originalTitle: string, summary: string, apiKeys: { gemini?: string, mistral?: string, xai?: string }): Promise<{ catchyTitle: string, provider: string }>`
-- Semantic Scholar TLDR: `fetchTldr(paperTitle: string): Promise<string | null>`
+### 1. `useAuth.ts` ↔ Navigation & Components
+```typescript
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  adminLoading: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  error: string | null;
+  isConfigured: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
+```
 
-### 2. State & Storage Contract (`app/src/state/AppState.tsx`)
-- `AppState`: `{ followedTopics: string[], activeTopic: string, savedPapers: Paper[], likedPapers: string[], streak: StreakState, userApiConfig: UserApiConfig | null, customFeedData: Paper[], isLoaded: boolean }`
-- Sync Protocol:
-  - Writes to `AsyncStorage.setItem('reopsy_v2_state', ...)` on any mutation.
-  - If authenticated: `setDoc(doc(db, 'users', user.uid), state, { merge: true })`.
-  - On auth change (`user` becomes non-null): calls `getDoc(doc(db, 'users', user.uid))` to merge cloud state into local state.
+### 2. Firestore Document Schemas
+- `admins/{email}`: `{ email: string, addedAt: string, addedBy: string }`
+- `config/system_prompt`: `{ prompt: string, updatedAt: string, updatedBy: string }`
+- `pipeline_runs/{runId}`: `{ runId: string, timestamp: string, topicCounts: Record<string, number>, totalPapers: number, errors: string[], status: 'success' | 'partial' | 'failed' }`
+- `pipeline_queue/{queueId}`: `{ topic: string, requestedAt: string, status: 'pending' | 'processing' | 'completed', requestedBy: string }`
+- `api_usage/{usageId}`: `{ id: string, timestamp: string, date: string, provider: 'Gemini' | 'Mistral' | 'Grok', success: boolean, error?: string, tokenCount?: number }`
+- `content/dailyFeed`: `{ generatedAt: string, topics: Record<string, Paper[]>, updatedAt: string, updatedBy: string }`
 
-### 3. API Validator Contract (`app/src/services/apiValidator.ts`)
-- `validateApiConnection(config: { provider: 'Gemini' | 'Mistral' | 'Grok' | 'Custom', apiKey: string, endpoint?: string }): Promise<{ success: boolean, message: string }>`
-
-### 4. Custom Topic Fetcher Contract (`app/src/services/customTopicFetcher.ts`)
-- `fetchCustomTopicPapers(topicQuery: string, apiConfig: UserApiConfig): Promise<Paper[]>`
-
----
+### 3. `llm.js` Dynamic Config Contract
+```javascript
+// Function to resolve system prompt with fallback
+async function getSystemPrompt(db = null) -> string
+// Function to record API usage
+async function logApiUsage(db = null, { provider, success, error, tokenCount }) -> Promise<void>
+```
 
 ## Code Layout
-- `backend/pipeline/fetchAndSummarize.js` - Main pipeline orchestrator
-- `backend/pipeline/semanticScholar.js` - Semantic Scholar API client
-- `backend/pipeline/llm.js` - Multi-LLM fallback client
-- `backend/db/db.js` - SQLite database client and schema
-- `backend/schema.sql` - Seed database definition
-- `app/src/App.tsx` - App root
-- `app/src/navigation/RootNavigator.tsx` - App navigator
-- `app/src/screens/FeedScreen.tsx` - Flashcard feed screen
-- `app/src/screens/SettingsScreen.tsx` - Settings and API key screen
-- `app/src/screens/PersonalizationScreen.tsx` - Topic follow modal
-- `app/src/screens/SavedScreen.tsx` - Bookmarks screen
-- `app/src/components/PaperCard.tsx` - Single flashcard component
-- `app/src/components/ActionBar.tsx` - Card action footer
-- `app/src/components/TopicTabs.tsx` - Topic filter pill tabs
-- `app/src/components/DrawerContent.tsx` - Drawer menu
-- `app/src/state/AppState.tsx` - Global React context and storage synchronizer
-- `app/src/services/firebase.ts` - Firebase initialization
-- `app/src/services/apiValidator.ts` - Live LLM API validator
-- `app/src/services/customTopicFetcher.ts` - Client-side arXiv search and custom LLM synthesis
-- `app/src/config.ts` - Default topics configuration
-- `app/src/types.ts` - TypeScript interfaces
+- `app/src/hooks/useAuth.ts` — Auth hook with `isAdmin` & `isSuperAdmin` resolution
+- `app/src/navigation/RootNavigator.tsx` — Stack navigator registering `Admin`
+- `app/src/components/DrawerContent.tsx` — Conditional "Mission Control" drawer item with Feather `shield`
+- `app/src/screens/AdminScreen.tsx` — Main tabbed Admin Screen (Flashcards, Pipeline, API Usage, Settings)
+- `app/src/services/adminService.ts` — Firestore admin helper operations (CRUD for flashcards, queue, whitelist, prompt)
+- `app/firestore.rules` — Firestore security rules
+- `backend/pipeline/fetchAndSummarize.js` — Topic fetching + pipeline run logging
+- `backend/pipeline/llm.js` — Multi-LLM provider + API usage logging + dynamic prompt loading
+- `tests/e2e/` — E2E test suite and runner

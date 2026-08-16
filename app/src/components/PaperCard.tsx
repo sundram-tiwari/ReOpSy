@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Linking, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Linking, TouchableOpacity, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Paper } from '../types';
 import { config } from '../config';

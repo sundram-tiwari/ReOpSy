@@ -1,517 +1,380 @@
-# Frontend App & Mobile UX Exploration Report (ReOpSy v2)
+# Handoff Report — Backend Architecture, LLM Pipeline, and Firestore Security
 
-## Executive Summary
-This report provides a thorough read-only investigation of the `app/` codebase in `d:/Intern/ReOpSy` for **Explorer 2 (Frontend App & Mobile UX)**. The frontend is built with Expo SDK 57, React Native 0.86.2, and React 19.2.3.
-Both **TypeScript typechecking** (`npx tsc --noEmit`) and **Expo web export** (`npx expo export -p web`) execute with **exit code 0** (3.4MB static bundle in `dist/`).
-However, we identified critical UI/UX gaps relative to requirement **R3** (Mobile-First Flashcard Experience & UI), touch target accessibility non-compliance (< 48px), snap-scrolling viewport misalignment, deprecated emojis / raw Unicode characters in place of Feather vector icons, and a TypeScript configuration deprecation in `tsconfig.test.json`.
+**Agent**: Survey Explorer 2 (Backend & Security/Pipeline Specialist)  
+**Date**: 2026-08-16T11:45:00Z  
+**Target Workspace**: `d:/Intern/ReOpSy`  
+**Handoff Type**: Hard (Complete Investigation & Architectural Specification)
 
 ---
 
 ## 1. Observation
 
-### 1.1 Automated Tooling & Build Verification
-1. **TypeScript Typecheck (`npx tsc --noEmit`)**:
-   - Command: `npx tsc --noEmit` executed in `d:/Intern/ReOpSy/app`.
-   - Result: Exit code `0` (Zero type errors).
-2. **Expo Web Export (`npx expo export -p web`)**:
-   - Command: `npx expo export -p web` executed in `d:/Intern/ReOpSy/app`.
-   - Result: Exit code `0` (Output bundled to `dist/`, 3.4MB static JS web bundle, 31 vector icon font assets).
-3. **Unit Tests Compilation (`npm test` / `tsc -p tsconfig.test.json`)**:
-   - Command: `npm test` executed in `d:/Intern/ReOpSy/app`.
-   - Result: Exit code `1`.
-   - Verbatim error:
-     ```
-     tsconfig.test.json(6,25): error TS5107: Option 'moduleResolution=node10' is deprecated and will stop functioning in TypeScript 7.0. Specify compilerOption '"ignoreDeprecations": "6.0"' to silence this error.
-     ```
+### 1.1 Backend Pipeline & Ingest Architecture
+- **Pipeline Entrypoint**: `backend/pipeline/fetchAndSummarize.js`
+  - Line 6: `const { TOPICS, ALL_SLUGS } = require('../ingest/lib/topics');`
+  - Line 25–32: Reads API keys `GEMINI_API_KEY`, `MISTRAL_API_KEY`, and `XAI_API_KEY` from `backend/.env`.
+  - Line 47: Loops over `for (const topic of ALL_SLUGS) { ... }` sequentially.
+  - Line 54: Fetches OpenAlex papers: `openalex.fetchTopic({ topic, limit: limitPerSource, fromDate })`.
+  - Line 63: Fetches arXiv papers: `arxiv.fetchTopic({ topic, limit: limitPerSource })` followed by a 3000ms delay (`delay(3000)`).
+  - Line 71–72: Deduplicates papers (`dedupe(collected)`), filters for valid papers with `(p.summary || p.abstract) && p.title && p.url`, taking up to 10 papers per topic.
+  - Line 81–90: Summarization cascade: tries Semantic Scholar TLDR (`fetchTldr(p.title)`), falls back to abstract (`p.summary`), then rule-based fallback (`fallbackSummarize`), and finally `"No abstract available."`.
+  - Line 92–93: Title generation: `const llmRes = await generateCatchyTitle(p.title, summary, apiKeys);`.
+  - Line 109: Inserts into SQLite database via `insertPaper(topic, paperRecord)`.
+  - Line 118–158: Fetches latest 10 papers per topic from SQLite (`getLatestPapersForTopic(topic, 10)`), with safety dummy card generation if DB is empty (lines 139–155).
+  - Line 170–172: Writes final feed JSON to `app/src/data/dailyFeed.json`.
 
-### 1.2 Codebase Structure & File Inventory
-The frontend architecture resides in `d:/Intern/ReOpSy/app/src/`:
-- `App.tsx`: Root wrapper with `GestureHandlerRootView`, `SafeAreaProvider`, `AppStateProvider`, and `RootNavigator`.
-- `navigation/RootNavigator.tsx`: Navigation stack containing `DrawerNavigator` (`FeedScreen`) and native stack screens (`PersonalizationScreen` [modal], `SavedScreen`, `SettingsScreen`).
-- `screens/FeedScreen.tsx`: Main card feed screen using `FlatList` with `pagingEnabled={true}`.
-- `screens/PersonalizationScreen.tsx`: Topic subscription management modal.
-- `screens/SavedScreen.tsx`: Bookmarked research paper reading list.
-- `screens/SettingsScreen.tsx`: User profile, API provider configuration (Gemini / Mistral / Grok / Custom), custom research topic, and app data clear actions.
-- `components/PaperCard.tsx`: Single flashcard view rendering title, summary, authors, venue, external link, and `ActionBar`.
-- `components/ActionBar.tsx`: Thumbs-up like counter, bookmark save button, and native share sheet trigger.
-- `components/TopicTabs.tsx`: Horizontally scrollable pill tabs for switching active feed topics.
-- `components/DrawerContent.tsx`: Navigation drawer showing user profile / Google login button, daily streak stats, activity counts, and route links.
-- `state/AppState.tsx`: React Context managing `followedTopics`, `activeTopic`, `savedPapers`, `likedPapers`, `streak`, `userApiConfig`, syncing to `AsyncStorage` and Firestore (`users/{uid}`).
-- `hooks/useAuth.ts`: Firebase Authentication hook (`signInWithGoogle`, `signOut`, `onAuthStateChanged`).
-- `services/firebase.ts`: Firebase App, Auth, and Firestore initialization.
-- `theme.ts`: Theme tokens (colors, spacing, typography).
-- `config.ts`: App configurations and default topic definitions.
-- `types.ts`: TypeScript data models (`Paper`, `Topic`, `StreakState`).
+### 1.2 The 10 Predefined Research Topics
+- Defined in `backend/ingest/lib/topics.js` (lines 10–71) and mirrored in `app/src/config.ts` (lines 3–14):
+  1. `ml`: **Machine Learning** (`openalexFilter: 'concepts.id:C119857082'`, `arxivQuery: 'cat:cs.LG OR cat:stat.ML'`)
+  2. `dl`: **Deep Learning** (`openalexFilter: 'concepts.id:C119857082'`, `arxivQuery: 'cat:cs.LG OR cat:cs.NE'`)
+  3. `nlp`: **Language & NLP** (`openalexFilter: 'concepts.id:C204321447'`, `arxivQuery: 'cat:cs.CL'`)
+  4. `cv`: **Computer Vision** (`openalexFilter: 'concepts.id:C31972630'`, `arxivQuery: 'cat:cs.CV'`)
+  5. `ai-health`: **AI in Mental Health** (`openalexFilter: 'concepts.id:C119857082'`, `arxivQuery: 'cat:cs.AI AND (all:"mental health" OR all:"psychiatry" OR all:"therapy")'`)
+  6. `llm`: **Large Language Models** (`openalexFilter: 'concepts.id:C204321447'`, `arxivQuery: 'cat:cs.CL AND (all:"large language model" OR all:"LLM")'`)
+  7. `robotics`: **Robotics & Control** (`openalexFilter: 'concepts.id:C28881434'`, `arxivQuery: 'cat:cs.RO'`)
+  8. `cybersecurity`: **Cybersecurity & AI** (`openalexFilter: 'concepts.id:C38652104'`, `arxivQuery: 'cat:cs.CR'`)
+  9. `data-science`: **Data Science** (`openalexFilter: 'concepts.id:C11413529'`, `arxivQuery: 'cat:stat.ML OR cat:stat.AP'`)
+  10. `bio`: **Computational Biology** (`openalexFilter: 'concepts.id:C70721500'`, `arxivQuery: 'cat:q-bio.QM OR cat:q-bio.GN OR cat:q-bio.BM'`)
 
----
-
-### 1.3 Detailed UI/UX Observations & Gaps
-
-#### A. Snap-Scrolling Implementation
-- **Location**:
-  - `d:/Intern/ReOpSy/app/src/screens/FeedScreen.tsx:65-74`
-  - `d:/Intern/ReOpSy/app/src/components/PaperCard.tsx:9-11, 73-78`
-- **Current Code**:
-  - In `FeedScreen.tsx`:
-    ```tsx
-    <FlatList
-      ref={flatListRef}
-      data={activePapers}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <PaperCard paper={item} />}
-      pagingEnabled={true}
-      showsVerticalScrollIndicator={false}
-      onViewableItemsChanged={handleViewableItemsChanged}
-      viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-    />
+### 1.3 LLM API Implementations & System Prompt
+- File: `backend/pipeline/llm.js`
+  - **Gemini**: `callGemini(prompt, apiKey)` (lines 6–48). Iterates models `['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash']` against endpoint `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}` with POST payload `{ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7 } }`. Returns `data.candidates?.[0]?.content?.parts?.[0]?.text`. Token usage is available under `data.usageMetadata`.
+  - **Mistral**: `callMistral(prompt, apiKey)` (lines 53–79). Calls `https://api.mistral.ai/v1/chat/completions` with headers `Authorization: Bearer ${apiKey}`, payload `{ model: 'mistral-small-latest', messages: [{ role: 'user', content: prompt }], temperature: 0.7 }`. Returns `data.choices?.[0]?.message?.content`. Token usage is available under `data.usage`.
+  - **Grok (xAI)**: `callGrok(prompt, apiKey)` (lines 84–110). Calls `https://api.x.ai/v1/chat/completions` with headers `Authorization: Bearer ${apiKey}`, payload `{ model: 'grok-3-mini-fast', messages: [{ role: 'user', content: prompt }], temperature: 0.7 }`. Returns `data.choices?.[0]?.message?.content`. Token usage is available under `data.usage`.
+  - **Fallback Execution Order**: `generateCatchyTitle` (lines 119–150): `Gemini -> Mistral -> Grok (xAI) -> Original Title`.
+  - **Hardcoded System Prompt Location**: **Line 120** of `backend/pipeline/llm.js`:
+    ```javascript
+    const prompt = `Rewrite the following research paper title into a catchy, engaging title in under 10 words. Only return the new title, without quotes or additional text.\n\nOriginal Title: ${originalTitle}\nSummary: ${summary}`;
     ```
-  - In `PaperCard.tsx`:
-    ```tsx
-    const SCREEN_HEIGHT = Dimensions.get('window').height;
-    const HEADER_OFFSET = 120;
-    ...
-    cardContainer: {
-      height: SCREEN_HEIGHT - HEADER_OFFSET,
-      backgroundColor: colors.bg,
-      flexDirection: 'column',
-      justifyContent: 'space-between',
+
+### 1.4 Current Firestore Rules & Client Setup
+- **Firestore Rules**: Located at `app/firestore.rules` and root `firestore.rules` (identical content):
+  ```javascript
+  rules_version = '2';
+
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      // User profile, preferences, API keys, and bookmarks are strictly owner-only
+      match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
-    ```
-- **Flaw**:
-  `HEADER_OFFSET` is statically hardcoded to `120`. In reality, the header height is ~52px and topic tabs are ~49px (~101px total), not accounting for dynamic safe area insets (status bar / iPhone notch ~44px, home indicator ~34px, or Android navigation bar).
-  Because the item height (`SCREEN_HEIGHT - 120`) does not match the actual viewport height of the `FlatList` container, `pagingEnabled={true}` leads to progressive vertical alignment drift when swiping through cards. On Android and Web, `pagingEnabled` on `FlatList` without `snapToInterval`, `snapToAlignment="start"`, and `decelerationRate="fast"` can cause inconsistent or non-snapping scroll behavior.
-
-#### B. Touch Target Sizes (< 48px Non-Compliance)
-Accessibility guidelines and Acceptance Criterion R3 require touch targets >= 48px. We audited every touchable component:
-
-| File & Line | Element | Current Dimensions | Compliant (>= 48px)? |
-|---|---|---|---|
-| `FeedScreen.tsx:98-100` | `menuButton` (`TouchableOpacity`) | `padding: 8` around 24px icon -> **40x40px** | ❌ No |
-| `TopicTabs.tsx:64-74` | `pill` (`TouchableOpacity`) | `paddingVertical: 8`, font 16px -> **~32px height** | ❌ No |
-| `PaperCard.tsx:117-123` | `linkRow` (`TouchableOpacity`) | `paddingVertical: 8`, font 14px -> **~32px height** | ❌ No |
-| `SavedScreen.tsx:78-81` | `backBtn` (`TouchableOpacity`) | `padding: 8` around 24px icon -> **40x40px** | ❌ No |
-| `SavedScreen.tsx:108-113` | `linkBtn` (`TouchableOpacity`) | `paddingVertical: 8` -> **~34px height** | ❌ No |
-| `SavedScreen.tsx:55-57` | Trash icon (`TouchableOpacity`) | No padding around 20px icon -> **20x20px** | ❌ No |
-| `PersonalizationScreen.tsx:73-78` | `closeBtn` (`TouchableOpacity`) | `padding: 8` around 20px icon -> **36x36px** | ❌ No |
-| `PersonalizationScreen.tsx:114-119` | `followBtn` (`TouchableOpacity`) | `paddingVertical: 8` -> **~36px height** | ❌ No |
-| `SettingsScreen.tsx:224-227` | `backButton` (`TouchableOpacity`) | `padding: 8` around 24px icon -> **40x40px** | ❌ No |
-| `SettingsScreen.tsx:340-346` | `providerChip` (`TouchableOpacity`) | `paddingVertical: 8` -> **~32px height** | ❌ No |
-| `SettingsScreen.tsx:296-302` | `buttonOutline` (`TouchableOpacity`) | `paddingVertical: 8` -> **~34px height** | ❌ No |
-| `ActionBar.tsx:82-92` | `iconButton` (`TouchableOpacity`) | `minWidth: 60, minHeight: 48` | ✅ Yes |
-| `DrawerContent.tsx:189-194` | `menuItem` (`TouchableOpacity`) | `paddingVertical: 24` -> **~68px height** | ✅ Yes |
-| `DrawerContent.tsx:146-153` | `googleButton` (`TouchableOpacity`) | `padding: 16` -> **~52px height** | ✅ Yes |
-
-#### C. Icon Usage & Emojis / Raw Unicode Characters to Replace
-- `d:/Intern/ReOpSy/app/src/config.ts:3-14`: All 10 topic definitions still define `emoji` fields (`'🤖'`, `'🧠'`, `'📝'`, `'👁️'`, `'🧘'`, `'💬'`, `'🦾'`, `'🔒'`, `'📊'`, `'🧬'`), although Feather icon names are already present in `icon`.
-- `d:/Intern/ReOpSy/app/src/types.ts:20`: `Topic` interface contains `emoji?: string;`.
-- `d:/Intern/ReOpSy/app/src/screens/SavedScreen.tsx:52`: `<Text style={styles.linkText}>Read full paper ↗</Text>` uses a raw Unicode character `↗` instead of `<Feather name="external-link" size={14} />`.
-- `d:/Intern/ReOpSy/app/src/screens/PersonalizationScreen.tsx:45`: `{isFollowing ? '✓ Following' : '+ Follow'}` uses raw Unicode characters `✓` and `+` instead of `<Feather name={isFollowing ? "check" : "plus"} size={14} />`.
-
-#### D. Footer Action Area Background Styling & Seamless Integration
-- **Location**: `d:/Intern/ReOpSy/app/src/components/ActionBar.tsx:73-81` and `PaperCard.tsx:67`
-- **Current Styling**:
-  ```tsx
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: spacing.m,
-    paddingBottom: spacing.l,
-    backgroundColor: colors.bg,
   }
   ```
-- **Analysis**:
-  The `ActionBar` is currently placed as the direct trailing child inside `PaperCard`.
-  Both `PaperCard` and `ActionBar` use `colors.bg` (`#000000`), so the footer action area background blends seamlessly into the card container. The buttons themselves (`iconButton`) use `backgroundColor: colors.accent` (`#292929`) with `minHeight: 48` and `minWidth: 60`.
-  To ensure perfect seamlessness across all devices:
-  - Add safe area inset consideration (`useSafeAreaInsets().bottom`) so buttons are not obstructed by home navigation bars on gesture-enabled phones.
-  - Keep padding unified with card borders.
-
-#### E. Typography (Title vs Summary Font Sizes & No Truncation)
-- **Location**:
-  - `d:/Intern/ReOpSy/app/src/theme.ts:25, 28`
-  - `d:/Intern/ReOpSy/app/src/components/PaperCard.tsx:99-110`
-- **Current Font Specs**:
-  - Title: Uses `typography.h1` which is defined as `{ fontSize: 16, fontWeight: 'bold', color: colors.text, lineHeight: 24 }`.
-  - Summary: Uses `typography.body` which is `{ fontSize: 16, fontWeight: 'normal', color: colors.textDim, lineHeight: 28 }`.
-  - Font Size Parity: Both title and summary use exactly **16px** (`fontSize: 16`).
-  - Truncation: Neither title nor summary has `numberOfLines` set in `PaperCard.tsx`. Full text renders without truncation.
-- **Layout Risk**:
-  `PaperCard.tsx:83` uses `justifyContent: 'space-evenly'` inside `styles.content`. On small screens (e.g. 667px / iPhone SE), long 3-sentence summaries can push the metadata or action bar out of view. Changing the card layout to flex sections (`headerTag`, `mainBody`, `footerActions`) with clean spacing ensures complete visibility on all screen aspect ratios.
+- **App Dependencies & Firebase SDK**:
+  - `app/package.json` contains `"firebase": "^12.17.1"`, `"react": "19.2.3"`, `"react-native": "0.86.2"`, `"expo": "~57.0.13"`.
+  - `app/src/services/firebase.ts` initializes Firebase Auth and Firestore with client config from `EXPO_PUBLIC_FIREBASE_*` environment variables.
+- **Backend Dependencies**:
+  - `backend/package.json`: `"node-cron": "^4.6.0"`, `"sqlite3": "^6.0.1"`, `"engines": { "node": ">=18.17" }`. Currently has zero client Firebase packages installed.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Snap-Scrolling Determinism**:
-   - *Observation*: `Dimensions.get('window').height - 120` in `PaperCard.tsx` produces an arbitrary item height that deviates from the true container height rendered by `FlatList` in `FeedScreen.tsx`.
-   - *Inference*: FlatList pagination (`pagingEnabled`) relies on item heights matching the viewport container height. Any mismatch accumulates error per card, leading to partial cards cut off at screen edges.
-   - *Conclusion*: `FeedScreen.tsx` must measure container height on layout (`onLayout`), pass this exact height to each `PaperCard`, and supply `snapToInterval={containerHeight}`, `snapToAlignment="start"`, `decelerationRate="fast"`, and `getItemLayout` to `FlatList`.
+### 2.1 Implementing Firestore Logging Collections
 
-2. **Touch Target Accessibility Compliance (>= 48px)**:
-   - *Observation*: Ten distinct interactive touchables across 5 screens/components have bounding boxes between 20px and 40px due to small padding (`padding: 8`) and lack of `minWidth`/`minHeight`.
-   - *Inference*: Touch targets below 48x48px violate mobile accessibility standards (WCAG 2.5.5 / Android Material guidelines) and fail Acceptance Criterion R3.
-   - *Conclusion*: Every interactive button/icon must have `minWidth: 48, minHeight: 48` (or `hitSlop: { top: 8, bottom: 8, left: 8, right: 8 }` / `padding: 12+`) and centered flex content.
+#### A. Collection: `pipeline_runs`
+- **Purpose**: Record run history, per-topic paper counts, errors, and timestamps so the admin panel (Pipeline Control tab) can display the last run status and per-topic breakdown.
+- **Document Structure**:
+  ```typescript
+  interface PipelineRunRecord {
+    id: string; // e.g. "run_1786878000000" or ISO timestamp
+    timestamp: string; // ISO-8601 string (e.g. "2026-08-16T11:00:00.000Z")
+    status: 'success' | 'partial' | 'failure';
+    durationMs: number;
+    topicsProcessed: number;
+    totalPapers: number;
+    perTopicCounts: Record<string, number>; // e.g. { "ml": 10, "dl": 10, "nlp": 8, ... }
+    errors: Array<{
+      topic?: string;
+      stage?: string; // 'openalex' | 'arxiv' | 'llm' | 'db'
+      error: string;
+      timestamp: string;
+    }>;
+    trigger: 'scheduled' | 'manual_queue' | 'cli';
+  }
+  ```
+- **Backend Integration in `fetchAndSummarize.js`**:
+  1. Capture start time at function entry: `const startTime = Date.now();`
+  2. Initialize run metrics: `const perTopicCounts = {}; const errors = [];`
+  3. During loop over topics, record `perTopicCounts[topic] = validPapers.length;` and push caught errors to `errors.push({ topic, stage, error: err.message, timestamp: new Date().toISOString() });`
+  4. At pipeline completion (before writing feed / exiting), persist document to Firestore `pipeline_runs` collection.
+- **Frontend Query in AdminScreen**:
+  `query(collection(db, 'pipeline_runs'), orderBy('timestamp', 'desc'), limit(5))` -> extracts `docs[0].data()` for status display.
 
-3. **Vector Icon Standardization**:
-   - *Observation*: `config.ts` maintains redundant emoji properties, while `SavedScreen.tsx` and `PersonalizationScreen.tsx` embed Unicode glyphs (`↗`, `✓`, `+`).
-   - *Inference*: Emojis and Unicode glyphs render with inconsistent fonts, colors, and OS-dependent alignments, conflicting with R3's requirement: *"Minimize cognitive load by replacing all emojis with Feather vector icons"*.
-   - *Conclusion*: Remove emojis from configuration and models; replace all Unicode characters with `@expo/vector-icons` Feather components (`check`, `plus`, `external-link`).
+#### B. Collection: `pipeline_queue`
+- **Purpose**: Bridge static frontend (hosted on Render static web) and background pipeline execution.
+- **Document Structure**:
+  ```typescript
+  interface PipelineQueueItem {
+    id: string; // e.g. "queue_ml_1786878000000"
+    topic: string; // topic slug, e.g. "ml", or "all"
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    requestedAt: string; // ISO-8601 string
+    requestedBy: string; // Admin email
+    processedAt: string | null;
+    result?: {
+      papersFetched: number;
+      durationMs: number;
+      error?: string | null;
+    } | null;
+  }
+  ```
+- **Workflow**:
+  1. Admin clicks "Trigger Fetch" for topic "nlp" in Mission Control.
+  2. Frontend calls `addDoc(collection(db, 'pipeline_queue'), { topic: 'nlp', status: 'pending', requestedAt: new Date().toISOString(), requestedBy: user.email, processedAt: null })`.
+  3. Backend cron or trigger worker polls `pipeline_queue` for `status == 'pending'`, marks `status = 'processing'`, invokes `fetchAndSummarize({ topic: 'nlp' })`, and updates `status = 'completed'` with `processedAt` and counts.
 
-4. **Test Suite Deprecation Resolution**:
-   - *Observation*: `npm test` fails with `TS5107: Option 'moduleResolution=node10' is deprecated`.
-   - *Inference*: TypeScript 6.0 / 7.0 deprecates legacy `node` resolution in `tsconfig.test.json`.
-   - *Conclusion*: Update `tsconfig.test.json` to `"moduleResolution": "NodeNext"` and `"module": "NodeNext"`, or set `"ignoreDeprecations": "6.0"`.
+#### C. Collection: `api_usage`
+- **Purpose**: Track LLM invocations across providers (Gemini, Mistral, Grok), daily totals, success/failure rates, and token counts.
+- **Document Structure (Event-level & Daily Aggregates)**:
+  - **Event Record**:
+    ```typescript
+    interface ApiUsageRecord {
+      id: string; // e.g. "usage_1786878000000_abc"
+      date: string; // "YYYY-MM-DD"
+      timestamp: string; // ISO-8601 string
+      provider: 'gemini' | 'mistral' | 'xai';
+      model: string; // e.g. "gemini-2.5-flash", "mistral-small-latest"
+      success: boolean;
+      error?: string | null;
+      promptTokens?: number | null;
+      completionTokens?: number | null;
+      totalTokens?: number | null;
+      durationMs?: number;
+    }
+    ```
+- **Backend Logging in `llm.js`**:
+  Inside each provider function (`callGemini`, `callMistral`, `callGrok`):
+  - Extract token counts from response (`data.usageMetadata` for Gemini, `data.usage` for Mistral/Grok).
+  - Record execution status (`success: true` or `success: false, error: err.message`).
+  - Write usage log entry to Firestore `api_usage` collection asynchronously (`await logApiUsage(...)`).
+
+#### D. Collection: `config` (Dynamic System Prompt Storage & Fallback)
+- **Purpose**: Allow real-time editing of the AI system prompt via the Mission Control Settings section, without needing code changes or rebuilds.
+- **Document ID**: `config/system_prompt`
+- **Document Structure**:
+  ```typescript
+  interface SystemPromptConfig {
+    promptTemplate: string;
+    defaultPrompt: string;
+    updatedAt: string;
+    updatedBy: string; // Admin email
+  }
+  ```
+- **Dynamic Retrieval with Fallback in `llm.js`**:
+  ```javascript
+  const DEFAULT_PROMPT_TEMPLATE = `Rewrite the following research paper title into a catchy, engaging title in under 10 words. Only return the new title, without quotes or additional text.\n\nOriginal Title: {originalTitle}\nSummary: {summary}`;
+
+  async function getSystemPrompt(firestoreClient, originalTitle, summary) {
+    let template = DEFAULT_PROMPT_TEMPLATE;
+    if (firestoreClient) {
+      try {
+        const configDoc = await firestoreClient.getDoc('config', 'system_prompt');
+        if (configDoc && configDoc.promptTemplate && configDoc.promptTemplate.trim() !== '') {
+          template = configDoc.promptTemplate;
+        }
+      } catch (err) {
+        console.warn(`[Config] Failed to fetch system_prompt from Firestore: ${err.message}. Using default.`);
+      }
+    }
+    return template
+      .replace('{originalTitle}', originalTitle)
+      .replace('{summary}', summary);
+  }
+  ```
+
+#### E. Collection: `admins` (Dynamic Whitelist)
+- **Purpose**: Maintain authorized admin emails editable by the Super Admin.
+- **Document ID Strategy**: Lowercase email address as document ID (e.g. `doc(db, 'admins', 'admin@example.com')`).
+- **Document Structure**:
+  ```typescript
+  interface AdminRecord {
+    email: string;
+    role: 'superadmin' | 'admin';
+    addedAt: string;
+    addedBy: string;
+  }
+  ```
+- **Client-Side Admin Authorization Logic in `useAuth.ts`**:
+  1. If `user.email` matches `EXPO_PUBLIC_ADMIN_EMAIL` (normalized lowercase) -> `isAdmin = true`.
+  2. Else, query Firestore `getDoc(doc(db, 'admins', user.email.toLowerCase()))`. If document exists -> `isAdmin = true`.
+  3. Otherwise, `isAdmin = false`.
+
+#### F. Collection: `content` (Flashcard Inline Edits Persistence)
+- **Purpose**: Persist admin modifications to flashcard titles, summaries, and URLs so that edits survive pipeline re-runs.
+- **Document ID**: Normalized paper ID (e.g. `encodeURIComponent(paper.id)` or `paper.id.replace(/[:/]/g, '_')`).
+- **Document Structure**:
+  ```typescript
+  interface FlashcardOverride {
+    id: string; // "arxiv:2608.13522"
+    topic: string;
+    originalTitle: string;
+    catchyTitle: string;
+    summary: string;
+    source: string;
+    url: string;
+    pdfUrl: string | null;
+    authors: string[];
+    year: number | null;
+    venue: string | null;
+    isDeleted?: boolean;
+    updatedAt: string;
+    updatedBy: string;
+  }
+  ```
+- **Pipeline Integration**:
+  In `fetchAndSummarize.js`, before writing to `dailyFeed.json`, fetch all documents from `content` collection. For any paper matching an ID in `content`:
+  - If `isDeleted === true`, filter out the paper from the topic list.
+  - If modified, overwrite `catchyTitle`, `summary`, and `url` with admin-curated values.
+
+---
+
+### 2.2 Firestore Security Rules Design
+
+The new security rules must enforce:
+1. `/users/{userId}`: Strict owner-only access (existing app behavior).
+2. `/admins/{email}`: Only authenticated admin users can read and write.
+3. `/config/{configId}`: Only authenticated admin users can read and write.
+4. `/api_usage/{usageId}`: Only authenticated admin users can read and write.
+5. `/pipeline_runs/{runId}`: Only authenticated admin users can read and write.
+6. `/pipeline_queue/{queueId}`: Only authenticated admin users can read and write.
+7. `/content/{contentId}`: Read allowed for all (or authenticated users); write allowed only for authenticated admins.
+
+#### Proposed `firestore.rules`:
+```javascript
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Check if user is authenticated via Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: Check if requesting user's email exists in the admins whitelist collection
+    function isAdmin() {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
+      );
+    }
+
+    // 1. User Profiles & Local-First State Sync
+    // Strictly owner-only read/write
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 2. Admin Whitelist Collection
+    // Admin-only read and write
+    match /admins/{email} {
+      allow read, write: if isAdmin();
+    }
+
+    // 3. System Configuration & Prompt Settings
+    // Admin-only read and write
+    match /config/{configId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 4. API Usage Telemetry & Daily Aggregates
+    // Admin-only read and write
+    match /api_usage/{usageId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 5. Pipeline Run Logs & Execution Metadata
+    // Admin-only read and write
+    match /pipeline_runs/{runId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 6. Pipeline Execution Trigger Queue
+    // Admin-only read and write
+    match /pipeline_queue/{queueId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 7. Content Overrides & Flashcard Edits
+    // Public/App user read; Admin-only write
+    match /content/{contentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
+```
+
+---
+
+### 2.3 Backend Runtime & Firebase SDK Integration Analysis
+
+#### Runtime Environment
+- **Node.js**: `node: ">=18.17"` (`backend/package.json`). Native `fetch`, `node:test`, `crypto` available without polyfills.
+- **Deployment Structure**:
+  - `render.yaml` specifies a static web service publishing `app/dist`.
+  - Backend pipeline runs as scheduled background jobs (GitHub Actions `ingest.yml` at `02:15 UTC` or local `node backend/pipeline/cron.js`).
+
+#### Connecting Backend to Firestore
+To log to Firestore from `backend/pipeline/fetchAndSummarize.js` and `backend/pipeline/llm.js`, there are three viable architectures:
+
+1. **Option A: Lightweight Native REST Client (Recommended & Zero New Dependencies)**
+   - Uses Node 18 native `fetch` against Firebase Firestore REST API:
+     `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}`
+   - Can read/write Firestore documents with zero npm installs.
+   - Handles `config` retrieval, `pipeline_runs` logging, `api_usage` logging, and `content` retrieval seamlessly.
+
+2. **Option B: Standard Firebase Client SDK (`firebase` package)**
+   - Add `"firebase": "^12.17.1"` to `backend/package.json`.
+   - Uses the identical modular syntax (`doc`, `getDoc`, `setDoc`, `addDoc`) as the frontend in `app/src/services/firebase.ts`.
+
+3. **Option C: Firebase Admin SDK (`firebase-admin`)**
+   - Add `"firebase-admin": "^13.0.0"` with Google Cloud service account credentials.
+   - Bypasses security rules with elevated server permissions.
 
 ---
 
 ## 3. Caveats
-
-1. **Read-Only Explorer Mandate**: In accordance with the Explorer role instructions, no source files were directly modified during this survey. All proposed code modifications are provided as exact before/after specifications.
-2. **Backend Feed Integration**: The frontend is currently loaded from `src/data/dailyFeed.json`. Dynamic updates from the multi-LLM backend pipeline will update this JSON file or stream from Firestore; the frontend state manager (`AppState.tsx`) already handles reactive loading.
-3. **Web vs Native Safe Area Differences**: On web browsers, safe area insets return 0, whereas on iOS/Android devices with notches, insets are positive. Using `useSafeAreaInsets()` handles both gracefully.
+1. **Super Admin Seed Requirement**:
+   In Firestore rules, `exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))` checks the `admins` collection in Firestore. When initializing the system, the Super Admin's email (from `EXPO_PUBLIC_ADMIN_EMAIL`) must have a corresponding document seeded into `/admins/<email>` (or created on first boot/deploy) so that Firestore security rules recognize the Super Admin immediately.
+2. **Render Static Site vs. Pipeline Execution**:
+   Render is hosting the Expo web build as a static site (`render.yaml`). Clicking "Trigger Fetch" from the browser cannot directly run `exec('node fetchAndSummarize.js')` on Render's static CDN. Enqueueing triggers into `pipeline_queue` via Firestore is the exact solution that allows asynchronous processing by backend cron jobs or workers.
+3. **LLM Token Tracking**:
+   Token usage fields vary slightly between providers:
+   - Gemini returns `usageMetadata: { promptTokenCount, candidatesTokenCount, totalTokenCount }`.
+   - Mistral and Grok return `usage: { prompt_tokens, completion_tokens, total_tokens }`.
+   The logging helper in `llm.js` must normalize these provider-specific fields into `{ promptTokens, completionTokens, totalTokens }`.
 
 ---
 
-## 4. Conclusion & Proposed Architecture
+## 4. Conclusion
 
-The frontend application has a solid architectural foundation (clean state management in `AppState.tsx`, modular screen routing, robust streak calculation logic, and working Expo web export).
-To achieve full compliance with Version 2 Acceptance Criteria, the implementation team should apply the following targeted updates:
-
-### Recommended Component & Screen Refactor Specifications
-
-#### 1. `d:/Intern/ReOpSy/app/src/screens/FeedScreen.tsx`
-```tsx
-// Before (Lines 24, 65-75, 98-100):
-export const FeedScreen: React.FC<Props> = ({ navigation }) => {
-  ...
-  const flatListRef = useRef<FlatList>(null);
-  ...
-  <FlatList
-    ref={flatListRef}
-    data={activePapers}
-    keyExtractor={(item) => item.id}
-    renderItem={({ item }) => <PaperCard paper={item} />}
-    pagingEnabled={true}
-    showsVerticalScrollIndicator={false}
-    onViewableItemsChanged={handleViewableItemsChanged}
-    viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-  />
-  ...
-  menuButton: {
-    padding: spacing.s,
-  },
-
-// After (Precise Snap-Scrolling & >= 48px touch target):
-export const FeedScreen: React.FC<Props> = ({ navigation }) => {
-  ...
-  const flatListRef = useRef<FlatList>(null);
-  const [containerHeight, setContainerHeight] = React.useState<number>(0);
-  ...
-  <View 
-    style={styles.feedContainer}
-    onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
-  >
-    {activePapers.length > 0 && containerHeight > 0 ? (
-      <FlatList
-        ref={flatListRef}
-        data={activePapers}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PaperCard paper={item} cardHeight={containerHeight} />}
-        snapToInterval={containerHeight}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        pagingEnabled={Platform.OS === 'ios'}
-        showsVerticalScrollIndicator={false}
-        getItemLayout={(_, index) => ({
-          length: containerHeight,
-          offset: containerHeight * index,
-          index,
-        })}
-        onViewableItemsChanged={handleViewableItemsChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-      />
-    ) : ...}
-  </View>
-  ...
-  menuButton: {
-    minWidth: 48,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-```
-
-#### 2. `d:/Intern/ReOpSy/app/src/components/PaperCard.tsx`
-```tsx
-// Before (Lines 9-11, 73-78, 117-128):
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const HEADER_OFFSET = 120;
-...
-cardContainer: {
-  height: SCREEN_HEIGHT - HEADER_OFFSET,
-  backgroundColor: colors.bg,
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-},
-linkRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  paddingVertical: spacing.s,
-  marginTop: spacing.m,
-},
-
-// After (Pass dynamic cardHeight, clean flex layout, >= 48px linkRow):
-interface Props {
-  paper: Paper;
-  cardHeight?: number;
-}
-export const PaperCard: React.FC<Props> = ({ paper, cardHeight }) => {
-  ...
-  return (
-    <View style={[styles.cardContainer, cardHeight ? { height: cardHeight } : null]}>
-      <View style={styles.content}>
-        ...
-        <TouchableOpacity 
-          style={styles.linkRow} 
-          onPress={handleOpenLink}
-          activeOpacity={0.7}
-        >
-          <Feather name="external-link" size={16} color={colors.textDim} />
-          <Text style={[styles.linkText, { marginLeft: spacing.s }]}>Credits & Paper Link</Text>
-        </TouchableOpacity>
-      </View>
-      <ActionBar paper={paper} />
-    </View>
-  );
-};
-...
-linkRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  minHeight: 48,
-  paddingVertical: spacing.s,
-},
-```
-
-#### 3. `d:/Intern/ReOpSy/app/src/components/TopicTabs.tsx`
-```tsx
-// Before (Lines 64-74):
-pill: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: spacing.m,
-  paddingVertical: spacing.s,
-  borderRadius: 20,
-  backgroundColor: colors.accent,
-  marginRight: spacing.s,
-  borderWidth: 1,
-  borderColor: 'transparent',
-},
-
-// After (Touch target >= 48px):
-pill: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: spacing.m,
-  minHeight: 48,
-  borderRadius: 24,
-  backgroundColor: colors.accent,
-  marginRight: spacing.s,
-  borderWidth: 1,
-  borderColor: 'transparent',
-},
-```
-
-#### 4. `d:/Intern/ReOpSy/app/src/screens/SavedScreen.tsx`
-```tsx
-// Before (Lines 27-29, 48-57):
-<TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-  <Feather name="arrow-left" size={24} color={colors.text} />
-</TouchableOpacity>
-...
-<TouchableOpacity style={styles.linkBtn} onPress={() => handleOpenLink(item.url)}>
-  <Text style={styles.linkText}>Read full paper ↗</Text>
-</TouchableOpacity>
-<TouchableOpacity onPress={() => handleUnsave(item)}>
-  <Feather name="trash-2" size={20} color={colors.danger || '#ff4444'} />
-</TouchableOpacity>
-
-// After (Feather external-link icon, touch targets >= 48px):
-<TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-  <Feather name="arrow-left" size={24} color={colors.text} />
-</TouchableOpacity>
-...
-<TouchableOpacity style={styles.linkBtn} onPress={() => handleOpenLink(item.url)}>
-  <Text style={styles.linkText}>Read full paper</Text>
-  <Feather name="external-link" size={14} color={colors.primary} style={{ marginLeft: 6 }} />
-</TouchableOpacity>
-<TouchableOpacity style={styles.trashBtn} onPress={() => handleUnsave(item)}>
-  <Feather name="trash-2" size={20} color={colors.danger} />
-</TouchableOpacity>
-...
-backBtn: {
-  minWidth: 48,
-  minHeight: 48,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginRight: spacing.s,
-},
-linkBtn: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: colors.accent,
-  paddingHorizontal: spacing.m,
-  minHeight: 48,
-  borderRadius: 8,
-},
-trashBtn: {
-  minWidth: 48,
-  minHeight: 48,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-```
-
-#### 5. `d:/Intern/ReOpSy/app/src/screens/PersonalizationScreen.tsx`
-```tsx
-// Before (Lines 14-16, 41-47, 73-78, 114-119):
-<TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-  <Feather name="x" size={20} color={colors.text} />
-</TouchableOpacity>
-...
-<TouchableOpacity 
-  style={[styles.followBtn, isFollowing && styles.followingBtn]}
-  onPress={() => toggleTopic(topic.slug)}
->
-  <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-    {isFollowing ? '✓ Following' : '+ Follow'}
-  </Text>
-</TouchableOpacity>
-...
-closeBtn: {
-  position: 'absolute',
-  right: spacing.m,
-  top: spacing.xl,
-  padding: spacing.s,
-},
-followBtn: {
-  paddingHorizontal: spacing.m,
-  paddingVertical: spacing.s,
-  borderRadius: 20,
-  backgroundColor: colors.text,
-},
-
-// After (Feather check/plus icons, touch targets >= 48px):
-<TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-  <Feather name="x" size={24} color={colors.text} />
-</TouchableOpacity>
-...
-<TouchableOpacity 
-  style={[styles.followBtn, isFollowing && styles.followingBtn]}
-  onPress={() => toggleTopic(topic.slug)}
->
-  <Feather 
-    name={isFollowing ? "check" : "plus"} 
-    size={16} 
-    color={isFollowing ? colors.text : colors.bg} 
-    style={{ marginRight: 6 }} 
-  />
-  <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-    {isFollowing ? 'Following' : 'Follow'}
-  </Text>
-</TouchableOpacity>
-...
-closeBtn: {
-  position: 'absolute',
-  right: spacing.m,
-  top: spacing.xl,
-  minWidth: 48,
-  minHeight: 48,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-followBtn: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingHorizontal: spacing.m,
-  minHeight: 48,
-  borderRadius: 24,
-  backgroundColor: colors.text,
-},
-```
-
-#### 6. `d:/Intern/ReOpSy/app/src/screens/SettingsScreen.tsx`
-```tsx
-// Key Fixes:
-// 1. backButton: minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center'
-// 2. providerChip: minHeight: 48, justifyContent: 'center'
-// 3. buttonOutline: minHeight: 48, justifyContent: 'center'
-// 4. actionRow: minHeight: 48
-```
-
-#### 7. `d:/Intern/ReOpSy/app/src/config.ts` & `d:/Intern/ReOpSy/app/src/types.ts`
-```ts
-// Remove all raw emoji properties from config.topics and types.ts.
-// Rely purely on the `icon` property mapping to Feather icons.
-```
-
-#### 8. `d:/Intern/ReOpSy/app/tsconfig.test.json`
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["ES2022"],
-    "outDir": "testbuild",
-    "rootDir": "src",
-    "strict": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": ["src/logic/**/*.ts", "src/types.ts"]
-}
-```
+1. **Pipeline & Topics**: All 10 topics (`ml`, `dl`, `nlp`, `cv`, `ai-health`, `llm`, `robotics`, `cybersecurity`, `data-science`, `bio`) are defined in `backend/ingest/lib/topics.js` and `app/src/config.ts`. The pipeline in `backend/pipeline/fetchAndSummarize.js` already runs the full OpenAlex + arXiv + Semantic Scholar + LLM workflow and outputs `app/src/data/dailyFeed.json`.
+2. **System Prompt**: Hardcoded at `backend/pipeline/llm.js:120`. It can be dynamically queried from Firestore `config/system_prompt` with an immediate fallback to the hardcoded default.
+3. **Firestore Collections**: Designed schemas for `pipeline_runs`, `pipeline_queue`, `api_usage`, `config`, `admins`, and `content`.
+4. **Security Rules**: Designed `firestore.rules` using `isAdmin()` verification against `/admins/$(email)` to strictly secure all admin collections while leaving `/users/{userId}` owner-only and `/content` read-safe.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify these findings and check future implementations:
+To independently verify all findings and architectural specifications:
 
-1. **Verify TypeScript Health**:
-   ```bash
-   cd d:/Intern/ReOpSy/app
-   npx tsc --noEmit
-   ```
-   *Expected Output*: Exit code `0` with 0 type errors.
+1. **Verify Topic Slugs & Config**:
+   - Inspect `backend/ingest/lib/topics.js` lines 10–71.
+   - Inspect `app/src/config.ts` lines 3–14.
+   - Confirm 10 topics match in both files.
 
-2. **Verify Expo Web Export**:
-   ```bash
-   cd d:/Intern/ReOpSy/app
-   npx expo export -p web
-   ```
-   *Expected Output*: Exit code `0`, `dist/` directory generated with static JS bundles.
+2. **Verify System Prompt & LLM Fallback**:
+   - Inspect `backend/pipeline/llm.js` lines 6–150.
+   - Confirm prompt definition on line 120.
+   - Confirm model lists and endpoints for Gemini, Mistral, and Grok.
 
-3. **Verify Pure Logic Tests**:
-   ```bash
-   cd d:/Intern/ReOpSy/app
-   npm test
-   ```
-   *Expected Output*: Tests run via Node test runner after updating `tsconfig.test.json`.
+3. **Verify Security Rules Compliance**:
+   - Inspect `app/firestore.rules`.
+   - Validate that `/admins`, `/config`, `/api_usage`, `/pipeline_runs`, `/pipeline_queue`, and `/content` follow the admin-restricted design.
 
-4. **Verify Touch Targets & UI in Code Review**:
-   - Inspect all `TouchableOpacity` / `Pressable` styles across `FeedScreen.tsx`, `PaperCard.tsx`, `TopicTabs.tsx`, `SavedScreen.tsx`, `PersonalizationScreen.tsx`, and `SettingsScreen.tsx`.
-   - Confirm every clickable element has bounding box `>= 48x48px`.
-   - Confirm zero emoji literals remain in `config.ts`, `types.ts`, `SavedScreen.tsx`, and `PersonalizationScreen.tsx`.
+4. **Verify TypeScript & Web Export Buildability**:
+   - `cd app && npx tsc --noEmit`
+   - `cd app && npx expo export -p web`

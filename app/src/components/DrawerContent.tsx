@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { DrawerContentScrollView, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { useAppState } from '../state/AppState';
 import { useAuth } from '../hooks/useAuth';
@@ -18,7 +18,7 @@ const GoogleLogo = () => (
 
 export const DrawerContent = (props: DrawerContentComponentProps) => {
   const { streak, savedPapers, likedPapers } = useAppState();
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
 
 
 
@@ -109,7 +109,20 @@ export const DrawerContent = (props: DrawerContentComponentProps) => {
         <Feather name="settings" size={20} color={colors.text} style={{ marginRight: spacing.m }} />
         <Text style={styles.menuItemText}>Settings & Support</Text>
       </TouchableOpacity>
-      
+
+      {isAdmin && (
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => props.navigation.navigate('Admin')}
+          activeOpacity={0.7}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityLabel="Mission Control"
+        >
+          <Feather name="shield" size={20} color={colors.primary} style={{ marginRight: spacing.m }} />
+          <Text style={styles.menuItemText}>Mission Control</Text>
+          <Text style={styles.badge}>Admin</Text>
+        </TouchableOpacity>
+      )}
 
       {user && (
         <TouchableOpacity 

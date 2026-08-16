@@ -1,210 +1,315 @@
-# Backend & Content Pipeline Investigation Report (ReOpSy Version 2)
+# Survey & Architecture Report: Frontend & Auth/Navigation Specialist
 
 ## 1. Observation
 
-Direct observations from examining the ReOpSy backend codebase:
+### 1.1 Project Structure & Configuration
+- **Package Manifest** (`app/package.json`):
+  - React `19.2.3`, React Native `0.86.2`, React Native Web `0.21.2`.
+  - Expo SDK `~57.0.13` with `@expo/vector-icons` `^15.1.1` providing Feather icons.
+  - Navigation: `@react-navigation/native` `^7.3.14`, `@react-navigation/drawer` `^7.13.8`, `@react-navigation/native-stack` `^7.18.6`.
+  - Firebase SDK: `firebase` `^12.17.1` (Modular Web SDK).
+  - Storage: `@react-native-async-storage/async-storage` `2.2.0`.
+- **TypeScript Configuration** (`app/tsconfig.json`):
+  - Extends `expo/tsconfig.base`, `strict: true`, `skipLibCheck: true`, path alias `@/*` -> `./src/*`.
+  - Includes `**/*.ts`, `**/*.tsx`.
+  - Logic unit tests are isolated under `src/logic/__tests__` and compiled with `tsconfig.test.json`.
+- **Environment Configuration** (`app/.env` & `app/.env.example`):
+  - Public environment variables prefixed with `EXPO_PUBLIC_`:
+    - `EXPO_PUBLIC_FIREBASE_API_KEY`, `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`, `EXPO_PUBLIC_FIREBASE_PROJECT_ID`, `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET`, `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `EXPO_PUBLIC_FIREBASE_APP_ID`.
+    - New required variable: `EXPO_PUBLIC_ADMIN_EMAIL` (defines hardcoded Super Admin email).
 
-### A. Predefined Categories (10 Topics)
-- **`backend/ingest/lib/topics.js` (lines 10–71)**:
-  Defines `TOPICS` with 10 slugs: `ml`, `dl`, `nlp`, `cv`, `ai-health`, `llm`, `robotics`, `cybersecurity`, `data-science`, `bio`.
-  - `ml`: Machine Learning (`concepts.id:C119857082`, `cat:cs.LG OR cat:stat.ML`)
-  - `dl`: Deep Learning (`concepts.id:C119857082`, `cat:cs.LG OR cat:cs.NE`)
-  - `nlp`: Language & NLP (`concepts.id:C204321447`, `cat:cs.CL`)
-  - `cv`: Computer Vision (`concepts.id:C31972630`, `cat:cs.CV`)
-  - `ai-health`: AI in Mental Health (`concepts.id:C119857082`, `cat:cs.AI AND (all:"mental health" OR all:"psychiatry" OR all:"therapy")`)
-  - `llm`: Large Language Models (`concepts.id:C204321447`, `cat:cs.CL AND (all:"large language model" OR all:"LLM")`)
-  - `robotics`: Robotics & Control (`concepts.id:C28881434`, `cat:cs.RO`)
-  - `cybersecurity`: Cybersecurity & AI (`concepts.id:C38652104`, `cat:cs.CR`)
-  - `data-science`: Data Science (`concepts.id:C11413529`, `cat:stat.ML OR cat:stat.AP`)
-  - `bio`: Computational Biology (`concepts.id:C70721500`, `cat:q-bio.QM OR cat:q-bio.GN OR cat:q-bio.BM`)
-- **`app/src/config.ts` (lines 3–14)**:
-  Matches the exact 10 slugs with icons (`cpu`, `layers`, `type`, `eye`, `heart`, `message-square`, `settings`, `lock`, `bar-chart-2`, `activity`).
-- **`backend/schema.sql` (lines 18–24)**:
-  Contains legacy 6 topics (`ml`, `nlp`, `cv`, `systems`, `hci`, `bio`). `systems` and `hci` are obsolete; the 5 new topics (`dl`, `ai-health`, `llm`, `robotics`, `cybersecurity`, `data-science`) are missing from SQL seed.
+---
 
-### B. Pipeline & Filtering Bug
-- **`backend/pipeline/fetchAndSummarize.js` (lines 64–67)**:
-  ```javascript
-  // 3. Dedupe
-  const { papers: deduped } = dedupe(collected);
-  const validPapers = deduped.filter(p => p.abstract && p.title && p.url).slice(0, 10);
-  console.log(`  Fetched ${validPapers.length} valid papers for ${topic}.`);
-  ```
-- **`backend/ingest/lib/openalex.js` (line 132)**:
-  `abstract: licenseOk ? abstract || null : null,`
-- **`backend/ingest/lib/arxiv.js` (line 162)**:
-  `abstract: licenseOk ? abstract || null : null,`
-- **Observed Dry-Run Output (`node pipeline/fetchAndSummarize.js --dry`)**:
-  ```
-  Processing topic: ml
-    Fetching OpenAlex for ml...
-    Fetching arXiv for ml...
-    Fetched 0 valid papers for ml.
-  Processing topic: dl
-    Fetched 0 valid papers for dl.
-  Processing topic: nlp
-    Fetched 2 valid papers for nlp.
-  Processing topic: cv
-    Fetched 2 valid papers for cv.
-  Processing topic: ai-health
-    Fetched 0 valid papers for ai-health.
-  Processing topic: llm
-    Fetched 2 valid papers for llm.
-  Processing topic: robotics
-    Fetched 0 valid papers for robotics.
-  Processing topic: cybersecurity
-    Fetched 1 valid papers for cybersecurity.
-  Processing topic: data-science
-    Fetched 0 valid papers for data-science.
-  Processing topic: bio
-    Fetched 1 valid papers for bio.
-  DRY RUN COMPLETE.
-  ```
-- **`app/src/data/dailyFeed.json`**:
-  Contains dummy placeholder cards for `ml`, `dl`, `ai-health`, `robotics`, `data-science` (`"id": "dummy-ml-...", "originalTitle": "No recent papers for ml"`) because `validPapers` was 0.
+### 1.2 Authentication & Firebase Architecture
+- **Firebase Initialization** (`app/src/services/firebase.ts` lines 9–48):
+  - Initializes Firebase Modular App using `firebaseConfig` populated from `process.env.EXPO_PUBLIC_FIREBASE_*`.
+  - Exports `app: FirebaseApp | null`, `auth: Auth | null`, `db: Firestore | null`, `isFirebaseConfigured(): boolean`.
+- **Current Auth Hook** (`app/src/hooks/useAuth.ts` lines 14–63):
+  - `useAuth()` returns `{ user, loading, error, isConfigured, signInWithGoogle, signOut }`.
+  - Listens to auth state changes using `onAuthStateChanged(auth, (u) => { setUser(u); setLoading(false); })`.
+  - Manages Google popup and redirect sign-in flow via `GoogleAuthProvider`, `signInWithPopup`, and `signInWithRedirect`.
+  - **Absence**: Currently contains zero admin verification, no whitelist lookup, and does not expose `isAdmin` or `isSuperAdmin`.
 
-### C. Semantic Scholar Integration
-- **`backend/pipeline/semanticScholar.js` (lines 14–52)**:
-  - `fetchTldr(paperTitle)` queries `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodedQuery}&fields=tldr,title,externalIds&limit=1`.
-  - Implements `await delay(600)` to respect the 100 req/5 min unauthenticated rate limit.
-  - Returns `paper.tldr.text` if found, `null` on 429 or missing data.
-- **`backend/pipeline/fetchAndSummarize.js` (lines 73–79)**:
-  ```javascript
-  let summary = await fetchTldr(p.title);
-  if (!summary) {
-    summary = fallbackSummarize(p.abstract || p.title, p.title);
-  }
-  if (!summary) {
-    summary = "No abstract available.";
-  }
-  ```
+---
 
-### D. LLM Integration & Fallback Chaining
-- **`backend/pipeline/llm.js` (lines 1–140)**:
-  - `callGemini(prompt, apiKey)`: Calls `gemini-2.0-flash:generateContent` with temperature 0.7.
-  - `callMistral(prompt, apiKey)`: Calls `https://api.mistral.ai/v1/chat/completions` with model `mistral-small-latest`.
-  - `callGrok(prompt, apiKey)`: Calls `https://api.x.ai/v1/chat/completions` with model `grok-3-mini-fast`.
-  - `generateCatchyTitle(originalTitle, summary, apiKeys)`:
-    - Attempts Gemini (`apiKeys.gemini`)
-    - On failure -> attempts Mistral (`apiKeys.mistral`)
-    - On failure -> attempts Grok (`apiKeys.xai`)
-    - On failure or no keys -> returns `{ catchyTitle: originalTitle, provider: 'original' }`.
+### 1.3 Navigation & Drawer Structure
+- **Root Navigator** (`app/src/navigation/RootNavigator.tsx` lines 14–62):
+  - `NavigationContainer` wraps a root `Stack.Navigator` (`headerShown: false`).
+  - Registered stack routes:
+    - `MainDrawer`: Wraps `DrawerNavigator` which renders `DrawerContent` and `FeedScreen`.
+    - `Personalization`: `PersonalizationScreen` (presentation modal).
+    - `Saved`: `SavedScreen`.
+    - `Settings`: `SettingsScreen`.
+- **Drawer Content** (`app/src/components/DrawerContent.tsx` lines 19–140):
+  - Uses `DrawerContentScrollView` with custom items:
+    - Profile header (shows user avatar / name / email or Google Sign-In button).
+    - Daily Digest card (streak count).
+    - Activity stats card (likes & saves count).
+    - Menu item 1: "Personalize your Feed" (Feather `sliders`).
+    - Menu item 2: "View Saved Papers" (Feather `bookmark`).
+    - Menu item 3: "Settings & Support" (Feather `settings`).
+    - Menu item 4: "Sign Out" (Feather `log-out`, conditional on `user`).
+    - Footer links (Contact Us, Terms, Privacy, Version).
+  - **Absence**: No admin entry exists.
 
-### E. Data Persistence & SQLite Storage
-- **`backend/db/db.js` (lines 13–98)**:
-  - SQLite database at `backend/db/data/database.sqlite`.
-  - Table `papers`: `id TEXT PRIMARY KEY, topic TEXT, originalTitle TEXT, catchyTitle TEXT, summary TEXT, authors TEXT, source TEXT, year INTEGER, venue TEXT, url TEXT, pdfUrl TEXT, fetchedAt DATETIME DEFAULT CURRENT_TIMESTAMP`.
-  - `insertPaper(topic, paper)` uses `INSERT OR IGNORE INTO papers ...`.
-  - `getLatestPapersForTopic(topic, limit = 10)` selects recent papers sorted by `fetchedAt DESC`.
+---
+
+### 1.4 Theme Tokens & Design System
+- **Theme Definitions** (`app/src/theme.ts` lines 1–33):
+  - `colors`:
+    - `bg`: `'#000000'` (OLED black)
+    - `card`: `'#121212'` (Dark surface)
+    - `cardBorder`: `'#2a2a2a'` (Border)
+    - `text`: `'#ffffff'` (Primary text)
+    - `textDim`: `'#a0a0a0'` (Muted body/captions)
+    - `primary`: `'#1d9bf0'` (Accent blue)
+    - `accent`: `'#292929'` (Button/pill surface)
+    - `followGreen`: `'#4caf50'`
+    - `danger`: `'#ff5252'`
+    - `success`: `'#4caf50'`
+    - `divider`: `'#333333'`
+  - `spacing`: `xs`: 4, `s`: 8, `m`: 16, `l`: 24, `xl`: 32, `xxl`: 48.
+  - `typography`:
+    - `h1`: `{ fontSize: 16, fontWeight: 'bold', color: colors.text, lineHeight: 24 }`
+    - `h2`: `{ fontSize: 22, fontWeight: 'bold', color: colors.text, lineHeight: 28 }`
+    - `h3`: `{ fontSize: 18, fontWeight: '600', color: colors.text }`
+    - `body`: `{ fontSize: 16, color: colors.text, lineHeight: 24 }`
+    - `bodyDim`: `{ fontSize: 16, color: colors.textDim, lineHeight: 24 }`
+    - `caption`: `{ fontSize: 14, color: colors.textDim, lineHeight: 20 }`
+    - `small`: `{ fontSize: 12, color: colors.textDim }`
+  - **UX Conventions**:
+    - Feather icons only (`@expo/vector-icons`), no emojis in navigation or buttons.
+    - Minimum touch targets of 48px (`minHeight: 48`, `minWidth: 48`, `hitSlop`).
+    - Web scroll snapping and responsive card sizing.
+
+---
+
+### 1.5 Data Structures & Topics
+- **Predefined Topics** (`app/src/config.ts` lines 3–14):
+  - 10 core topics: `ml` (Machine Learning), `dl` (Deep Learning), `nlp` (Language & NLP), `cv` (Computer Vision), `ai-health` (AI in Mental Health), `llm` (Large Language Models), `robotics` (Robotics & Control), `cybersecurity` (Cybersecurity & AI), `data-science` (Data Science), `bio` (Computational Biology).
+- **Flashcard Feed Structure** (`app/src/data/dailyFeed.json` lines 1–32 & `app/src/types.ts` lines 1–15):
+  - Top level: `{ "generatedAt": "ISO string", "topics": { [topicSlug: string]: Paper[] } }`
+  - Paper item:
+    ```typescript
+    export interface Paper {
+      id: string; // e.g. 'arxiv:2608.13522' or 'oa:W2741809807'
+      originalTitle: string;
+      catchyTitle: string;
+      summary: string;
+      authors: string[];
+      source: string;
+      year: number | null;
+      venue: string | null;
+      url: string;
+      pdfUrl: string | null;
+      topics: string[];
+      likes: number;
+      contentLevel?: 1 | 2 | 3 | 4;
+    }
+    ```
+- **State & Sync** (`app/src/state/AppState.tsx` lines 207–380):
+  - Local-first caching with AsyncStorage (`reopsy_v2_state`) and bidirectional cloud sync with Firestore `users/{uid}`.
+  - `feedData` loaded from `dailyFeedJson.topics`.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Category Definition Alignment**: `backend/ingest/lib/topics.js` correctly defines all 10 topics needed for ReOpSy Version 2, aligning with `app/src/config.ts`. However, `backend/schema.sql` was not updated from V1 and contains 6 legacy topics.
-2. **Root Cause of Empty Categories / Dummy Cards**:
-   - In `openalex.js:132` and `arxiv.js:162`, `abstract` is deliberately set to `null` if the paper's license is not open CC-BY (`licenseOk === false`), while `summary` is populated for all papers using the extractive summarizer.
-   - In `fetchAndSummarize.js:65`, `validPapers` filters by `p.abstract && p.title && p.url`. Because most academic papers do not declare open CC-BY licenses, `p.abstract` is `null`, causing `validPapers` to be empty for many topics.
-   - When `validPapers.length === 0`, nothing is inserted into SQLite.
-   - In `fetchAndSummarize.js:110–126`, if `latestPapers.length === 0`, dummy placeholder cards are written to `dailyFeed.json`.
-3. **Summary Fallback Degradation**:
-   - In `fetchAndSummarize.js:75`, when Semantic Scholar has no TLDR, `fallbackSummarize(p.abstract || p.title, p.title)` is called. Since `p.abstract` is `null`, `p.title` is passed as abstract, generating a poor metadata-only summary instead of reusing `p.summary` (the extractive summary already computed from the raw abstract during OpenAlex/arXiv ingest).
-4. **Multi-LLM Fallback Chaining Execution**:
-   - `pipeline/llm.js` implements the exact fallback chain `Gemini -> Mistral -> Grok -> original title` with proper error handling and logging.
-5. **Dry Run Functionality**:
-   - `node pipeline/fetchAndSummarize.js --dry` iterates over all 10 topics and exits with code 0 without touching the DB or writing `dailyFeed.json`.
-6. **Data Retention on Failure**:
-   - If network calls fail, `getLatestPapersForTopic(topic, 10)` queries the SQLite database to retain previously ingested papers. If the DB is populated, no dummy entries are produced.
-   - Primary key in SQLite is `id TEXT PRIMARY KEY`, meaning if a paper is cross-listed across two topics, `insertPaper` only records the first topic encountered. Changing to `PRIMARY KEY (id, topic)` ensures multi-topic retention.
+### 2.1 Admin Authentication & Whitelist Verification Flow
+```
+User Authenticated (Firebase Auth)
+        │
+        ▼
+Extract user.email (normalized lowercase)
+        │
+        ├── Match process.env.EXPO_PUBLIC_ADMIN_EMAIL? ──► YES ──► isAdmin = true, isSuperAdmin = true
+        │
+        └── NO
+             │
+             ▼
+        Query Firestore `admins/{email}` doc (or collection)
+             │
+             ├── Document exists? ───────────────────────► YES ──► isAdmin = true, isSuperAdmin = false
+             └── Document does not exist / error ────────► NO  ──► isAdmin = false, isSuperAdmin = false
+```
+
+1. **State Isolation**:
+   - In `useAuth.ts`, maintain `isAdmin: boolean`, `isSuperAdmin: boolean`, and `adminLoading: boolean`.
+   - Default `isAdmin = false`. When user signs in, perform synchronous check against `EXPO_PUBLIC_ADMIN_EMAIL` first (instant resolution for Super Admin), and if false, execute async Firestore `getDoc(doc(db, 'admins', email.toLowerCase()))`.
+2. **Zero DOM Leakage**:
+   - In `DrawerContent.tsx`, `{isAdmin && <MenuItem ... />}` renders `null` in React Native Web when `isAdmin` is false.
+   - The DOM tree produces zero nodes, zero text strings, and zero accessibility labels containing "Mission Control" or "Admin" for non-admin users.
+3. **Route Protection**:
+   - In `RootNavigator.tsx`, register `Admin` stack screen.
+   - Inside `AdminScreen.tsx`, enforce guard: if `!isAdmin && !adminLoading`, immediately return access denied or redirect to `Feed`.
+
+---
+
+### 2.2 Admin Panel Component Architecture (`AdminScreen.tsx`)
+
+The proposed `AdminScreen.tsx` is structured into 4 tabbed sections:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  ← Mission Control                                         [Admin Pill]│
+├───────────────┬──────────────────┬─────────────────┬───────────────────┤
+│  Flashcards   │ Pipeline Control │ API Usage (LLM) │ Settings & Config │
+├───────────────┴──────────────────┴─────────────────┴───────────────────┤
+│ [Section Content dynamically rendered according to active tab]        │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Section 1: Flashcard Manager
+- **Capabilities**:
+  - Filter pills for the 10 topics (`config.topics`) + "All" + Search filter input.
+  - Scrollable card list rendering each paper with:
+    - Inline editable `catchyTitle` (`TextInput`)
+    - Display of `originalTitle`, `authors`, and `source` badge
+    - Inline editable `summary` (`TextInput` multiline)
+    - Inline editable `url` (`TextInput`)
+    - "Save Changes" button (persists to Firestore `content/dailyFeed` and updates in-memory `AppState.feedData`).
+    - "Delete" button with confirmation alert (`Alert.alert` / modal).
+- **Firestore Target**: Collection `content`, document `dailyFeed` (or `overrides`).
+
+#### Section 2: Pipeline Control & Monitoring
+- **Capabilities**:
+  - Top status bar: Last pipeline run timestamp, total papers ingested, run errors (read from Firestore `pipeline_runs` collection, latest document).
+  - Grid / List of 10 topic cards:
+    - Topic icon, label, slug.
+    - Last fetched count.
+    - "Trigger Fetch" button with loading indicator.
+  - Trigger Fetch action writes a task request document to Firestore `pipeline_queue` with:
+    `{ topic: topicSlug, requestedAt: new Date().toISOString(), status: 'pending', requestedBy: user.email }`.
+- **Firestore Targets**: Reads `pipeline_runs`, writes `pipeline_queue`.
+
+#### Section 3: API Usage Dashboard
+- **Capabilities**:
+  - Summary metric cards: Total LLM Calls, Successful Calls, Failed Calls, Active Providers (Gemini / Mistral / Grok).
+  - Daily breakdown table: Date, Provider, Total Calls, Successes, Failures.
+  - Reads from Firestore `api_usage` collection (logged by backend `llm.js`).
+- **Firestore Target**: Reads `api_usage`.
+
+#### Section 4: Settings & Config
+- **Capabilities**:
+  - **System Prompt Editor**: Multiline code/text editor for the AI title generation prompt (defaulting to the prompt from `backend/pipeline/llm.js:120`). "Save System Prompt" writes to Firestore `config/system_prompt`.
+  - **Admin Whitelist Manager**:
+    - Lists current admin emails fetched from Firestore `admins` collection.
+    - Super Admin badge for the email matching `EXPO_PUBLIC_ADMIN_EMAIL`.
+    - Add Admin input + "Add Admin" button (`setDoc(doc(db, 'admins', email.toLowerCase()), { email, addedAt: new Date().toISOString(), addedBy: user.email })`).
+    - "Remove" button for non-superadmin entries (`deleteDoc(doc(db, 'admins', email.toLowerCase()))`).
+    - Only enabled when `isSuperAdmin === true`.
+- **Firestore Targets**: Reads/writes `config`, reads/writes `admins`.
+
+---
+
+### 2.3 Firestore Security Rules Update (`app/firestore.rules`)
+To enforce security server-side matching R1 & R6:
+```javascript
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email.lower() == "admin@example.com"; // replaced or checked via admin doc
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())) ||
+        request.auth.token.email.lower() == "admin@example.com"
+      );
+    }
+
+    // User data: owner only
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Admin whitelist: admins can read, superadmin can write
+    match /admins/{adminEmail} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // System prompt and configurations: admins only
+    match /config/{configId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Pipeline monitoring and triggers: admins only
+    match /pipeline_runs/{runId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /pipeline_queue/{queueId} {
+      allow read, write: if isAdmin();
+    }
+
+    // API usage tracking: admins only
+    match /api_usage/{usageId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Flashcard content overrides: public read, admin write
+    match /content/{contentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
+```
 
 ---
 
 ## 3. Caveats
 
-1. **Semantic Scholar Free Tier Quota**: Unauthenticated Semantic Scholar calls are rate-limited to 100 requests per 5 minutes. The pipeline adds a 600ms delay per paper; when processing 100 papers across 10 topics, total runtime is ~60–80 seconds.
-2. **LLM API Keys**: The local `.env` contains `GEMINI_API_KEY`. Mistral and xAI keys are optional fallbacks and will gracefully cascade to the original title if unset.
-3. **Dual DB Backend**: SQLite (`backend/db/db.js`) is used by `fetchAndSummarize.js` for local feed generation, while Supabase (`backend/ingest/lib/db.js`) is used by `ingest/ingest.js`. The mobile app loads `app/src/data/dailyFeed.json`.
+1. **Client-side vs Server-side Environment Variables**:
+   - `EXPO_PUBLIC_ADMIN_EMAIL` is embedded into the client bundle at build time. Client-side hiding of UI is for UX and prevention of interface exposure. Server-side data security is guaranteed by Firestore Security Rules.
+2. **Offline Mode & Demo Mode**:
+   - When running without Firebase credentials (`isFirebaseConfigured() === false`), `useAuth` correctly operates in local mode. In this mode, `isAdmin` must be `false` unless a local debug override is specified.
+3. **Admin Whitelist Document Key Format**:
+   - Firestore document keys cannot contain slashes. Email addresses are valid document keys in Firestore, but should be strictly converted to lowercase (`email.trim().toLowerCase()`) to avoid case mismatches.
+4. **Web DOM Verification**:
+   - In React Native Web, conditional rendering (`{isAdmin && <Component />}`) guarantees that no DOM elements or text nodes exist in the rendered HTML when `isAdmin` is false.
 
 ---
 
-## 4. Conclusion & Recommended Architecture
+## 4. Conclusion
 
-### Assessment Summary
-- **R1 (Predefined Categories with Content & Multi-LLM)**: ~85% complete. The multi-LLM chain, Semantic Scholar TLDR, dry-run CLI, and 10 topic queries are implemented. However, the filtering bug in `fetchAndSummarize.js:65` and summary fallback in `fetchAndSummarize.js:75` must be fixed to populate all 10 topics with real papers.
-- **R5 (Scalable Content Architecture & Security)**:
-  - **4-Level Hierarchy**:
-    - *Level 1 (Default)*: 10 static/cached categories in `dailyFeed.json` and SQLite.
-    - *Level 2 (User-Customized)*: Followed topics stored in User State (Firestore/AsyncStorage).
-    - *Level 3 (User API Content)*: Live client-side summarization with user's Gemini/Mistral/Grok key without server cost.
-    - *Level 4 (Highly Specific Research)*: Specific queries (e.g., "Explainable AI for Depression Detection") queried via Semantic Scholar/OpenAlex and summarized via user API.
-  - **Security**: User API keys must reside only in authenticated user Firestore documents (`users/{userId}`) and local AsyncStorage; never exposed in public repositories, logs, or unauthenticated queries.
-
-### Proposed Code Fixes
-
-#### Fix 1: `backend/pipeline/fetchAndSummarize.js`
-Replace line 65 and lines 73–79:
-```javascript
-// Line 65: Use p.summary or p.abstract so valid papers are not dropped
-const validPapers = deduped.filter(p => (p.summary || p.abstract) && p.title && p.url).slice(0, 10);
-
-// Lines 73-79: Use Semantic Scholar TLDR -> Existing extractive summary -> Fallback summarizer
-let summary = await fetchTldr(p.title);
-if (!summary) {
-  summary = p.summary || fallbackSummarize(p.abstract || p.title, p.title);
-}
-if (!summary) {
-  summary = "No abstract available.";
-}
-```
-
-#### Fix 2: `backend/db/db.js`
-Update table schema to support multi-topic papers:
-```sql
-CREATE TABLE IF NOT EXISTS papers (
-  id TEXT,
-  topic TEXT,
-  originalTitle TEXT,
-  catchyTitle TEXT,
-  summary TEXT,
-  authors TEXT,
-  source TEXT,
-  year INTEGER,
-  venue TEXT,
-  url TEXT,
-  pdfUrl TEXT,
-  fetchedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id, topic)
-)
-```
-
-#### Fix 3: `backend/schema.sql`
-Update seed topics to include all 10 V2 topics (`ml`, `dl`, `nlp`, `cv`, `ai-health`, `llm`, `robotics`, `cybersecurity`, `data-science`, `bio`).
+1. **Auth (`useAuth.ts`)**: Can be cleanly extended with `isAdmin`, `isSuperAdmin`, and `adminLoading` without breaking any existing consumers (`AppState.tsx`, `DrawerContent.tsx`, `SettingsScreen.tsx`).
+2. **Navigation (`RootNavigator.tsx` & `DrawerContent.tsx`)**: Drawer entry "Mission Control" with Feather `shield` icon will be conditionally rendered strictly behind `{isAdmin && ...}`. The `Admin` route will be registered in `RootNavigator.tsx` and protected with an authorization guard.
+3. **Theme & Design**: All UI elements in `AdminScreen.tsx` will strictly adhere to `app/src/theme.ts` tokens (`#000000` bg, `#121212` card, `#2a2a2a` cardBorder, `#1d9bf0` primary, Feather icons, 48px touch targets, dark aesthetic).
+4. **Flashcard Manager & Collections**: Flashcard inline CRUD, Pipeline Control, API Usage table, and System Prompt / Whitelist Settings can interact directly with Firestore collections (`admins`, `config`, `pipeline_runs`, `pipeline_queue`, `api_usage`, `content`) while falling back gracefully when offline.
 
 ---
 
 ## 5. Verification Method
 
-### Automated Commands
-1. **Dry-run verification**:
-   ```bash
-   cd d:/Intern/ReOpSy/backend
-   node pipeline/fetchAndSummarize.js --dry
-   ```
-   *Expected*: Passes with exit code 0, iterates all 10 topics. With Fix 1 applied, every topic shows `Fetched > 0 valid papers`.
+### 5.1 Static Type Checking
+```bash
+cd app
+npx tsc --noEmit
+```
+- **Expected Result**: Exit code 0, zero type errors across all files including `useAuth.ts`, `RootNavigator.tsx`, `DrawerContent.tsx`, `AdminScreen.tsx`, and `types.ts`.
 
-2. **Backend unit tests**:
-   ```bash
-   cd d:/Intern/ReOpSy/backend
-   npm test
-   ```
-   *Expected*: All 56 tests in `ingest/test/*.test.js` pass.
+### 5.2 Production Web Build
+```bash
+cd app
+npx expo export -p web
+```
+- **Expected Result**: Successful export to `app/dist` without bundling or syntax errors.
 
-3. **Full pipeline execution & Feed generation**:
-   ```bash
-   cd d:/Intern/ReOpSy/backend
-   node pipeline/fetchAndSummarize.js
-   ```
-   *Expected*: Generates `app/src/data/dailyFeed.json` containing 10 topics with 5–10 real research papers per topic and catchy titles generated via Gemini/fallback.
+### 5.3 DOM Leakage Verification
+- Inspect the generated client bundle and rendered web view when unauthenticated or logged in as a non-admin user:
+- Confirm that the string `"Mission Control"` is NOT rendered in the DOM tree.
 
-4. **Feed Inspection**:
-   Check `app/src/data/dailyFeed.json` for non-empty topics and absence of `dummy-*` paper IDs.
+### 5.4 Invalidation Conditions
+- Any occurrence of `isAdmin` evaluating to `true` when neither `EXPO_PUBLIC_ADMIN_EMAIL` nor Firestore `admins` match.
+- Any non-admin user able to view or navigate to Mission Control.
+- Any type discrepancies in `Paper` or `useAuth` hook interfaces.

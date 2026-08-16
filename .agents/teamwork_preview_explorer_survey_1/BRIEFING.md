@@ -1,56 +1,41 @@
-# BRIEFING — 2026-08-16T06:41:30Z
+# BRIEFING — 2026-08-16T11:43:40Z
 
 ## Mission
-Investigate and analyze the backend & content pipeline for ReOpSy Version 2, focusing on R1 (Predefined categories, Semantic Scholar API, LLM fallback chain, dry-run mode, failure tolerance) and R5 (Scalable content architecture & security).
+Explore and document the frontend architecture in `app/` (Auth, Navigation, Theme, Flashcard structures, Admin integration, TS setup).
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: Backend & Content Pipeline Investigation & Synthesis
+- Roles: Survey Explorer 1 (Frontend & Auth/Navigation Specialist)
 - Working directory: d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_1
-- Original parent: 171058dd-3756-4f39-b6da-6cabf5623d41
-- Milestone: Investigation / Survey Phase
+- Original parent: d59e47a6-65c1-40b7-93f6-3ce57c9ea5dd
+- Milestone: Survey & Architecture Analysis Complete
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement changes in source code
-- Inspect all files in backend/, pipeline/, ingest/, db/, etc.
-- Verify exact line numbers, behavior, and missing pieces against R1 and R5
-- Produce structured 5-component handoff report
+- Read-only investigation — do NOT implement
+- Write reports and analysis to .agents/teamwork_preview_explorer_survey_1/
+- Accurate observations, logic chains, caveats, conclusions, verification methods
 
 ## Current Parent
-- Conversation ID: 171058dd-3756-4f39-b6da-6cabf5623d41
-- Updated: 2026-08-16T06:36:00Z
+- Conversation ID: d59e47a6-65c1-40b7-93f6-3ce57c9ea5dd
+- Updated: 2026-08-16T11:43:40Z
 
 ## Investigation State
-- **Explored paths**:
-  - `backend/package.json`
-  - `backend/.env`, `backend/.env.example`
-  - `backend/schema.sql`
-  - `backend/pipeline/fetchAndSummarize.js`
-  - `backend/pipeline/semanticScholar.js`
-  - `backend/pipeline/llm.js`
-  - `backend/pipeline/cron.js`
-  - `backend/db/db.js`
-  - `backend/ingest/ingest.js`
-  - `backend/ingest/lib/topics.js`
-  - `backend/ingest/lib/openalex.js`
-  - `backend/ingest/lib/arxiv.js`
-  - `backend/ingest/lib/dedupe.js`
-  - `backend/ingest/lib/summarize.js`
-  - `backend/ingest/lib/text.js`
-  - `backend/ingest/lib/db.js`
-  - `app/src/config.ts`, `app/src/types.ts`, `app/src/data/dailyFeed.json`, `app/src/state/AppState.tsx`
+- **Explored paths**: `app/package.json`, `app/tsconfig.json`, `app/App.tsx`, `app/src/types.ts`, `app/src/config.ts`, `app/src/theme.ts`, `app/src/services/firebase.ts`, `app/src/hooks/useAuth.ts`, `app/src/navigation/RootNavigator.tsx`, `app/src/components/DrawerContent.tsx`, `app/src/state/AppState.tsx`, `app/src/screens/FeedScreen.tsx`, `app/src/screens/SavedScreen.tsx`, `app/src/screens/SettingsScreen.tsx`, `app/src/screens/PersonalizationScreen.tsx`, `app/src/components/PaperCard.tsx`, `app/src/components/ActionBar.tsx`, `app/src/components/TopicTabs.tsx`, `app/src/data/dailyFeed.json`, `app/firestore.rules`, `backend/pipeline/fetchAndSummarize.js`, `backend/pipeline/llm.js`.
 - **Key findings**:
-  1. Predefined 10 topics defined in `backend/ingest/lib/topics.js` and `app/src/config.ts`. `backend/schema.sql` still has legacy 6 topics.
-  2. Critical filtering bug in `fetchAndSummarize.js:65` (`p.abstract && p.title && p.url`) causes papers with closed licenses (`p.abstract === null`) to be dropped even when valid `p.summary` is present, resulting in dummy fallback cards in `dailyFeed.json`.
-  3. Semantic Scholar `fetchTldr` correctly implemented with 600ms rate-limit delay, but `fetchAndSummarize.js` summary fallback logic should fall back to `p.summary` before calling `fallbackSummarize`.
-  4. Multi-LLM fallback chain (`Gemini -> Mistral -> Grok -> original title`) in `pipeline/llm.js` is fully implemented and operational.
-  5. Dry-run mode (`node pipeline/fetchAndSummarize.js --dry`) verified and functional across all 10 topics.
-  6. Data persistence in SQLite (`backend/db/db.js`) retains existing papers on fetch failure; composite key `(id, topic)` recommended to prevent cross-topic paper drops.
-  7. R5 4-level content hierarchy and Firestore API key security rules specified.
-- **Unexplored areas**: None. All backend and pipeline components fully explored and verified.
+  1. Auth architecture and clean addition of `isAdmin` / `isSuperAdmin` via `EXPO_PUBLIC_ADMIN_EMAIL` + Firestore `admins/{email}` collection check in `useAuth.ts`.
+  2. Hidden "Mission Control" drawer item with Feather `shield` icon conditionally rendered behind `{isAdmin && ...}` to ensure zero DOM leakage for non-admins.
+  3. Strict adherence to dark theme tokens (`#000000` bg, `#121212` card, `#2a2a2a` cardBorder, `#1d9bf0` primary, Feather icons, 48px touch targets).
+  4. Complete 4-section architecture designed for `AdminScreen.tsx` (Flashcard Manager with inline CRUD, Pipeline Control & Queue Trigger, API Usage Dashboard, System Prompt & Whitelist Config).
+  5. Updated Firestore security rules for admin-only access to `admins`, `config`, `pipeline_runs`, `pipeline_queue`, `api_usage`, `content`.
+- **Unexplored areas**: None within frontend survey scope.
 
 ## Key Decisions Made
-- Detailed all findings and recommended fixes in `handoff.md`.
+- Auth hook should expose `{ user, isAdmin, isSuperAdmin, adminLoading, loading, error, isConfigured, signInWithGoogle, signOut }`.
+- Navigation should register `Admin` screen in `RootNavigator.tsx` and conditionally display "Mission Control" in `DrawerContent.tsx`.
+- Completed full 5-component handoff report in `handoff.md`.
 
 ## Artifact Index
-- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_1/handoff.md` — Comprehensive Investigation & Handoff Report
+- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_1/DISPATCH.md` — Dispatch log
+- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_1/BRIEFING.md` — Persistent situational memory
+- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_1/progress.md` — Heartbeat & status tracking
+- `d:/Intern/ReOpSy/.agents/teamwork_preview_explorer_survey_1/handoff.md` — Comprehensive architectural handoff report

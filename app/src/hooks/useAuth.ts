@@ -8,35 +8,93 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { Alert } from 'react-native';
-import { auth, isFirebaseConfigured } from '../services/firebase';
+import { auth, db, isFirebaseConfigured } from '../services/firebase';
+
+declare const process: {
+  env?: Record<string, string | undefined>;
+};
 
 export interface UseAuthReturn {
   user: User | null;
   loading: boolean;
+  adminLoading: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
   error: string | null;
   isConfigured: boolean;
   signInWithGoogle: () => Promise<User | null>;
   signOut: () => Promise<void>;
+  refreshAdminStatus?: () => Promise<void>;
 }
 
 export const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const configured = isFirebaseConfigured();
+
+  const verifyAdminStatus = useCallback(async (currentUser: User | null): Promise<void> => {
+    if (!currentUser || !currentUser.email) {
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+      setAdminLoading(false);
+      return;
+    }
+
+    const email = currentUser.email.trim().toLowerCase();
+    const superAdminEmail = (process.env?.EXPO_PUBLIC_ADMIN_EMAIL || '').trim().toLowerCase();
+    const isSuper = Boolean(superAdminEmail && email === superAdminEmail);
+
+    if (isSuper) {
+      setIsAdmin(true);
+      setIsSuperAdmin(true);
+      setAdminLoading(false);
+      return;
+    }
+
+    setIsSuperAdmin(false);
+    setAdminLoading(true);
+
+    try {
+      if (!configured || !db) {
+        setIsAdmin(false);
+        setAdminLoading(false);
+        return;
+      }
+
+      const adminDocRef = doc(db, 'admins', email);
+      const adminSnap = await getDoc(adminDocRef);
+      setIsAdmin(adminSnap.exists());
+    } catch (err: any) {
+      console.warn('[useAuth] Firestore admin check error:', err);
+      setIsAdmin(false);
+    } finally {
+      setAdminLoading(false);
+    }
+  }, [configured]);
 
   useEffect(() => {
     if (!configured || !auth) {
       setLoading(false);
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+      setAdminLoading(false);
       return;
     }
+
+    let isMounted = true;
 
     // Check redirect result on web platforms if redirected back
     getRedirectResult(auth)
       .then((result) => {
-        if (result?.user) {
+        if (result?.user && isMounted) {
           setUser(result.user);
+          verifyAdminStatus(result.user);
         }
       })
       .catch((err: any) => {
@@ -46,21 +104,30 @@ export const useAuth = (): UseAuthReturn => {
     const unsubscribe = onAuthStateChanged(
       auth,
       (u) => {
-        setUser(u);
-        setLoading(false);
+        if (isMounted) {
+          setUser(u);
+          setLoading(false);
+          verifyAdminStatus(u);
+        }
       },
       (err) => {
         console.warn("[useAuth] onAuthStateChanged error:", err);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          setIsAdmin(false);
+          setIsSuperAdmin(false);
+          setAdminLoading(false);
+        }
       }
     );
 
     return () => {
+      isMounted = false;
       if (typeof unsubscribe === 'function') {
         unsubscribe();
       }
     };
-  }, [configured]);
+  }, [configured, verifyAdminStatus]);
 
   const signInWithGoogle = useCallback(async (): Promise<User | null> => {
     if (!configured || !auth) {
@@ -79,6 +146,7 @@ export const useAuth = (): UseAuthReturn => {
       // In web or popup-supporting environments, attempt popup first
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
+      await verifyAdminStatus(result.user);
       return result.user;
     } catch (err: any) {
       // If popup is blocked or unsupported in the current browser/webview context, fallback to redirect
@@ -110,17 +178,23 @@ export const useAuth = (): UseAuthReturn => {
       Alert.alert("Sign In Error", message);
       return null;
     }
-  }, [configured]);
+  }, [configured, verifyAdminStatus]);
 
   const signOut = useCallback(async (): Promise<void> => {
     if (!configured || !auth) {
       setUser(null);
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+      setAdminLoading(false);
       return;
     }
 
     try {
       await firebaseSignOut(auth);
       setUser(null);
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+      setAdminLoading(false);
     } catch (err: any) {
       console.warn("[useAuth] signOut error:", err);
       const message = err?.message || "Failed to sign out.";
@@ -129,12 +203,20 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [configured]);
 
+  const refreshAdminStatus = useCallback(async (): Promise<void> => {
+    await verifyAdminStatus(user);
+  }, [verifyAdminStatus, user]);
+
   return {
     user,
     loading,
+    adminLoading,
+    isAdmin,
+    isSuperAdmin,
     error,
     isConfigured: configured,
     signInWithGoogle,
-    signOut
+    signOut,
+    refreshAdminStatus
   };
 };
