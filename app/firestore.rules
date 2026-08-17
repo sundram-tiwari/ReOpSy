@@ -11,13 +11,19 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isAdmin() {
+    function isSuperAdmin() {
       return isAuthenticated() && 
+        request.auth.token.email != null && 
+        request.auth.token.email.lower() == "sundramtiwarims@gmail.com";
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (isAuthenticated() && 
         request.auth.token.email != null && 
         (
           exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())) ||
           exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
-        );
+        ));
     }
 
     // User profile, preferences, API keys, and bookmarks are strictly owner-only
