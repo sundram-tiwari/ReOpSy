@@ -1,901 +1,12 @@
 {
-  "generatedAt": "2026-08-16T07:00:13.615Z",
+  "generatedAt": "2026-08-22T08:24:40.932Z",
   "topics": {
-    "ml": [
-      {
-        "id": "arxiv:2608.13522",
-        "originalTitle": "Vero: Can AI Agents Build Formally Verified Software Repositories?",
-        "catchyTitle": "Vero: Can AI Agents Build Formally Verified Software Repositories?",
-        "summary": "Vero is introduced, the first benchmark to evaluate joint implementation and proof synthesis at the repository level and an audit mechanism where agents are allowed to formally prove unsatisfiability of provided specification or incorrectness of reference code, which surfaces and corrects latent code and specification errors during curation.",
-        "authors": [
-          "Zhe Ye",
-          "Hantao Lou",
-          "Yuechun Sun",
-          "Peiyang Song",
-          "Zhengxu Yan",
-          "Timothe Kasriel",
-          "Qingyang Zhang",
-          "Kaiyu Yang",
-          "Soonho Kong",
-          "Jingxuan He",
-          "Dawn Song"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13522v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13522v1",
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13524",
-        "originalTitle": "DARTree: Speculative Diffusion Decoding with Autoregressive Draft Trees",
-        "catchyTitle": "DARTree: Speculative Diffusion Decoding with Autoregressive Draft Trees",
-        "summary": "Speculative decoding losslessly accelerates autoregressive language models by verifying multiple draft tokens in parallel. Existing recurrent correction incorporates causal information along a single draft chain, whereas diffusion-based tree construction broadens candidate coverage without carrying this correction along individual branches. We introduce DARTree, a training-free speculative decoding method that extends a pretrained AR correction head from chains to trees.",
-        "authors": [
-          "Tianyi Li",
-          "Yaxin Luo",
-          "Xinyi Shang",
-          "Zhiqiang Shen"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13524v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13524v1",
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13545",
-        "originalTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "catchyTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "summary": "Modern language models are trained on heterogeneous web-scale text corpora. Consequently, studying knowledge and skill acquisition is difficult, as prior exposure to related content is hard to characterize. Training a 5B-parameter LLM from scratch on LITTLECURRICULUM yields LITTLELEARNER, a model with sufficient language competence for open-ended evaluation, yet with clear knowledge and capability boundaries mapped to interpretable curriculum guidelines.",
-        "authors": [
-          "Fanfei Li",
-          "Jana Zeller",
-          "Manuel Prada-Corral",
-          "Thaddäus Wiedemer",
-          "Prasanna Mayilvahanan",
-          "Ryan Cotterell",
-          "Wieland Brendel"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13545v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13545v1",
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13549",
-        "originalTitle": "Exponential Convex Calibration Dimension for the Multi-Label Jaccard Measure",
-        "catchyTitle": "Exponential Convex Calibration Dimension for the Multi-Label Jaccard Measure",
-        "summary": "The per-instance Jaccard score, or intersection over union (IoU), is standard in multi-label classification and binary segmentation. Under the convention, we prove that the Jaccard score, shifted-loss, and ordinary loss matrices are nonsingular and that the loss columns have affine dimension. Thus zero-regret calibration requires exponential dimension, whereas every fixed additive regret tolerance admits polynomial prediction dimension.",
-        "authors": [
-          "Mingyuan Zhang"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13549v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13549v1",
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13554",
-        "originalTitle": "Defensive Boosting for Online Probabilistic Forecasting",
-        "catchyTitle": "Defensive Boosting for Online Probabilistic Forecasting",
-        "summary": "On every adaptive sequence, its Brier score is competitive with the best prediction induced by the span of at the same rate as online gradient boosting; simultaneously, whenever the realized transcript satisfies the smooth weak-learning condition, its Brier score and randomized classification error satisfy the same rate guarantee as online classification boosting.",
-        "authors": [
-          "Georgy Noarov",
-          "Aaron Roth"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13554v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13554v1",
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7166191681",
-        "originalTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "catchyTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "summary": "To address the limitations of conventional methods—namely, low recognition rates for sporadic equipment failures and emerging anomalous patterns, as well as a heavy reliance on manual labels—this paper constructs an automated quality control model for industrial waste gas online monitoring data based on unsupervised learning.",
-        "authors": [
-          "Tao Lin"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "Knowledge Commons (Lakehead University)",
-        "url": "https://doi.org/10.17613/g1ft7-d9j25",
-        "pdfUrl": null,
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7162095276",
-        "originalTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "catchyTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "summary": "Online neural learning requires models that update after each incoming example, remain calibrated under distributional change, and avoid brittle gradient transmission. This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
-        "authors": [
-          "Sizhen Niu"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "Open MIND",
-        "url": "https://doi.org/10.17613/nzztb-q4520",
-        "pdfUrl": "https://pub.respai.de/articles/1-2/is2-3.pdf",
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7154681315",
-        "originalTitle": "A joint transit-radial-velocity framework for evolutionary inference of close-in, small planet populations",
-        "catchyTitle": "A joint transit-radial-velocity framework for evolutionary inference of close-in, small planet populations",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Adrian Lam"
-        ],
-        "source": "openalex",
-        "year": 2027,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0451819",
-        "pdfUrl": null,
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7128783899",
-        "originalTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
-        "catchyTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Samuel Guy Berryman"
-        ],
-        "source": "openalex",
-        "year": 2028,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0451480",
-        "pdfUrl": null,
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W3015352082",
-        "originalTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
-        "catchyTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
-        "summary": "This paper presents a review and critique of the 20-year-old literature on institutional distance, which has greatly proliferated. We start with a discussion of the three institutional perspectives that have served as a theoretical foundation for this construct: organizational institutionalism, institutional economics, and comparative institutionalism. We conclude with actionable recommendations for improving institutional distance research.",
-        "authors": [
-          "Tatiana Kostova",
-          "R. Scott",
-          "Sjoerd Beugelsdijk",
-          "VE Kunst",
-          "C-H Chua",
-          "M. van Essen"
-        ],
-        "source": "openalex",
-        "year": 2050,
-        "venue": "University of Liverpool",
-        "url": "https://doi.org/10.17638/03061303",
-        "pdfUrl": null,
-        "topics": [
-          "ml"
-        ],
-        "likes": 0
-      }
-    ],
-    "dl": [
-      {
-        "id": "arxiv:2608.13522",
-        "originalTitle": "Vero: Can AI Agents Build Formally Verified Software Repositories?",
-        "catchyTitle": "Vero: Can AI Agents Build Formally Verified Software Repositories?",
-        "summary": "Vero is introduced, the first benchmark to evaluate joint implementation and proof synthesis at the repository level and an audit mechanism where agents are allowed to formally prove unsatisfiability of provided specification or incorrectness of reference code, which surfaces and corrects latent code and specification errors during curation.",
-        "authors": [
-          "Zhe Ye",
-          "Hantao Lou",
-          "Yuechun Sun",
-          "Peiyang Song",
-          "Zhengxu Yan",
-          "Timothe Kasriel",
-          "Qingyang Zhang",
-          "Kaiyu Yang",
-          "Soonho Kong",
-          "Jingxuan He",
-          "Dawn Song"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13522v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13522v1",
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13524",
-        "originalTitle": "DARTree: Speculative Diffusion Decoding with Autoregressive Draft Trees",
-        "catchyTitle": "DARTree: Speculative Diffusion Decoding with Autoregressive Draft Trees",
-        "summary": "Speculative decoding losslessly accelerates autoregressive language models by verifying multiple draft tokens in parallel. Existing recurrent correction incorporates causal information along a single draft chain, whereas diffusion-based tree construction broadens candidate coverage without carrying this correction along individual branches. We introduce DARTree, a training-free speculative decoding method that extends a pretrained AR correction head from chains to trees.",
-        "authors": [
-          "Tianyi Li",
-          "Yaxin Luo",
-          "Xinyi Shang",
-          "Zhiqiang Shen"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13524v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13524v1",
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13545",
-        "originalTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "catchyTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "summary": "Modern language models are trained on heterogeneous web-scale text corpora. Consequently, studying knowledge and skill acquisition is difficult, as prior exposure to related content is hard to characterize. Training a 5B-parameter LLM from scratch on LITTLECURRICULUM yields LITTLELEARNER, a model with sufficient language competence for open-ended evaluation, yet with clear knowledge and capability boundaries mapped to interpretable curriculum guidelines.",
-        "authors": [
-          "Fanfei Li",
-          "Jana Zeller",
-          "Manuel Prada-Corral",
-          "Thaddäus Wiedemer",
-          "Prasanna Mayilvahanan",
-          "Ryan Cotterell",
-          "Wieland Brendel"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13545v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13545v1",
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13549",
-        "originalTitle": "Exponential Convex Calibration Dimension for the Multi-Label Jaccard Measure",
-        "catchyTitle": "Exponential Convex Calibration Dimension for the Multi-Label Jaccard Measure",
-        "summary": "The per-instance Jaccard score, or intersection over union (IoU), is standard in multi-label classification and binary segmentation. Under the convention, we prove that the Jaccard score, shifted-loss, and ordinary loss matrices are nonsingular and that the loss columns have affine dimension. Thus zero-regret calibration requires exponential dimension, whereas every fixed additive regret tolerance admits polynomial prediction dimension.",
-        "authors": [
-          "Mingyuan Zhang"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13549v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13549v1",
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13554",
-        "originalTitle": "Defensive Boosting for Online Probabilistic Forecasting",
-        "catchyTitle": "Defensive Boosting for Online Probabilistic Forecasting",
-        "summary": "On every adaptive sequence, its Brier score is competitive with the best prediction induced by the span of at the same rate as online gradient boosting; simultaneously, whenever the realized transcript satisfies the smooth weak-learning condition, its Brier score and randomized classification error satisfy the same rate guarantee as online classification boosting.",
-        "authors": [
-          "Georgy Noarov",
-          "Aaron Roth"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13554v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13554v1",
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7166191681",
-        "originalTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "catchyTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "summary": "To address the limitations of conventional methods—namely, low recognition rates for sporadic equipment failures and emerging anomalous patterns, as well as a heavy reliance on manual labels—this paper constructs an automated quality control model for industrial waste gas online monitoring data based on unsupervised learning.",
-        "authors": [
-          "Tao Lin"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "Knowledge Commons (Lakehead University)",
-        "url": "https://doi.org/10.17613/g1ft7-d9j25",
-        "pdfUrl": null,
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7162095276",
-        "originalTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "catchyTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "summary": "Online neural learning requires models that update after each incoming example, remain calibrated under distributional change, and avoid brittle gradient transmission. This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
-        "authors": [
-          "Sizhen Niu"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "Open MIND",
-        "url": "https://doi.org/10.17613/nzztb-q4520",
-        "pdfUrl": "https://pub.respai.de/articles/1-2/is2-3.pdf",
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7154681315",
-        "originalTitle": "A joint transit-radial-velocity framework for evolutionary inference of close-in, small planet populations",
-        "catchyTitle": "A joint transit-radial-velocity framework for evolutionary inference of close-in, small planet populations",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Adrian Lam"
-        ],
-        "source": "openalex",
-        "year": 2027,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0451819",
-        "pdfUrl": null,
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7128783899",
-        "originalTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
-        "catchyTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Samuel Guy Berryman"
-        ],
-        "source": "openalex",
-        "year": 2028,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0451480",
-        "pdfUrl": null,
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W3015352082",
-        "originalTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
-        "catchyTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
-        "summary": "This paper presents a review and critique of the 20-year-old literature on institutional distance, which has greatly proliferated. We start with a discussion of the three institutional perspectives that have served as a theoretical foundation for this construct: organizational institutionalism, institutional economics, and comparative institutionalism. We conclude with actionable recommendations for improving institutional distance research.",
-        "authors": [
-          "Tatiana Kostova",
-          "R. Scott",
-          "Sjoerd Beugelsdijk",
-          "VE Kunst",
-          "C-H Chua",
-          "M. van Essen"
-        ],
-        "source": "openalex",
-        "year": 2050,
-        "venue": "University of Liverpool",
-        "url": "https://doi.org/10.17638/03061303",
-        "pdfUrl": null,
-        "topics": [
-          "dl"
-        ],
-        "likes": 0
-      }
-    ],
-    "nlp": [
-      {
-        "id": "arxiv:2608.13517",
-        "originalTitle": "DFM Mimir v1: An Open HRM Delivering Frontier Performance at 1B Parameters Using Only Permissible Post-Training Data",
-        "catchyTitle": "DFM Mimir v1: An Open HRM Delivering Frontier Performance at 1B Parameters Using Only Permissible Post-Training Data",
-        "summary": "We introduce Mimir v1, a 1-billion-parameter language model based on the Hierarchical Reasoning Model (HRM) architecture, that is trained from scratch and delivers highly competitive performance for English and sets a new state of the art for Danish using only permissible post-training data. The model is available on the Hugging Face Hub: https://huggingface.co/danish-foundation-models/DFM-Mimir",
-        "authors": [
-          "Peter Schneider-Kamp",
-          "Jacob Nielsen",
-          "Gianluca Barmina",
-          "Kenneth Enevoldsen",
-          "Lukas Galke Poech"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13517v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13517v1",
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13538",
-        "originalTitle": "SAEVerbalizer: Generating Explanations for Sparse Autoencoder Features via Representation Verbalization",
-        "catchyTitle": "SAEVerbalizer: Generating Explanations for Sparse Autoencoder Features via Representation Verbalization",
-        "summary": "Sparse autoencoders (SAEs) are proposed to extract numerous features from large language model (LLM) representations, yet explaining these features still relies primarily on external observation. We introduce SAEVerbalizer, a framework that injects SAE decoder directions into an LLM's representations and fine-tunes the LLM's downstream layers to generate natural-language explanations of the injected features.",
-        "authors": [
-          "Weihan Meng",
-          "Hongzhu Guo",
-          "Yi Jing",
-          "Dewen Liu",
-          "Zijun Yao",
-          "Xiaozhi Wang",
-          "Lei Hou",
-          "Juanzi Li"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13538v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13538v1",
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13545",
-        "originalTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "catchyTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "summary": "Modern language models are trained on heterogeneous web-scale text corpora. Consequently, studying knowledge and skill acquisition is difficult, as prior exposure to related content is hard to characterize. Training a 5B-parameter LLM from scratch on LITTLECURRICULUM yields LITTLELEARNER, a model with sufficient language competence for open-ended evaluation, yet with clear knowledge and capability boundaries mapped to interpretable curriculum guidelines.",
-        "authors": [
-          "Fanfei Li",
-          "Jana Zeller",
-          "Manuel Prada-Corral",
-          "Thaddäus Wiedemer",
-          "Prasanna Mayilvahanan",
-          "Ryan Cotterell",
-          "Wieland Brendel"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13545v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13545v1",
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13558",
-        "originalTitle": "OmniScientist: An Omni-Modal Omni-Discipline AI Scientist",
-        "catchyTitle": "OmniScientist: An Omni-Modal Omni-Discipline AI Scientist",
-        "summary": "Recent advances in foundation models have enabled AI scientists to automate increasingly complete research workflows, from hypothesis generation and code execution to manuscript preparation. Yet workflow coverage alone does not provide access to the full evidence on which scientific discovery depends. We introduce OmniScientist, an end-to-end, omni-modal AI scientist that conducts multidisciplinary research directly from heterogeneous raw evidence.",
-        "authors": [
-          "Bobo Li",
-          "Hao Fei",
-          "Tianjie Ju",
-          "Mong-Li Lee",
-          "Wynne Hsu"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13558v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13558v1",
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13560",
-        "originalTitle": "AutoDesign: Meta-Harness Optimization for Long-Horizon Agentic Design",
-        "catchyTitle": "AutoDesign: Meta-Harness Optimization for Long-Horizon Agentic Design",
-        "summary": "In this paper, we present AutoDesign, a framework that aligns with human design priors, where a meta-harness optimizer guides a code agent to recursively improve harness based on rollout feedback. On the PosterBench Main Track, AutoDesign achieves the highest score of 78.32, surpassing the closed-source commercial system Claude Design by 7.45 points.",
-        "authors": [
-          "Yaxin Luo",
-          "Haobin Jiang",
-          "Jialv Zou",
-          "Xu Huang",
-          "Wenhao Yan",
-          "Haodong Li",
-          "Zhengrong Yue",
-          "Jing Li",
-          "Xiaofu Chen",
-          "Xiaohan Zhao",
-          "Jiacheng Liu",
-          "Jiacheng Cui"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13560v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13560v1",
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7202352816",
-        "originalTitle": "Response Format and Construct Validity in Medical Students' Word‑Analysis Assessment: A Validity Argument Approach",
-        "catchyTitle": "Response Format and Construct Validity in Medical Students' Word‑Analysis Assessment: A Validity Argument Approach",
-        "summary": "Response format may influence the interpretation of language assessment scores by engaging different cognitive processes. This study aimed to examine the effects of response format on medical students' word-analysis performance. A within-subjects counterbalanced comparative assessment design was employed with 170 undergraduate medical students who completed both a Multiple-Choice Word Analysis Test (MCQ) and a Word Analysis Completion Test (WACT).",
-        "authors": [
-          "Kazem Barzegar",
-          "Ali Fattahi Bafghi"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "DOAJ (DOAJ: Directory of Open Access Journals)",
-        "url": "https://doi.org/10.30479/jmrels.2026.23722.2622",
-        "pdfUrl": null,
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7159665000",
-        "originalTitle": "Evaluating Minority Representation in the All of Us Research Program: Progress and Ongoing Challenges.",
-        "catchyTitle": "Evaluating Minority Representation in the All of Us Research Program: Progress and Ongoing Challenges.",
-        "summary": ". 2026;116(9): 1339-1342. https://doi.org/10.2105/AJPH.2026.308441).",
-        "authors": [
-          "Zhiyu Qian",
-          "Mansoo Cho",
-          "Hari S. Iyer",
-          "Stuart R Lipsitz",
-          "Alexander P. Cole",
-          "Kevin H. Kensler",
-          "Quoc-Dien Trinh"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "PubMed",
-        "url": "https://doi.org/10.2105/ajph.2026.308441",
-        "pdfUrl": null,
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7107944698",
-        "originalTitle": "The Architecture of Limitation: Manuscript I — Metaphysical Expression",
-        "catchyTitle": "The Architecture of Limitation: Manuscript I — Metaphysical Expression",
-        "summary": "This manuscript is a sealed public expression of the Architecture of Limitation (AoL).It presents the structural conditions under which coherence becomes possible, the boundariesthat permit form to hold without distortion, and the architectural domain in which limitationstabilizes meaning. This version represents the final,sealed public expression of Manuscript I. This work belongs to the Architecture of Limitation research program.",
-        "authors": [
-          "Schaut, F.L."
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "PhilPapers (PhilPapers Foundation)",
-        "url": "https://doi.org/10.5281/zenodo.17751215",
-        "pdfUrl": "https://philpapers.org/archive/SCHTAO-135.pdf",
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7126018663",
-        "originalTitle": "Sentiment Analysis Performance of Lora-Enhanced Llm's",
-        "catchyTitle": "Boosting Sentiment Analysis: How LoRA Supercharges DistilBERT on Social Media",
-        "summary": "This study evaluates eight machine learning, deep learning, and transformer models for Twitter sentiment analysis. Fine-tuning DistilBERT with LoRA achieved the highest accuracy at 82.38%. The findings highlight that parameter-efficient fine-tuning significantly outperforms traditional approaches in short-text classification.",
-        "authors": [
-          "Tunahan TİMUÇİN"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": null,
-        "url": "https://doi.org/10.5281/zenodo.18418625",
-        "pdfUrl": null,
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7105983794",
-        "originalTitle": "Comparing and Contrasting Forced Aligned Acoustic Models for Vernacular Speech",
-        "catchyTitle": "Tuning in to Vernacular: Testing Forced Alignment on Appalachian English",
-        "summary": "This study evaluated the Montreal Forced Aligner on Appalachian English using a pretrained model compared to manual alignment. With low error rates between 0.54% and 1.3%, the aligner handled dialect variations effectively. Researchers can reliably use this tool for vernacular speech analysis on high-quality recordings.",
-        "authors": [
-          "Cox, Amy",
-          "Dunlop, Tamsin",
-          "Oliver, Rachel",
-          "Koston, Kasia",
-          "Wong, Leo",
-          "Yang, Nicky"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": null,
-        "url": "https://doi.org/10.5281/zenodo.17611079",
-        "pdfUrl": null,
-        "topics": [
-          "nlp"
-        ],
-        "likes": 0
-      }
-    ],
-    "cv": [
-      {
-        "id": "arxiv:2608.13546",
-        "originalTitle": "Alaya-EVOKE: From Linear-Scaling Supervision to Endless World",
-        "catchyTitle": "Alaya-EVOKE: From Linear-Scaling Supervision to Endless World",
-        "summary": "Interactive world models must support persistent memory, responsive interaction, and long-horizon generation, yet these requirements place conflicting demands on the model. Maintaining history in the denoiser context or key-value cache incurs growing cost, forcing a trade-off between session length and retained memory, while low-latency interaction relies on few-step generation whose capabilities are bounded by its teacher.",
-        "authors": [
-          "Yuanyang Yin",
-          "Gongxuan Wang",
-          "Yifan Zhan",
-          "Chuanhao Li",
-          "Kaipeng Zhang",
-          "Feng Zhao"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13546v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13546v1",
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13552",
-        "originalTitle": "PlayWorld: Benchmarking World Models with Agent Players over Long-Horizon Objectives",
-        "catchyTitle": "PlayWorld: Benchmarking World Models with Agent Players over Long-Horizon Objectives",
-        "summary": "Video world models simulate future states conditioned on current observations and user actions. To address this, we employ multi-modal Agent Players to interact with world models toward specified long-horizon objectives. Experiments across nine state-of-the-art world models reveal that current models remain unreliable on long-horizon interactive objectives, particularly in maintaining spatial consistency and persistent state evolution.",
-        "authors": [
-          "Kaixin Ding",
-          "Xi Chen",
-          "Minghong Cai",
-          "Zhiyuan Xu",
-          "Yiyang Wang",
-          "Yuxiang Lu",
-          "Junyi Li",
-          "Shuyang Chen",
-          "Yuan Gao",
-          "Xin Tao",
-          "Pengfei Wan",
-          "Hengshuang Zhao"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13552v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13552v1",
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13555",
-        "originalTitle": "HumanTracker: Towards Comprehensive and Human-Aligned Motion Tracking Benchmark",
-        "catchyTitle": "HumanTracker: Towards Comprehensive and Human-Aligned Motion Tracking Benchmark",
-        "summary": "Humanoid motion tracking is central to teleoperation and whole-body imitation, yet evaluation often disagrees with what people perceive in videos. We introduce HumanTracker to make humanoid tracking evaluation both perceptually aligned and scalable. The HumanTracker benchmark contains approximately 153 hours of optical motion trajectories from multiple professional performers, organized into four motion families with text labels for fine-grained diagnosis.",
-        "authors": [
-          "Dairu Liu",
-          "Zekun Qi",
-          "Jiayu Zeng",
-          "Ruixi Yu",
-          "Yu Guan",
-          "Yintianrun Zhang",
-          "Xuchuan Chen",
-          "Sikai Liang",
-          "Zekai Li",
-          "Chenghuai Lin",
-          "Xinqiang Yu",
-          "Wenyao Zhang"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13555v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13555v1",
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13556",
-        "originalTitle": "V-RAE: Rethinking Video Latent Spaces for Generation",
-        "catchyTitle": "V-RAE: Rethinking Video Latent Spaces for Generation",
-        "summary": "Latent video generation relies on autoencoders to define a compact space in which generative models operate. We propose V-RAE, a video representation autoencoder that builds compact generative latents on top of frozen vision foundation model representations. Beyond video generation, V-RAE also improves future video prediction on Cityscapes over the Wan 2.2 VAE latent space under matched prediction settings.",
-        "authors": [
-          "Minghui Guo",
-          "Shengqiong Wu",
-          "Hao Fei"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13556v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13556v1",
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13560",
-        "originalTitle": "AutoDesign: Meta-Harness Optimization for Long-Horizon Agentic Design",
-        "catchyTitle": "AutoDesign: Meta-Harness Optimization for Long-Horizon Agentic Design",
-        "summary": "In this paper, we present AutoDesign, a framework that aligns with human design priors, where a meta-harness optimizer guides a code agent to recursively improve harness based on rollout feedback. On the PosterBench Main Track, AutoDesign achieves the highest score of 78.32, surpassing the closed-source commercial system Claude Design by 7.45 points.",
-        "authors": [
-          "Yaxin Luo",
-          "Haobin Jiang",
-          "Jialv Zou",
-          "Xu Huang",
-          "Wenhao Yan",
-          "Haodong Li",
-          "Zhengrong Yue",
-          "Jing Li",
-          "Xiaofu Chen",
-          "Xiaohan Zhao",
-          "Jiacheng Liu",
-          "Jiacheng Cui"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13560v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13560v1",
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7130679909",
-        "originalTitle": "Reducing IMU dynamic soft tissue artifacts with a soft tissue Kalman filter",
-        "catchyTitle": "Reducing IMU dynamic soft tissue artifacts with a soft tissue Kalman filter",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Genevieve Bonnor"
-        ],
-        "source": "openalex",
-        "year": 2027,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0451493",
-        "pdfUrl": null,
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7128783899",
-        "originalTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
-        "catchyTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Samuel Guy Berryman"
-        ],
-        "source": "openalex",
-        "year": 2028,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0451480",
-        "pdfUrl": null,
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7122505737",
-        "originalTitle": "A Lightweight Browser-Based Facial Recognition Framework for Preventing Impersonation in Computer-Based Examinations",
-        "catchyTitle": "Stopping Exam Cheaters: Lightweight Real-Time Facial Recognition for Browser-Based Testing",
-        "summary": "This study introduces a browser-based facial recognition system to prevent student impersonation in computer-based exams. Built with face-api.js and liveness detection, it achieved 94.7% verification accuracy with fast response times. The scalable framework offers a secure biometric solution that upholds academic integrity.",
-        "authors": [
-          "Muyideen Abdulraheem"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": null,
-        "url": "https://doi.org/10.5281/zenodo.18210304",
-        "pdfUrl": null,
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7172203383",
-        "originalTitle": "A REVIEW OF MULTIBAND IMAGING TECHNIQUES IN AGRICULTURE",
-        "catchyTitle": "Seeing Beyond Visible Light: How Multiband Imaging is Transforming Modern Agriculture",
-        "summary": "This review explores multiband imaging techniques that capture multiple spectral bands across the electromagnetic spectrum. By surpassing standard single-channel vision, this approach provides deeper analytical insights. Consequently, it plays a vital role in advancing precision agriculture to boost food production.",
-        "authors": [
-          "Indian Journal of Science and Research"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": null,
-        "url": "https://doi.org/10.5281/zenodo.21757274",
-        "pdfUrl": null,
-        "topics": [
-          "cv"
-        ],
-        "likes": 0
-      }
-    ],
-    "ai-health": [
-      {
-        "id": "arxiv:2607.27895",
-        "originalTitle": "MMHBench: A Multi-Perspective Benchmark for Mental Health Understanding in Long-Form Videos",
-        "catchyTitle": "MMHBench: A Multi-Perspective Benchmark for Mental Health Understanding in Long-Form Videos",
-        "summary": "Mental health understanding in long-form videos requires nuanced reasoning over observable behavior, interpersonal context, and latent psychological states. To address this limitation, we introduce MMHBench, a comprehensive multimodal benchmark for multi-perspective mental health understanding, comprising 268 long-form videos and 2,184 carefully curated questions.",
-        "authors": [
-          "Jinpeng Hu",
-          "Erqiang Wang",
-          "Shan Wang",
-          "Zhuo Li",
-          "Peipei Song",
-          "Xun Yang",
-          "Meng Wang"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2607.27895v1",
-        "pdfUrl": "https://arxiv.org/pdf/2607.27895v1",
-        "topics": [
-          "ai-health"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.00831",
-        "originalTitle": "Anticipatory Digital Twins for Online Head-and-Neck Adaptive Proton Therapy via Foundation-Model Registration",
-        "catchyTitle": "Anticipatory Digital Twins for Online Head-and-Neck Adaptive Proton Therapy via Foundation-Model Registration",
-        "summary": "A first registration aligns a prior patient's planning CT to the target and carries the prior's during-treatment quality assurance CT (QACT) into the target frame; a second registration estimates the prior's planning-to-QACT change, which is then applied to the target's own planning CT to synthesize predicted CTs (pdCTs) with propagated contours.",
-        "authors": [
-          "Yizhou Wu",
-          "Yuheng Li",
-          "Xiaofeng Yang",
-          "Chih-Wei Chang"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.00831v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.00831v1",
-        "topics": [
-          "ai-health"
-        ],
-        "likes": 0
-      },
+    "ai-mental-health": [
       {
         "id": "arxiv:2608.03190",
         "originalTitle": "TumorBoard: Evidence-Grounded Multi-Agent Decision Support for Longitudinal Neuro-Oncology",
         "catchyTitle": "TumorBoard: Evidence-Grounded Multi-Agent Decision Support for Longitudinal Neuro-Oncology",
-        "summary": "Neuro-oncology decisions require coordinated interpretation of serial MRI, pathology, molecular markers, treatment history, performance status, and evolving guidelines. We present TumorBoard, a multi-agent decision-support system built around a shared longitudinal case state and an auditable claim-evidence ledger. The safety governor reduced harmful release by 7.8 percentage points at a false-deferral cost of 4.3 percentage points.",
+        "summary": "We present TumorBoard, a multi-agent decision-support system built around a shared longitudinal case state and an auditable claim-evidence ledger.",
         "authors": [
           "Yantong Liu",
           "Zheyu Zhang",
@@ -910,7 +21,7 @@
         "url": "https://arxiv.org/abs/2608.03190v1",
         "pdfUrl": "https://arxiv.org/pdf/2608.03190v1",
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -918,7 +29,7 @@
         "id": "arxiv:2608.07316",
         "originalTitle": "Natural Language Processing Psychometrics",
         "catchyTitle": "Natural Language Processing Psychometrics",
-        "summary": "Natural Language Processing (NLP) models predicting mental health outcomes rarely specify what they measure: contextual knowledge, emotional content, or syntactic structure. Sociodemographics alone explained no meaningful variance in depression, anxiety, or stress, but did so for life satisfaction, where emotion features and income were the strongest predictors; neuroticism and network topology instead dominated depression and anxiety, reversing direction between them.",
+        "summary": "Natural Language Processing (NLP) models predicting mental health outcomes rarely specify what they measure: contextual knowledge, emotional content, or syntactic structure.",
         "authors": [
           "Edoardo Sebastiano De Duro",
           "Emma Franchino",
@@ -930,7 +41,7 @@
         "url": "https://arxiv.org/abs/2608.07316v1",
         "pdfUrl": "https://arxiv.org/pdf/2608.07316v1",
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -938,7 +49,7 @@
         "id": "arxiv:2608.12750",
         "originalTitle": "PatientAct: Theory-Grounded Mental Health Client Simulation",
         "catchyTitle": "PatientAct: Theory-Grounded Mental Health Client Simulation",
-        "summary": "We present PatientAct, a framework for client simulation grounded in established clinical theories. If the therapist approaches gated content, PatientAct expresses resistance in terms of quantity, content, and style rather than defaulting to cooperation or a single resistance pattern. Moreover, PatientAct significantly outperforms the baselines, yielding substantial gains in resistance quality and behavioral realism.",
+        "summary": "We present PatientAct, a framework for client simulation grounded in established clinical theories. Moreover, PatientAct significantly outperforms the baselines, yielding substantial gains in resistance quality and behavioral realism.",
         "authors": [
           "Sahand Sabour",
           "TszYam NG",
@@ -953,7 +64,46 @@
         "url": "https://arxiv.org/abs/2608.12750v1",
         "pdfUrl": "https://arxiv.org/pdf/2608.12750v1",
         "topics": [
-          "ai-health"
+          "ai-mental-health"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "arxiv:2608.15338",
+        "originalTitle": "When AI Rewrites, Classifiers Relax: Uncertainty-Aware Sentiment Analysis on Sarcastic and AI-Paraphrased Social Text",
+        "catchyTitle": "When AI Rewrites, Classifiers Relax: Uncertainty-Aware Sentiment Analysis on Sarcastic and AI-Paraphrased Social Text",
+        "summary": "Sentiment classifiers are increasingly applied to social media content that is either sarcastic or AI-generated --- two distributional regimes where standard evaluations offer little guidance.",
+        "authors": [
+          "Shresth Shroff"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.15338v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.15338v1",
+        "topics": [
+          "ai-mental-health"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "arxiv:2608.18438",
+        "originalTitle": "Pedagogical AI in Mental Health: A Tri-Stream Fine-Tuned LLM Framework for Automated Clinical Supervision and Risk Triage",
+        "catchyTitle": "Pedagogical AI in Mental Health: A Tri-Stream Fine-Tuned LLM Framework for Automated Clinical Supervision and Risk Triage",
+        "summary": "This paper proposes a new framework utilizing a fine-tuned Mistral-7B-instruct model as an automated \"Supervisor-in-the-Loop\" system.",
+        "authors": [
+          "Shreeya Sharma",
+          "Ravish Gupta",
+          "Saket Kumar",
+          "Abhishek Aggarwal"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.18438v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.18438v1",
+        "topics": [
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -961,7 +111,7 @@
         "id": "oa:W7166191681",
         "originalTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
         "catchyTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "summary": "To address the limitations of conventional methods—namely, low recognition rates for sporadic equipment failures and emerging anomalous patterns, as well as a heavy reliance on manual labels—this paper constructs an automated quality control model for industrial waste gas online monitoring data based on unsupervised learning.",
+        "summary": "Continuous Emission Monitoring Systems (CEMS) for stationary pollution sources serve as the core data backbone for precision pollution control and environmental law enforcement.",
         "authors": [
           "Tao Lin"
         ],
@@ -971,7 +121,7 @@
         "url": "https://doi.org/10.17613/g1ft7-d9j25",
         "pdfUrl": null,
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -979,7 +129,7 @@
         "id": "oa:W7162095276",
         "originalTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
         "catchyTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "summary": "Online neural learning requires models that update after each incoming example, remain calibrated under distributional change, and avoid brittle gradient transmission. This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
+        "summary": "This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
         "authors": [
           "Sizhen Niu"
         ],
@@ -989,7 +139,7 @@
         "url": "https://doi.org/10.17613/nzztb-q4520",
         "pdfUrl": "https://pub.respai.de/articles/1-2/is2-3.pdf",
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -1007,7 +157,7 @@
         "url": "https://doi.org/10.14288/1.0451819",
         "pdfUrl": null,
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -1025,7 +175,7 @@
         "url": "https://doi.org/10.14288/1.0451480",
         "pdfUrl": null,
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       },
@@ -1033,7 +183,7 @@
         "id": "oa:W3015352082",
         "originalTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
         "catchyTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
-        "summary": "This paper presents a review and critique of the 20-year-old literature on institutional distance, which has greatly proliferated. We start with a discussion of the three institutional perspectives that have served as a theoretical foundation for this construct: organizational institutionalism, institutional economics, and comparative institutionalism. We conclude with actionable recommendations for improving institutional distance research.",
+        "summary": "This paper presents a review and critique of the 20-year-old literature on institutional distance, which has greatly proliferated. We conclude with actionable recommendations for improving institutional distance research.",
         "authors": [
           "Tatiana Kostova",
           "R. Scott",
@@ -1048,459 +198,319 @@
         "url": "https://doi.org/10.17638/03061303",
         "pdfUrl": null,
         "topics": [
-          "ai-health"
+          "ai-mental-health"
         ],
         "likes": 0
       }
     ],
-    "llm": [
+    "autism-diagnosis": [
       {
-        "id": "arxiv:2608.13476",
-        "originalTitle": "MARC v1: An Open-Source Multi-Agent Framework for Clinical AI Reasoning and Coordination",
-        "catchyTitle": "MARC v1: An Open-Source Multi-Agent Framework for Clinical AI Reasoning and Coordination",
-        "summary": "We present Multi-Agent Reasoning and Coordination (MARC), an open-source framework that replaces monolithic LLM prompting with deterministic multi-agent orchestration for clinical reasoning. MARC coordinates role-specialized agents for extraction, reasoning, answer generation, and evaluation, with explicit context passing and traceable intermediate outputs, enabling stage-wise failure attribution. The full framework is available at https://github.com/Penn-RAIL/MARC-v1.",
+        "id": "arxiv:2608.07567",
+        "originalTitle": "Temporal Generalization in fNIRS-Based Autism Classification: A Cross-Time-Window Transfer Benchmark",
+        "catchyTitle": "Temporal Generalization in fNIRS-Based Autism Classification: A Cross-Time-Window Transfer Benchmark",
+        "summary": "Functional near-infrared spectroscopy (fNIRS) is a promising modality for autism spectrum disorder (ASD) classification, yet existing approaches assume temporally aligned evaluation.",
         "authors": [
-          "Saisha Shetty",
-          "Satvik Tripathi",
-          "Austin Lin",
-          "Colin Zhao",
-          "Theodore Kim",
-          "Don Enwerem",
-          "Jacinta Arnold",
-          "Shahriar Faghani",
-          "Tessa S Cook"
+          "Marios Petrov",
+          "Sahana Vinayak",
+          "Targol Bakhtiarvand",
+          "Moses Smith Guddah",
+          "Adham Atyabi",
+          "Frederick Shic",
+          "Kevin A. Pelphrey"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13476v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13476v1",
+        "url": "https://arxiv.org/abs/2608.07567v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.07567v1",
         "topics": [
-          "llm"
+          "autism-diagnosis"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13484",
-        "originalTitle": "Toward a Gricean Retreat: Probing LLMs for Knowledge Boundaries and Referent Specificity",
-        "catchyTitle": "Toward a Gricean Retreat: Probing LLMs for Knowledge Boundaries and Referent Specificity",
-        "summary": "We ask whether LLMs have the ingredients to perform this retreat. Using a T-REx-based benchmark that varies entity familiarity and referent specificity, we probe models to answer two questions: (i) do their activations encode whether a referent falls inside the knowledge boundary, and (ii) do they anticipate the specificity of the referent they are about to generate?",
+        "id": "arxiv:2608.03447",
+        "originalTitle": "Approximate Speculative Decoding",
+        "catchyTitle": "Approximate Speculative Decoding",
+        "summary": "Speculative decoding accelerates autoregressive generation by verifying a draft block with a target model in parallel. The source code is publicly available at: https://github.com/Kissmetothemoon/ASD",
         "authors": [
-          "Dananjay Srinivas",
-          "Saksham Khatwani",
-          "Maria Pacheco"
+          "Yuannuo Feng",
+          "Zegang Peng",
+          "Yuxin Xie",
+          "Yubing Ye",
+          "Yizhe Chen",
+          "Wenshuai Yao",
+          "Wenyong Zhou",
+          "Wang Kang"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13484v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13484v1",
+        "url": "https://arxiv.org/abs/2608.03447v2",
+        "pdfUrl": "https://arxiv.org/pdf/2608.03447v2",
         "topics": [
-          "llm"
+          "autism-diagnosis"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13517",
-        "originalTitle": "DFM Mimir v1: An Open HRM Delivering Frontier Performance at 1B Parameters Using Only Permissible Post-Training Data",
-        "catchyTitle": "DFM Mimir v1: An Open HRM Delivering Frontier Performance at 1B Parameters Using Only Permissible Post-Training Data",
-        "summary": "We introduce Mimir v1, a 1-billion-parameter language model based on the Hierarchical Reasoning Model (HRM) architecture, that is trained from scratch and delivers highly competitive performance for English and sets a new state of the art for Danish using only permissible post-training data. The model is available on the Hugging Face Hub: https://huggingface.co/danish-foundation-models/DFM-Mimir",
+        "id": "arxiv:2608.10295",
+        "originalTitle": "Frozen Brain-MRI Foundation Models Are Site Fingerprints",
+        "catchyTitle": "Frozen Brain-MRI Foundation Models Are Site Fingerprints",
+        "summary": "Frozen foundation-model (FM) embeddings are increasingly used as off-the-shelf brain-MRI representations, on the assumption that they capture anatomy.",
         "authors": [
-          "Peter Schneider-Kamp",
-          "Jacob Nielsen",
-          "Gianluca Barmina",
-          "Kenneth Enevoldsen",
-          "Lukas Galke Poech"
+          "Saman Rahbar"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13517v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13517v1",
+        "url": "https://arxiv.org/abs/2608.10295v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.10295v1",
         "topics": [
-          "llm"
+          "autism-diagnosis"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13538",
-        "originalTitle": "SAEVerbalizer: Generating Explanations for Sparse Autoencoder Features via Representation Verbalization",
-        "catchyTitle": "SAEVerbalizer: Generating Explanations for Sparse Autoencoder Features via Representation Verbalization",
-        "summary": "Sparse autoencoders (SAEs) are proposed to extract numerous features from large language model (LLM) representations, yet explaining these features still relies primarily on external observation. We introduce SAEVerbalizer, a framework that injects SAE decoder directions into an LLM's representations and fine-tunes the LLM's downstream layers to generate natural-language explanations of the injected features.",
+        "id": "arxiv:2608.12274",
+        "originalTitle": "A Neighborhood Attention Transformer Network for Enhanced 3D Segmentation of the Left Anterior Descending Artery",
+        "catchyTitle": "A Neighborhood Attention Transformer Network for Enhanced 3D Segmentation of the Left Anterior Descending Artery",
+        "summary": "Background: Accurate segmentation of the Left Anterior Descending (LAD) artery in 3D free-breathing, non-contrast CT is critical for cardiac dose sparing in thoracic radiotherapy.",
         "authors": [
-          "Weihan Meng",
-          "Hongzhu Guo",
-          "Yi Jing",
-          "Dewen Liu",
-          "Zijun Yao",
-          "Xiaozhi Wang",
-          "Lei Hou",
-          "Juanzi Li"
+          "Rafi Ibn Sultan",
+          "Chengyin Li",
+          "Yiannos Demetriou",
+          "Ahmed I. Ghanem",
+          "Joshua P. Kim",
+          "Justine Cunningham",
+          "Hassan Bagher-Ebadian",
+          "Dongxiao Zhu",
+          "Kundan S. Thind"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13538v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13538v1",
+        "url": "https://arxiv.org/abs/2608.12274v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.12274v1",
         "topics": [
-          "llm"
+          "autism-diagnosis"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13545",
-        "originalTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "catchyTitle": "LittleLearner: Language Models Under Pedagogically Controlled Knowledge Exposure",
-        "summary": "Modern language models are trained on heterogeneous web-scale text corpora. Consequently, studying knowledge and skill acquisition is difficult, as prior exposure to related content is hard to characterize. Training a 5B-parameter LLM from scratch on LITTLECURRICULUM yields LITTLELEARNER, a model with sufficient language competence for open-ended evaluation, yet with clear knowledge and capability boundaries mapped to interpretable curriculum guidelines.",
+        "id": "arxiv:2608.18188",
+        "originalTitle": "A systematic review of machine learning techniques to address diagnosis and treatment of autism: challenges and opportunities",
+        "catchyTitle": "A systematic review of machine learning techniques to address diagnosis and treatment of autism: challenges and opportunities",
+        "summary": "Autism spectrum disorder (ASD) is a developmental disability characterized by challenges in social interaction and communication.",
         "authors": [
-          "Fanfei Li",
-          "Jana Zeller",
-          "Manuel Prada-Corral",
-          "Thaddäus Wiedemer",
-          "Prasanna Mayilvahanan",
-          "Ryan Cotterell",
-          "Wieland Brendel"
+          "Rafael Muñoz-Terol",
+          "Jesús Peral",
+          "Sandra Amador",
+          "David Gil"
         ],
         "source": "arxiv",
         "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13545v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13545v1",
+        "venue": "A systematic review of machine learning techniques to address diagnosis and treatment of autism: challenges and opportunitie. Heliyon 12(1), e44359, 2026",
+        "url": "https://arxiv.org/abs/2608.18188v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.18188v1",
         "topics": [
-          "llm"
+          "autism-diagnosis"
         ],
         "likes": 0
       },
       {
-        "id": "oa:W7202352816",
-        "originalTitle": "Response Format and Construct Validity in Medical Students' Word‑Analysis Assessment: A Validity Argument Approach",
-        "catchyTitle": "Response Format and Construct Validity in Medical Students' Word‑Analysis Assessment: A Validity Argument Approach",
-        "summary": "Response format may influence the interpretation of language assessment scores by engaging different cognitive processes. This study aimed to examine the effects of response format on medical students' word-analysis performance. A within-subjects counterbalanced comparative assessment design was employed with 170 undergraduate medical students who completed both a Multiple-Choice Word Analysis Test (MCQ) and a Word Analysis Completion Test (WACT).",
+        "id": "oa:W7166191681",
+        "originalTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
+        "catchyTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
+        "summary": "Continuous Emission Monitoring Systems (CEMS) for stationary pollution sources serve as the core data backbone for precision pollution control and environmental law enforcement.",
         "authors": [
-          "Kazem Barzegar",
-          "Ali Fattahi Bafghi"
+          "Tao Lin"
         ],
         "source": "openalex",
         "year": 2026,
-        "venue": "DOAJ (DOAJ: Directory of Open Access Journals)",
-        "url": "https://doi.org/10.30479/jmrels.2026.23722.2622",
+        "venue": "Knowledge Commons (Lakehead University)",
+        "url": "https://doi.org/10.17613/g1ft7-d9j25",
         "pdfUrl": null,
         "topics": [
-          "llm"
+          "autism-diagnosis"
         ],
         "likes": 0
       },
       {
-        "id": "oa:W7159665000",
-        "originalTitle": "Evaluating Minority Representation in the All of Us Research Program: Progress and Ongoing Challenges.",
-        "catchyTitle": "Evaluating Minority Representation in the All of Us Research Program: Progress and Ongoing Challenges.",
-        "summary": ". 2026;116(9): 1339-1342. https://doi.org/10.2105/AJPH.2026.308441).",
+        "id": "oa:W7162095276",
+        "originalTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
+        "catchyTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
+        "summary": "This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
         "authors": [
-          "Zhiyu Qian",
-          "Mansoo Cho",
-          "Hari S. Iyer",
-          "Stuart R Lipsitz",
-          "Alexander P. Cole",
-          "Kevin H. Kensler",
-          "Quoc-Dien Trinh"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "PubMed",
-        "url": "https://doi.org/10.2105/ajph.2026.308441",
-        "pdfUrl": null,
-        "topics": [
-          "llm"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7105983794",
-        "originalTitle": "Comparing and Contrasting Forced Aligned Acoustic Models for Vernacular Speech",
-        "catchyTitle": "Comparing and Contrasting Forced Aligned Acoustic Models for Vernacular Speech",
-        "summary": "Research into dialect variation has been streamlined with the introduction of forced alignment software. The purpose of this study is to evaluate the accuracy of the Montreal Forced Aligner (MFA) when analysing non-mainstream dialects. To achieve this, the alignment from a pretrained speech model was compared to hand aligned data. Altogether, there was 0.54–1.3% of errors that occurred across speakers.",
-        "authors": [
-          "Cox, Amy",
-          "Dunlop, Tamsin",
-          "Oliver, Rachel",
-          "Koston, Kasia",
-          "Wong, Leo",
-          "Yang, Nicky"
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
-        "url": "https://doi.org/10.5281/zenodo.17611079",
-        "pdfUrl": null,
-        "topics": [
-          "llm"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7107944698",
-        "originalTitle": "The Architecture of Limitation: Manuscript I — Metaphysical Expression",
-        "catchyTitle": "The Architecture of Limitation: Manuscript I — Metaphysical Expression",
-        "summary": "This manuscript is a sealed public expression of the Architecture of Limitation (AoL).It presents the structural conditions under which coherence becomes possible, the boundariesthat permit form to hold without distortion, and the architectural domain in which limitationstabilizes meaning. This version represents the final,sealed public expression of Manuscript I. This work belongs to the Architecture of Limitation research program.",
-        "authors": [
-          "Schaut, F.L."
-        ],
-        "source": "openalex",
-        "year": 2026,
-        "venue": "PhilPapers (PhilPapers Foundation)",
-        "url": "https://doi.org/10.5281/zenodo.17751215",
-        "pdfUrl": "https://philpapers.org/archive/SCHTAO-135.pdf",
-        "topics": [
-          "llm"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7126018663",
-        "originalTitle": "Sentiment Analysis Performance of Lora-Enhanced Llm's",
-        "catchyTitle": "Sentiment Analysis Performance of Lora-Enhanced Llm's",
-        "summary": "Sentiment analysis is mostly applied to short texts. In this study,experimental comparisons of large language models (LLMs), known deep learning and machinelearning algorithms are made using a dataset containing content from Twitter (X) users. It isanticipated that this study will be an important guide in applications such as sentiment analysis,where model selection is important.",
-        "authors": [
-          "Tunahan TİMUÇİN"
+          "Sizhen Niu"
         ],
         "source": "openalex",
         "year": 2026,
         "venue": "Open MIND",
-        "url": "https://doi.org/10.5281/zenodo.18418625",
+        "url": "https://doi.org/10.17613/nzztb-q4520",
+        "pdfUrl": "https://pub.respai.de/articles/1-2/is2-3.pdf",
+        "topics": [
+          "autism-diagnosis"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7154681315",
+        "originalTitle": "A joint transit-radial-velocity framework for evolutionary inference of close-in, small planet populations",
+        "catchyTitle": "A joint transit-radial-velocity framework for evolutionary inference of close-in, small planet populations",
+        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
+        "authors": [
+          "Adrian Lam"
+        ],
+        "source": "openalex",
+        "year": 2027,
+        "venue": "Open Collections",
+        "url": "https://doi.org/10.14288/1.0451819",
         "pdfUrl": null,
         "topics": [
-          "llm"
+          "autism-diagnosis"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7128783899",
+        "originalTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
+        "catchyTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
+        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
+        "authors": [
+          "Samuel Guy Berryman"
+        ],
+        "source": "openalex",
+        "year": 2028,
+        "venue": "Open Collections",
+        "url": "https://doi.org/10.14288/1.0451480",
+        "pdfUrl": null,
+        "topics": [
+          "autism-diagnosis"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W3015352082",
+        "originalTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
+        "catchyTitle": "The construct of institutional distance through the lens of diverse institutional perspectives: Review, analysis, and future directions.",
+        "summary": "This paper presents a review and critique of the 20-year-old literature on institutional distance, which has greatly proliferated. We conclude with actionable recommendations for improving institutional distance research.",
+        "authors": [
+          "Tatiana Kostova",
+          "R. Scott",
+          "Sjoerd Beugelsdijk",
+          "VE Kunst",
+          "C-H Chua",
+          "M. van Essen"
+        ],
+        "source": "openalex",
+        "year": 2050,
+        "venue": "University of Liverpool",
+        "url": "https://doi.org/10.17638/03061303",
+        "pdfUrl": null,
+        "topics": [
+          "autism-diagnosis"
         ],
         "likes": 0
       }
     ],
-    "robotics": [
+    "blockchain": [
       {
-        "id": "arxiv:2608.13448",
-        "originalTitle": "Mind the Context: Continual Learning of Socially Appropriate Robot Actions via Environmental-Social Disentanglement",
-        "catchyTitle": "Mind the Context: Continual Learning of Socially Appropriate Robot Actions via Environmental-Social Disentanglement",
-        "summary": "Social robots are expected to operate across diverse environments, where similar arrangements can imply different socially appropriate actions, e.g., starting a conversation may be acceptable in a crowded home but disruptive in an office meeting. Experiments show that EDD outperforms several state-of-the-art baselines, and ablation studies further evaluate different disentanglement strategies and the sensitivity to domain ordering.",
+        "id": "arxiv:2608.18359",
+        "originalTitle": "0xPass: A Secure Protocol for Universal Cross-Chain Accounts",
+        "catchyTitle": "0xPass: A Secure Protocol for Universal Cross-Chain Accounts",
+        "summary": "This paper presents 0xPass, a modular protocol architecture for universal cross-chain accounts. 0xPass separates request orchestration, transaction solving, and transaction signing into interoperable layers.",
         "authors": [
-          "Rafal Robert Karpinski",
-          "Fethiye Irmak Dogan",
-          "Nikhil Churamani",
-          "Yiming Luo",
-          "Maartje M. A. de Graaf",
-          "Davide Dell'Anna",
-          "Hatice Gunes"
+          "Bernardo David",
+          "Keon Kim",
+          "Krish Chelikavada"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13448v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13448v1",
+        "url": "https://arxiv.org/abs/2608.18359v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.18359v1",
         "topics": [
-          "robotics"
+          "blockchain"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13474",
-        "originalTitle": "Decoding Task Progress from VLA Representations",
-        "catchyTitle": "Decoding Task Progress from VLA Representations",
-        "summary": "We use the probe as a simple label-free OOD detector, which detects stalled task progress, and find it competitive with state-of-the-art methods. Our results suggest that VLAs have rich, linearly readable internal representations of semantic quantities like task progress, and that learning to read these signals offers a lightweight, interpretable path toward monitoring deployed visuomotor policies.",
+        "id": "arxiv:2608.18403",
+        "originalTitle": "AoNT Trap: Borromean-Entangled Mutable Chameleon Trapdoor Hash All-or-Nothing Stream Cipher",
+        "catchyTitle": "AoNT Trap: Borromean-Entangled Mutable Chameleon Trapdoor Hash All-or-Nothing Stream Cipher",
+        "summary": "This work introduces the Borromean-Entangled Chameleon Trapdoor Hash All-or-Nothing (AoNT) Stream Cipher (BEC-Trap), a novel construction that merges Borromean interdependence, trapdoor-enabled mutability, and streaming encryption into a unified framework.",
         "authors": [
-          "Atiksh Bhardwaj",
-          "Edward Weiyi Duan",
-          "Prithwish Dan",
-          "Wei-Chiu Ma",
-          "Preston Culbertson"
+          "Victor Kebande"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13474v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13474v1",
+        "url": "https://arxiv.org/abs/2608.18403v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.18403v1",
         "topics": [
-          "robotics"
+          "blockchain"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13489",
-        "originalTitle": "DreamX-Phi 1.0: Action-Conditioned Video World Model for Robotic Manipulation",
-        "catchyTitle": "DreamX-Phi 1.0: Action-Conditioned Video World Model for Robotic Manipulation",
-        "summary": "We present DreamX-Phi 1.0, an action-conditioned video world model for robotic manipulation that, given an observed frame, a language instruction, and a prescribed action sequence comprising end-effector poses and gripper states, predicts the resulting future observations. Yet realism alone does not guarantee faithfulness: a convincing rollout can still move the wrong arm or lose the manipulated object.",
+        "id": "arxiv:2608.19401",
+        "originalTitle": "Redactable blockchains and polynomial equations",
+        "catchyTitle": "Redactable blockchains and polynomial equations",
+        "summary": "We develop new tools for constructing redactable authenticated data structures with post-quantum security.",
         "authors": [
-          "DreamX Team",
-          "Rui Chen",
-          "Xiangxiang Chu",
-          "Geng Li",
-          "Jifan Li",
-          "Qingfeng Shi",
-          "Datao Tang",
-          "Jing Tang",
-          "Jun Wang",
-          "Pengfei Zhang"
+          "Alexander Demin",
+          "Alexey Ovchinnikov",
+          "Vladimir Shpilrain"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13489v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13489v1",
+        "url": "https://arxiv.org/abs/2608.19401v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.19401v1",
         "topics": [
-          "robotics"
+          "blockchain"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13511",
-        "originalTitle": "A Browser-Native Digital Test Range for Benchmarking 4D Ocean-Glider Planning Algorithms",
-        "catchyTitle": "A Browser-Native Digital Test Range for Benchmarking 4D Ocean-Glider Planning Algorithms",
-        "summary": "Repeated in-situ evaluation of ocean-glider planners requires scarce vehicles, operators, deployment and recovery resources, and ocean conditions that cannot be reset for competing algorithms. We present a guided, installation-free browser-native digital test range that transforms a selected region into a reproducible four-dimensional experiment. Separately, source-locked GliderFlight 1.2.0 achieved native-to-browser parity through Pyodide/WebAssembly, establishing a pathway for high-fidelity multi-tier simulation.",
+        "id": "arxiv:2608.20097",
+        "originalTitle": "TrustRAG: Blockchain-Enhanced RAG via Committee-Based Credibility Scoring",
+        "catchyTitle": "TrustRAG: Blockchain-Enhanced RAG via Committee-Based Credibility Scoring",
+        "summary": "Retrieval-Augmented Generation (RAG) lets Large Language Models (LLMs) pull in up-to-date, domain-specific information instead of relying only on what they were trained on.",
         "authors": [
-          "Edward Holmberg",
-          "Elias Ioup",
-          "Mahdi Abdelguerfi"
+          "Baixiang Liu",
+          "Haotian Che",
+          "Yuan Li"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13511v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13511v1",
+        "url": "https://arxiv.org/abs/2608.20097v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.20097v1",
         "topics": [
-          "robotics"
+          "blockchain"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13555",
-        "originalTitle": "HumanTracker: Towards Comprehensive and Human-Aligned Motion Tracking Benchmark",
-        "catchyTitle": "HumanTracker: Towards Comprehensive and Human-Aligned Motion Tracking Benchmark",
-        "summary": "Humanoid motion tracking is central to teleoperation and whole-body imitation, yet evaluation often disagrees with what people perceive in videos. We introduce HumanTracker to make humanoid tracking evaluation both perceptually aligned and scalable. The HumanTracker benchmark contains approximately 153 hours of optical motion trajectories from multiple professional performers, organized into four motion families with text labels for fine-grained diagnosis.",
+        "id": "arxiv:2608.20145",
+        "originalTitle": "Trustworthy mobile edge caching: a blockchain approach to mitigate malicious nodes and incentivize cache sharing",
+        "catchyTitle": "Trustworthy mobile edge caching: a blockchain approach to mitigate malicious nodes and incentivize cache sharing",
+        "summary": "Additionally, these helper nodes can also be malicious. This paper proposes a blockchain-based trust management mechanism that addresses these challenges by accurately identifying trustworthy edge servers and mobile nodes.",
         "authors": [
-          "Dairu Liu",
-          "Zekun Qi",
-          "Jiayu Zeng",
-          "Ruixi Yu",
-          "Yu Guan",
-          "Yintianrun Zhang",
-          "Xuchuan Chen",
-          "Sikai Liang",
-          "Zekai Li",
-          "Chenghuai Lin",
-          "Xinqiang Yu",
-          "Wenyao Zhang"
+          "Motahare Ebrahimi",
+          "Nastooh Taheri Javan",
+          "Seyedakbar Mostafavi",
+          "Fatemeh Pakzaban"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13555v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13555v1",
+        "url": "https://arxiv.org/abs/2608.20145v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.20145v1",
         "topics": [
-          "robotics"
-        ],
-        "likes": 0
-      }
-    ],
-    "cybersecurity": [
-      {
-        "id": "arxiv:2608.13389",
-        "originalTitle": "TopoIntent: Compiling Security Intent into Executable, Compliance-Checked Network Topologies",
-        "catchyTitle": "TopoIntent: Compiling Security Intent into Executable, Compliance-Checked Network Topologies",
-        "summary": "Enterprise security topology design requires translating business intent, regulatory requirements, and risk assumptions into zones, boundary devices, inter-zone paths, and access-control policies. Existing NetOps automation tools mainly operate after this design is fixed, providing limited support for generating structured security topologies from underspecified natural-language requirements. We present TopoIntent, a system that compiles security intent into executable, compliance-checked network topologies.",
-        "authors": [
-          "Xiaokang Qu",
-          "Jianliang Ma",
-          "Zao Fan",
-          "Tianshu Chu",
-          "Tianlong Fan",
-          "Linyuan Lü"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13389v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13389v1",
-        "topics": [
-          "cybersecurity"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13390",
-        "originalTitle": "TeleGapper: On the (un)reliability of Privacy Policies in Telegram Mini apps",
-        "catchyTitle": "TeleGapper: On the (un)reliability of Privacy Policies in Telegram Mini apps",
-        "summary": "Telegram Mini Apps are Web applications embedded within the Telegram client, forming an ecosystem of third-party services within one of the world's most widely used messaging platforms. Privacy disclosures are therefore critical for transparency. Telegram allows Mini Apps either to define an application-specific privacy policy or to rely on a platform-provided default policy.",
-        "authors": [
-          "Luca Ferrari",
-          "Mariano Ceccato",
-          "Luca Verderame"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13390v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13390v1",
-        "topics": [
-          "cybersecurity"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13404",
-        "originalTitle": "Does Fixing Break Security? An Empirical Study of Security Degradation in Iterative LLM-Driven Infrastructure-as-Code Repair",
-        "catchyTitle": "Does Fixing Break Security? An Empirical Study of Security Degradation in Iterative LLM-Driven Infrastructure-as-Code Repair",
-        "summary": "Background: Iterative feedback loops are the dominant paradigm for improving LLM-generated Infrastructure-as-Code (IaC): validators such as Checkov and terraform validate feed error signals back for successive repair attempts. Aims: We study security regression (a previously-passing CIS Benchmark check that fails after a repair iteration) to determine whether and how often iterative LLM repair degrades security while fixing other issues.",
-        "authors": [
-          "Benjamin Agyekum",
-          "Fabio Santos"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13404v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13404v1",
-        "topics": [
-          "cybersecurity"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13450",
-        "originalTitle": "LLM-Assisted Dynamic Threat Analysis for Attacker-Reachable Software Weaknesses in Autonomous Vehicles",
-        "catchyTitle": "LLM-Assisted Dynamic Threat Analysis for Attacker-Reachable Software Weaknesses in Autonomous Vehicles",
-        "summary": "Autonomous vehicles depend on large safety-critical software stacks, where weaknesses reachable from adversarial inputs may affect steering, braking, or other control decisions. No candidate weakness was dynamically confirmed within budget. These results show that build integration, not candidate generation or fuzzing, is the primary barrier to reliable LLM-assisted dynamic analysis of full autonomous-vehicle software stacks.",
-        "authors": [
-          "Md Wasiul Haque",
-          "Sagar Dasgupta",
-          "Mizanur Rahman",
-          "Md Rayhanur Rahman"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13450v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13450v1",
-        "topics": [
-          "cybersecurity"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13465",
-        "originalTitle": "Concept Drift Detection and Adaptive Retraining of Malware Classification Models",
-        "catchyTitle": "Concept Drift Detection and Adaptive Retraining of Malware Classification Models",
-        "summary": "For each of these models, we consider three distinct scenarios: A static scenario where no model retraining occurs, a periodic scenario where models are constantly retrained irrespective of concept drift, and a drift-aware scenario where models are only retrained when concept drift is detected. In addition, drift-aware retraining based on our OCSVM technique generally outperforms the MK-Means and MMD approaches.",
-        "authors": [
-          "Christofer Washington Berruz Chungata",
-          "Martin Jurecek",
-          "Katerina Potika",
-          "William B. Andreopoulos",
-          "Mark Stamp"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13465v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13465v1",
-        "topics": [
-          "cybersecurity"
+          "blockchain"
         ],
         "likes": 0
       },
@@ -1508,7 +518,7 @@
         "id": "oa:W7172537955",
         "originalTitle": "Antitrust Regulation of Algorithmic \"Platform-Driven Involution'': From Governing the Corporate Person to Governing the Platform Ecosystem",
         "catchyTitle": "Antitrust Regulation of Algorithmic \"Platform-Driven Involution'': From Governing the Corporate Person to Governing the Platform Ecosystem",
-        "summary": "This article reconstructs ``platform-driven involution'' as a testable, portfolio-based theory-of-harm framework rather than a freestanding antitrust offense. The article clarifies that ecosystem analysis supplements rather than replaces relevant-market analysis and develops an evidence architecture for separating platform-induced effects from macroeconomic, demand, cost, and merchant-specific confounders.",
+        "summary": "The article clarifies that ecosystem analysis supplements rather than replaces relevant-market analysis and develops an evidence architecture for separating platform-induced effects from macroeconomic, demand, cost, and merchant-specific confounders.",
         "authors": [
           "Sida Zeng"
         ],
@@ -1518,7 +528,7 @@
         "url": "https://doi.org/10.17613/6n004-1hh80",
         "pdfUrl": null,
         "topics": [
-          "cybersecurity"
+          "blockchain"
         ],
         "likes": 0
       },
@@ -1536,7 +546,26 @@
         "url": "https://doi.org/10.14288/1.0452075",
         "pdfUrl": null,
         "topics": [
-          "cybersecurity"
+          "blockchain"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7164999407",
+        "originalTitle": "CLOUD SECURITY AND RESILIENCE: PRINCIPLES AND BEST PRACTICES",
+        "catchyTitle": "CLOUD SECURITY AND RESILIENCE: PRINCIPLES AND BEST PRACTICES",
+        "summary": "The rise in the demand for cloud computing services has made it a thing of importance tomake its security and resilience an importance topic.",
+        "authors": [
+          "Augustine Chidiebere Onuora",
+          "Goodluck Ikwudiuto Emereonye"
+        ],
+        "source": "openalex",
+        "year": 2027,
+        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+        "url": "https://doi.org/10.5281/zenodo.20737148",
+        "pdfUrl": null,
+        "topics": [
+          "blockchain"
         ],
         "likes": 0
       },
@@ -1554,400 +583,394 @@
         "url": "https://doi.org/10.14288/1.0452048",
         "pdfUrl": null,
         "topics": [
-          "cybersecurity"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7164999407",
-        "originalTitle": "CLOUD SECURITY AND RESILIENCE: PRINCIPLES AND BEST PRACTICES",
-        "catchyTitle": "CLOUD SECURITY AND RESILIENCE: PRINCIPLES AND BEST PRACTICES",
-        "summary": "The rise in the demand for cloud computing services has made it a thing of importance tomake its security and resilience an importance topic. Also, several important features and challenges forcloud computing environments including availability, security and resilience was x-rayed.Finally, Principles and best practices for a secured and a resilient cloud were also considered.",
-        "authors": [
-          "Augustine Chidiebere Onuora",
-          "Goodluck Ikwudiuto Emereonye"
-        ],
-        "source": "openalex",
-        "year": 2027,
-        "venue": null,
-        "url": "https://doi.org/10.5281/zenodo.20737148",
-        "pdfUrl": null,
-        "topics": [
-          "cybersecurity"
+          "blockchain"
         ],
         "likes": 0
       }
     ],
-    "data-science": [
+    "quantum-communication": [
       {
-        "id": "arxiv:2608.13418",
-        "originalTitle": "Wasserstein Filtering: A Sample Selection Method for Robust Distribution Learning",
-        "catchyTitle": "Wasserstein Filtering: A Sample Selection Method for Robust Distribution Learning",
-        "summary": "This work proposes Wasserstein Filtering (WF), a novel sample selection framework that discards a fraction of suspicious samples and estimates the target distribution using the empirical measure of the remaining data, and proves that the WF estimator achieves minimax optimality over distribution families with bounded covariance.",
+        "id": "arxiv:2608.19130",
+        "originalTitle": "Connectivity--Interference Competition in Coherent Transport on Percolated Hierarchical Small-World Networks",
+        "catchyTitle": "Connectivity--Interference Competition in Coherent Transport on Percolated Hierarchical Small-World Networks",
+        "summary": "Adding links generally improves classical transport by increasing the number of available paths. We show that coherent quantum transport can display the opposite behavior.",
         "authors": [
-          "Yikai Xu",
-          "Zhao Chen",
-          "Jian Huang"
+          "Miquéias Jacinto Cirino",
+          "Marcos César de Oliveira"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13418v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13418v1",
+        "url": "https://arxiv.org/abs/2608.19130v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.19130v1",
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13514",
-        "originalTitle": "Bagging Robustly Learns VC Classes with Linear Sample Complexity",
-        "catchyTitle": "Bagging Robustly Learns VC Classes with Linear Sample Complexity",
-        "summary": "We prove that VC classes are adversarially robustly learnable with sample complexity linear in the VC dimension, providing an exponential improvement over the previous upper bound of Montasser, Hanneke, and Srebro (2019). Remarkably, this result is achieved with a simple improper algorithm that combines the classic heuristic bagging (bootstrap aggregation) of Breiman (1996) with robust empirical risk minimization (RERM).",
+        "id": "arxiv:2608.19745",
+        "originalTitle": "Multiplexing of Continuous-Variable and Discrete-Variable Quantum Key Distribution Systems over Fibered and Free-Space Channels",
+        "catchyTitle": "Multiplexing of Continuous-Variable and Discrete-Variable Quantum Key Distribution Systems over Fibered and Free-Space Channels",
+        "summary": "Wavelength-division multiplexing (WDM) of the two protocols on a common channel would address both regimes simultaneously, but their markedly different noise sensitivities make coexistence non-trivial and, to date, experimentally untested.",
         "authors": [
-          "Omar Montasser"
+          "Mattia Sabatini",
+          "Edoardo Rossi",
+          "Matías R. Bolaños",
+          "Francesco Vedovato",
+          "Thomas Liege",
+          "Eleni Diamanti",
+          "Giuseppe Vallone",
+          "Paolo Villoresi",
+          "Yoann Piétri",
+          "Marco Avesani"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13514v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13514v1",
+        "url": "https://arxiv.org/abs/2608.19745v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.19745v1",
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13520",
-        "originalTitle": "The data geometry of masking diffusion: Certified-optimal schedules via unmasking growth complexity",
-        "catchyTitle": "The data geometry of masking diffusion: Certified-optimal schedules via unmasking growth complexity",
-        "summary": "We study masking diffusion for discrete sampling and introduce a path-resolved measure of data geometry called the unmasking growth complexity ( UGC ). This leads to certified-optimal samplers that achieve a prescribed KL error with high probability and iteration complexity within a constant factor of the corresponding oracle procedure.",
+        "id": "arxiv:2608.19787",
+        "originalTitle": "Constant-round quantum advantage in communication complexity for total functions",
+        "catchyTitle": "Constant-round quantum advantage in communication complexity for total functions",
+        "summary": "We show that there exists a total function for which there is a polynomial gap between the randomized and the constant-round quantum communication complexity.",
         "authors": [
-          "Martin J. Wainwright"
+          "Atsuya Hasegawa",
+          "François Le Gall"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13520v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13520v1",
+        "url": "https://arxiv.org/abs/2608.19787v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.19787v1",
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13549",
-        "originalTitle": "Exponential Convex Calibration Dimension for the Multi-Label Jaccard Measure",
-        "catchyTitle": "Exponential Convex Calibration Dimension for the Multi-Label Jaccard Measure",
-        "summary": "The per-instance Jaccard score, or intersection over union (IoU), is standard in multi-label classification and binary segmentation. Under the convention, we prove that the Jaccard score, shifted-loss, and ordinary loss matrices are nonsingular and that the loss columns have affine dimension. Thus zero-regret calibration requires exponential dimension, whereas every fixed additive regret tolerance admits polynomial prediction dimension.",
+        "id": "arxiv:2608.20088",
+        "originalTitle": "Squeezed- and coherent-state quantum key distribution over a deployed hybrid fibre-free-space channel",
+        "catchyTitle": "Squeezed- and coherent-state quantum key distribution over a deployed hybrid fibre-free-space channel",
+        "summary": "Quantum networks will combine optical fibre with free-space links, yet continuous-variable quantum key distribution (CV-QKD) has been developed predominantly for one medium or the other, while operation across concatenated fibre-free-space…",
         "authors": [
-          "Mingyuan Zhang"
+          "Dnan A. E. Hajomer",
+          "Huy Q. Nguyen",
+          "Ivan Derkach",
+          "Andreas B. Kidmose",
+          "Edoardo Rossi",
+          "Mattia Sabatini",
+          "Yoann Pietri",
+          "Marco Avesani",
+          "Francesco Vedovato",
+          "Michael Hentschel",
+          "Radim Filip",
+          "Giuseppe Vallone"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13549v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13549v1",
+        "url": "https://arxiv.org/abs/2608.20088v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.20088v1",
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "arxiv:2608.13554",
-        "originalTitle": "Defensive Boosting for Online Probabilistic Forecasting",
-        "catchyTitle": "Defensive Boosting for Online Probabilistic Forecasting",
-        "summary": "On every adaptive sequence, its Brier score is competitive with the best prediction induced by the span of at the same rate as online gradient boosting; simultaneously, whenever the realized transcript satisfies the smooth weak-learning condition, its Brier score and randomized classification error satisfy the same rate guarantee as online classification boosting.",
+        "id": "arxiv:2608.20291",
+        "originalTitle": "Programmable cavity QED with a fiber-integrated atomic array",
+        "catchyTitle": "Programmable cavity QED with a fiber-integrated atomic array",
+        "summary": "Strong atom-photon interactions in optical cavities are a key resource for quantum information processing, quantum networking, and the exploration of quantum optical effects.",
         "authors": [
-          "Georgy Noarov",
-          "Aaron Roth"
+          "Stephan Roschinski",
+          "Johannes Schabbauer",
+          "Franz von Silva-Tarouca",
+          "Marvin Holten",
+          "Damien Bloch",
+          "Julian Léonard"
         ],
         "source": "arxiv",
         "year": 2026,
         "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13554v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13554v1",
+        "url": "https://arxiv.org/abs/2608.20291v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.20291v1",
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "oa:W7170062128",
-        "originalTitle": "Fast Solution Methods for the Classical 0–1 Knapsack Problem",
-        "catchyTitle": "Fast Solution Methods for the Classical 0–1 Knapsack Problem",
-        "summary": "The classical 0--1 knapsack problem is among the simplest integer programs to state and among the most instructive problems for understanding why algorithm selection must follow instance structure. Small item counts favor meet-in-the-middle search, moderate capacities or total profits favor dynamic programming, favorable density structure favors core-based exact methods, and very large numeric coefficients favor approximation.",
+        "id": "oa:W7126163546",
+        "originalTitle": "Density functional theory driven compound design and reactivity analysis",
+        "catchyTitle": "Density functional theory driven compound design and reactivity analysis",
+        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
         "authors": [
-          "Hsu Feng"
+          "Devin Oscar Klapatiuk"
         ],
         "source": "openalex",
-        "year": 2026,
+        "year": 2028,
         "venue": "Open MIND",
-        "url": "https://doi.org/10.17613/ttrnk-0vc38",
+        "url": "https://doi.org/10.14288/1.0451390",
         "pdfUrl": null,
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "oa:W7203480344",
-        "originalTitle": "Measuring Activity-Space Segregation with Multi-Source Big Data: A Physical--Digital Framework with Simulation Validation and a Real-Data Proof of Concept",
-        "catchyTitle": "Measuring Activity-Space Segregation with Multi-Source Big Data: A Physical--Digital Framework with Simulation Validation and a Real-Data Proof of Concept",
-        "summary": "Segregation research increasingly measures who people encounter beyond home, yet physical mobility, place semantics, and digital activity are often combined without clear construct boundaries. This study develops a physical--digital activity-space framework that distinguishes co-presence, digital exposure, and digital interaction, and represents physical and digital segregation as separate components rather than a forced composite.",
+        "id": "oa:W7117476988",
+        "originalTitle": "Paper 3: The Holographic Principle and Surface-Area Scaling in a Holosphere Lattice",
+        "catchyTitle": "Paper 3: The Holographic Principle and Surface-Area Scaling in a Holosphere Lattice",
+        "summary": "We present an operational, testable interpretation of holography in Holosphere Theory in which long-lived information is accounted for as a boundary defect ledger.",
         "authors": [
-          "Guangwei Wang"
+          "Michael John Sarnowski"
         ],
         "source": "openalex",
-        "year": 2026,
-        "venue": "Knowledge Commons (Lakehead University)",
-        "url": "https://doi.org/10.17613/3amkv-gav11",
-        "pdfUrl": null,
-        "topics": [
-          "data-science"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7164551033",
-        "originalTitle": "Channel estimation and reduced-state equalization for talkative power conversion",
-        "catchyTitle": "Channel estimation and reduced-state equalization for talkative power conversion",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Cerikh Chakraborty"
-        ],
-        "source": "openalex",
-        "year": 2027,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0452683",
-        "pdfUrl": null,
-        "topics": [
-          "data-science"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7124667864",
-        "originalTitle": "A Hypothetical Model of Interaction between Localized Residual Information Entities (REE) and Biophysical Perceptors",
-        "catchyTitle": "A Hypothetical Model of Interaction between Localized Residual Information Entities (REE) and Biophysical Perceptors",
-        "summary": "説明このプレプリントは、REE(残留エネルギー実体)仮説の第3バージョン(V3)を提示し、局所的な残留情報構造が生物物理学的知覚システムと相互作用する概念モデルを提案しています。この理論は経験的真実を主張するのではなく、主観的知覚、環境情報の持続性、既存の医学的および物理的モデル間の境界条件を明確にすることを目的とした反証可能なフレームワークを導入しています。安全性、医療上の優先順位、誤解、カルト化、イデオロギー的誤用の防止に特に重点が置かれています。このバージョンは、V1とV2で導入された定義を統合し、反証可能性の基準を強化し、提案モデルを、主要な介入として明示的にサポートされている確立された神経科学と精神医学と明確に区別します。この研究は、情報操作の歴史的および現代的な誤用に対する警告的かつ記述的なフレームワークを提供すること、物理学、哲学、AI安全性、情報理論にわたる学際的な議論のための概念ツールを提供することを目的として公開されています。応用マニュアルや治療マニュアルではなく、非操作的参照モデルとしてご利用ください。免責事項:これは仮説的なモデルであり、確立された科学理論ではありません。実証的な検証が失敗した場合、このモデルは却下されるべきです。 参考文献と文脈的境界:本論文は科学的な説明とモデリングに焦点を当てていますが、哲学的視点、著者の懸念、そして重要な注意点に関する詳細な議論については、以下の別論文を参照してください。(局所的残余情報実体(REE)と生物物理学的知覚器の相互作用モデル - 誤用防止と解釈境界のための哲学的枠組み -)DOI: https://doi.org/10.5281/zenodo.18294677 キーワード ・残留情報 ・情報の永続性 ・知覚モデル ・生体物理学的知覚 ・反証可能な仮説 ・情報環境 ・AIセーフティ ・認知過負荷 ・人間とAIの共存 ・概念フレームワーク 検証ハッシュbbc686f88a44c455095861f1c744b0c909e62e04dffc64bc3ed1213e1c955d3c ライセンス:クリエイティブ・コモンズ 表示 4.0 国際 (CC BY-NC-ND 4.0)",
-        "authors": [
-          "Tomo N.R"
-        ],
-        "source": "openalex",
-        "year": 2027,
+        "year": 2028,
         "venue": "Zenodo (CERN European Organization for Nuclear Research)",
-        "url": "https://doi.org/10.5281/zenodo.18278796",
+        "url": "https://doi.org/10.5281/zenodo.18078588",
         "pdfUrl": null,
         "topics": [
-          "data-science"
+          "quantum-communication"
         ],
         "likes": 0
       },
       {
-        "id": "oa:W7160448449",
-        "originalTitle": "Developing algorithms to annotate lipids and stable isotope-labeled lipids in lipidomics data",
-        "catchyTitle": "Developing algorithms to annotate lipids and stable isotope-labeled lipids in lipidomics data",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
+        "id": "oa:W7140762600",
+        "originalTitle": "Vacuum Mechanics: How the Quaternion Finally Made the Standard Model Make Sense",
+        "catchyTitle": "Vacuum Mechanics: How the Quaternion Finally Made the Standard Model Make Sense",
+        "summary": "The vacuum is treated as a quaternionic elastic condensate",
         "authors": [
-          "Cam Kieu Khanh Nguyen"
-        ],
-        "source": "openalex",
-        "year": 2028,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0452089",
-        "pdfUrl": null,
-        "topics": [
-          "data-science"
-        ],
-        "likes": 0
-      }
-    ],
-    "bio": [
-      {
-        "id": "arxiv:2608.11621",
-        "originalTitle": "SVPLEX: A Nextflow Pipeline for Cohort-level Structural Variant Calling",
-        "catchyTitle": "SVPLEX: A Nextflow Pipeline for Cohort-level Structural Variant Calling",
-        "summary": "SVPLEX is a Nextflow pipeline for cohort-level structural variant detection from short-read whole-genome sequencing data. The pipeline implements six different structural variant callers with different strengths and weaknesses, integrating different levels of evidence for SVs, and generates a merged consensus callset across the analysis cohort. SVPLEX is available on GitHub (bahlolab/SVPLEX) and is licensed under the MIT open-source licence.",
-        "authors": [
-          "Jacob E. Munro",
-          "Mark F. Bennett",
-          "Melanie Bahlo"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.11621v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.11621v1",
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.12090",
-        "originalTitle": "Task- and dataset-specific information in protein language models",
-        "catchyTitle": "Task- and dataset-specific information in protein language models",
-        "summary": "Protein language models (PLMs) have transferred the latest advances from natural language processing to computational biology. Embeddings from shallow layers of PLMs perform better for datasets that contain deep mutational scan (DMS) data, while datasets containing diverse natural proteins find most useful embeddings in the models' deeper layers.",
-        "authors": [
-          "Roman Joeres",
-          "Ilya Senatorov",
-          "Anastasia Kolchina",
-          "Dietrich Klakow",
-          "Olga V. Kalinina"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.12090v2",
-        "pdfUrl": "https://arxiv.org/pdf/2608.12090v2",
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13029",
-        "originalTitle": "Static analysis-guided agentic AI translation enables Rust as a full stack bioinformatics language",
-        "catchyTitle": "Static analysis-guided agentic AI translation enables Rust as a full stack bioinformatics language",
-        "summary": "The field of bioinformatics struggles with legacy code - old code that is commonly used but may no longer have a maintainer, or may be written in an now-unfamiliar language (e.g. Perl, Fortran). Here we show that agentic AI, combined with static analysis, can be used to translate legacy code to the modern language Rust.",
-        "authors": [
-          "Johan Henriksson"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13029v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13029v1",
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13106",
-        "originalTitle": "Scan-Coil Delay Causes Anisotropic Signal Loss in Fast 4D-STEM",
-        "catchyTitle": "Scan-Coil Delay Causes Anisotropic Signal Loss in Fast 4D-STEM",
-        "summary": "Using direct probe imaging and sub-frame diffraction analysis, we document a significant intra-dwell scan-coil delay that systematically smears the recorded signal anisotropically along the fast scan direction, with a settling timescale of several tens of microseconds.",
-        "authors": [
-          "Vishal Kumar",
-          "Andreas Jehle",
-          "Tizian Lorenzen",
-          "Julika Radecke",
-          "Knut Müller-Caspary",
-          "Massimo Kube",
-          "Henning Stahlberg"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13106v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13106v1",
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "arxiv:2608.13244",
-        "originalTitle": "Localize, Then Reason: Visual Latent Structural Reasoning for Molecular Properties and Edits",
-        "catchyTitle": "Localize, Then Reason: Visual Latent Structural Reasoning for Molecular Properties and Edits",
-        "summary": "Local chemical perception and property reasoning are both essential for understanding how molecular structure determines properties. Current LLM-based chemical reasoning methods either receive SMILES/molecular images together with descriptions of local motifs, or reason directly from molecular images. To address this gap, we propose Visual Latent Structural Reasoning (VLSR), an end-to-end framework that jointly learns localization and reasoning from molecular images.",
-        "authors": [
-          "Xingqiao Lin",
-          "Junmei Wang",
-          "Haocheng Tang"
-        ],
-        "source": "arxiv",
-        "year": 2026,
-        "venue": "arXiv preprint",
-        "url": "https://arxiv.org/abs/2608.13244v1",
-        "pdfUrl": "https://arxiv.org/pdf/2608.13244v1",
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7160448449",
-        "originalTitle": "Developing algorithms to annotate lipids and stable isotope-labeled lipids in lipidomics data",
-        "catchyTitle": "Developing algorithms to annotate lipids and stable isotope-labeled lipids in lipidomics data",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Cam Kieu Khanh Nguyen"
-        ],
-        "source": "openalex",
-        "year": 2028,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0452089",
-        "pdfUrl": null,
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7115003884",
-        "originalTitle": "A lectin-based magnetic CRISPR screening protocol permits rapid discovery of genes regulating cell-surface glycosylation",
-        "catchyTitle": "A lectin-based magnetic CRISPR screening protocol permits rapid discovery of genes regulating cell-surface glycosylation",
-        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
-        "authors": [
-          "Kim, Jimmy (Jongyoon)"
-        ],
-        "source": "openalex",
-        "year": 2028,
-        "venue": "Open Collections",
-        "url": "https://doi.org/10.14288/1.0450977",
-        "pdfUrl": null,
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W4226369673",
-        "originalTitle": "Hub genes in a pan-cancer co-expression network show potential for predicting drug responses",
-        "catchyTitle": "Hub genes in a pan-cancer co-expression network show potential for predicting drug responses",
-        "summary": "Dataset 1 . Gene co-expression network data. It contains network nodes, weighted network and list of hubs. Dataset 2 . qPCR data from independent validation, including MIQE and additional information. Dataset 3. Supplementary Figures. Legends are included under each figure. Dataset 4. Full qPCR data (including raw Cq values).",
-        "authors": [
-          "Francisco Azuaje",
-          "Tony Kaoma",
-          "Céline Jeanty",
-          "Petr V. Nazarov",
-          "Arnaud Muller",
-          "Sang‐Yoon Kim",
-          "Gunnar Dittmar",
-          "Anna Golebiewska",
-          "Simone P. Niclou"
-        ],
-        "source": "openalex",
-        "year": 2050,
-        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
-        "url": "https://doi.org/10.5281/zenodo.2574643",
-        "pdfUrl": null,
-        "topics": [
-          "bio"
-        ],
-        "likes": 0
-      },
-      {
-        "id": "oa:W7123291006",
-        "originalTitle": "A protein language model unveils the E. coli pangenome functional landscape regulating host proteostasis",
-        "catchyTitle": "A protein language model unveils the E. coli pangenome functional landscape regulating host proteostasis",
-        "summary": "Extended Data for the Article: A protein language model unveils the E. coli pangenome functional landscape regulating host proteostasis Summary: libraries-barcodes: barcodes and associated metadata used to demultiplex the C. elegans RNA-seq for the mono-association experiments between E. coli strains and C. elegans RNA_lexogen_worm_norm_batch: DESeq2 normalised and batch corrected counts for the RNA-seq data experiment.",
-        "authors": [
-          "Daniel Martínez‐Martínez",
-          "Andreea Aprodu",
-          "Cassandra Backes",
-          "Filipe Cabreiro"
+          "Luqman Omar Mahmood"
         ],
         "source": "openalex",
         "year": 2029,
-        "venue": null,
-        "url": "https://doi.org/10.5281/zenodo.18221759",
+        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+        "url": "https://doi.org/10.5281/zenodo.19234951",
         "pdfUrl": null,
         "topics": [
-          "bio"
+          "quantum-communication"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7161566038",
+        "originalTitle": "Charge-Entanglement Ontology: Master Reference Document Version 2.6",
+        "catchyTitle": "Charge-Entanglement Ontology: Master Reference Document Version 2.6",
+        "summary": "This living document serves as the foundational reference for the entire Charge-Entanglement Ontology series.",
+        "authors": [
+          "John Robert Lamarr Greer"
+        ],
+        "source": "openalex",
+        "year": 2029,
+        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+        "url": "https://doi.org/10.5281/zenodo.20276603",
+        "pdfUrl": null,
+        "topics": [
+          "quantum-communication"
+        ],
+        "likes": 0
+      }
+    ],
+    "surveillance-anomaly-detection": [
+      {
+        "id": "arxiv:2608.16480",
+        "originalTitle": "RISE: Roadside Infrastructure Sequence Understanding across 3D Tracking and Structured Vision-Language Reasoning",
+        "catchyTitle": "RISE: Roadside Infrastructure Sequence Understanding across 3D Tracking and Structured Vision-Language Reasoning",
+        "summary": "We present RISE (Roadside Infrastructure Sequence Understanding and Evaluation), a framework spanning metric 3D tracking and structured vision-language reasoning in roadside sequences.",
+        "authors": [
+          "Yanbo Jiang",
+          "Haotian Zheng",
+          "Jiahao Wang",
+          "Hanxiao Ren",
+          "Yitao Xu",
+          "Yining Xing",
+          "Zehong Ke",
+          "Hao Cheng",
+          "Yiqian Tu",
+          "Jinhao Li",
+          "Zhiyuan Xuan",
+          "Fang Zhang"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.16480v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.16480v1",
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "arxiv:2608.16725",
+        "originalTitle": "Unsupervised Anomaly Detection for Image Dataset Quality Assurance in Multi-Center Breast MRI",
+        "catchyTitle": "Unsupervised Anomaly Detection for Image Dataset Quality Assurance in Multi-Center Breast MRI",
+        "summary": "We employ unsupervised anomaly detection (AD) and out-of-distribution (OOD) detection as an automated dataset QA mechanism for multi-center dynamic contrast-enhanced breast MRI.",
+        "authors": [
+          "Chiara Tappermann",
+          "Steffen Renisch",
+          "Lars Ole Schwen",
+          "Hans Meine",
+          "Horst K. Hahn",
+          "Eike Petersen"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.16725v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.16725v1",
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "arxiv:2608.17044",
+        "originalTitle": "The 10th AI City Challenge",
+        "catchyTitle": "The 10th AI City Challenge",
+        "summary": "Its six primary tracks cover multi-camera 3D perception, transportation safety captioning and VQA, traffic anomaly reasoning, text-based person anomaly search, generative traffic video forecasting, and cross-city object detection.",
+        "authors": [
+          "Zheng Tang",
+          "Shuo Wang",
+          "David C. Anastasiu",
+          "Ming-Ching Chang",
+          "Anuj Sharma",
+          "Quan Kong",
+          "Munkhjargal Gochoo",
+          "Jun-Wei Hsieh",
+          "Tomasz Kornuta",
+          "Zhedong Zheng",
+          "Renran Tian",
+          "Judah Goldfeder"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.17044v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.17044v1",
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "arxiv:2608.18585",
+        "originalTitle": "SPARC: Subspace Position-Aware Robust Few-Shot Calibration for Distribution-Shifted Industrial Anomaly Detection",
+        "catchyTitle": "SPARC: Subspace Position-Aware Robust Few-Shot Calibration for Distribution-Shifted Industrial Anomaly Detection",
+        "summary": "We present SPARC, a few-shot calibration method that intercepts patch features between encoder and detector and removes a closed-form, spatially indexed estimate of deployment-time nuisance through per-cell subspace projection.",
+        "authors": [
+          "Seokhee Han",
+          "Seungjun Chu",
+          "Mateusz Nowak",
+          "Peter Chin"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.18585v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.18585v1",
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "arxiv:2608.19987",
+        "originalTitle": "STEP: Score-Based Temporal Energy for Human Pose Video Anomaly Detection",
+        "catchyTitle": "STEP: Score-Based Temporal Energy for Human Pose Video Anomaly Detection",
+        "summary": "To address this, we introduce STEP, a simple framework that utilizes Principal Component Analysis (PCA) to project pose sequences into a compact, whitened PC-space.",
+        "authors": [
+          "Jakub Micorek",
+          "Mateusz Koziński",
+          "Horst Possegger"
+        ],
+        "source": "arxiv",
+        "year": 2026,
+        "venue": "arXiv preprint",
+        "url": "https://arxiv.org/abs/2608.19987v1",
+        "pdfUrl": "https://arxiv.org/pdf/2608.19987v1",
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7172203383",
+        "originalTitle": "A REVIEW OF MULTIBAND IMAGING TECHNIQUES IN AGRICULTURE",
+        "catchyTitle": "A REVIEW OF MULTIBAND IMAGING TECHNIQUES IN AGRICULTURE",
+        "summary": "The multispectral imaging method entails collecting and processing an image through different wavelength bands on the electromagnetic spectrum. Keywords: Multiband Imaging, Agriculture Technology, Precision Agriculture, Multispectral Sensors",
+        "authors": [
+          "Indian Journal of Science and Research"
+        ],
+        "source": "openalex",
+        "year": 2026,
+        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+        "url": "https://doi.org/10.5281/zenodo.21757274",
+        "pdfUrl": null,
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7122505737",
+        "originalTitle": "A Lightweight Browser-Based Facial Recognition Framework for Preventing Impersonation in Computer-Based Examinations",
+        "catchyTitle": "A Lightweight Browser-Based Facial Recognition Framework for Preventing Impersonation in Computer-Based Examinations",
+        "summary": "This study proposes a real-time facial recognition system to verify student identities during CBT, implemented at the University of Ilorin, Nigeria.",
+        "authors": [
+          "Muyideen Abdulraheem"
+        ],
+        "source": "openalex",
+        "year": 2026,
+        "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+        "url": "https://doi.org/10.5281/zenodo.18210304",
+        "pdfUrl": null,
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7130679909",
+        "originalTitle": "Reducing IMU dynamic soft tissue artifacts with a soft tissue Kalman filter",
+        "catchyTitle": "Reducing IMU dynamic soft tissue artifacts with a soft tissue Kalman filter",
+        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
+        "authors": [
+          "Genevieve Bonnor"
+        ],
+        "source": "openalex",
+        "year": 2027,
+        "venue": "Open Collections",
+        "url": "https://doi.org/10.14288/1.0451493",
+        "pdfUrl": null,
+        "topics": [
+          "surveillance-anomaly-detection"
+        ],
+        "likes": 0
+      },
+      {
+        "id": "oa:W7128783899",
+        "originalTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
+        "catchyTitle": "Advances in single-cell image cytometry enabled by nanowell imaging plates and machine learning",
+        "summary": "The full abstract for this thesis is available in the body of the thesis, and will be available when the embargo expires.",
+        "authors": [
+          "Samuel Guy Berryman"
+        ],
+        "source": "openalex",
+        "year": 2028,
+        "venue": "Open Collections",
+        "url": "https://doi.org/10.14288/1.0451480",
+        "pdfUrl": null,
+        "topics": [
+          "surveillance-anomaly-detection"
         ],
         "likes": 0
       }
