@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-22T08:24:40.932Z",
+  "generatedAt": "2026-08-22T09:39:24.636Z",
   "topics": {
     "ai-mental-health": [
       {
         "id": "arxiv:2608.03190",
         "originalTitle": "TumorBoard: Evidence-Grounded Multi-Agent Decision Support for Longitudinal Neuro-Oncology",
         "catchyTitle": "TumorBoard: Evidence-Grounded Multi-Agent Decision Support for Longitudinal Neuro-Oncology",
-        "summary": "We present TumorBoard, a multi-agent decision-support system built around a shared longitudinal case state and an auditable claim-evidence ledger.",
+        "summary": "Neuro-oncology decisions require coordinated interpretation of serial MRI, pathology, molecular markers, treatment history, performance status, and evolving guidelines. We present TumorBoard, a multi-agent decision-support system built around a shared longitudinal…",
         "authors": [
           "Yantong Liu",
           "Zheyu Zhang",
@@ -29,7 +29,7 @@
         "id": "arxiv:2608.07316",
         "originalTitle": "Natural Language Processing Psychometrics",
         "catchyTitle": "Natural Language Processing Psychometrics",
-        "summary": "Natural Language Processing (NLP) models predicting mental health outcomes rarely specify what they measure: contextual knowledge, emotional content, or syntactic structure.",
+        "summary": "Natural Language Processing (NLP) models predicting mental health outcomes rarely specify what they measure: contextual knowledge, emotional content, or syntactic structure. Sociodemographics alone explained no meaningful variance in depression, anxiety…",
         "authors": [
           "Edoardo Sebastiano De Duro",
           "Emma Franchino",
@@ -49,7 +49,7 @@
         "id": "arxiv:2608.12750",
         "originalTitle": "PatientAct: Theory-Grounded Mental Health Client Simulation",
         "catchyTitle": "PatientAct: Theory-Grounded Mental Health Client Simulation",
-        "summary": "We present PatientAct, a framework for client simulation grounded in established clinical theories. Moreover, PatientAct significantly outperforms the baselines, yielding substantial gains in resistance quality and behavioral realism.",
+        "summary": "However, current simulators produce overly cooperative clients that disclose too readily, accept therapeutic reframes without resistance, and resolve core issues within a single session. We present PatientAct, a framework for…",
         "authors": [
           "Sahand Sabour",
           "TszYam NG",
@@ -72,7 +72,7 @@
         "id": "arxiv:2608.15338",
         "originalTitle": "When AI Rewrites, Classifiers Relax: Uncertainty-Aware Sentiment Analysis on Sarcastic and AI-Paraphrased Social Text",
         "catchyTitle": "When AI Rewrites, Classifiers Relax: Uncertainty-Aware Sentiment Analysis on Sarcastic and AI-Paraphrased Social Text",
-        "summary": "Sentiment classifiers are increasingly applied to social media content that is either sarcastic or AI-generated --- two distributional regimes where standard evaluations offer little guidance.",
+        "summary": "Sentiment classifiers are increasingly applied to social media content that is either sarcastic or AI-generated --- two distributional regimes where standard evaluations offer little guidance. Second, and counterintuitively, we show…",
         "authors": [
           "Shresth Shroff"
         ],
@@ -90,7 +90,7 @@
         "id": "arxiv:2608.18438",
         "originalTitle": "Pedagogical AI in Mental Health: A Tri-Stream Fine-Tuned LLM Framework for Automated Clinical Supervision and Risk Triage",
         "catchyTitle": "Pedagogical AI in Mental Health: A Tri-Stream Fine-Tuned LLM Framework for Automated Clinical Supervision and Risk Triage",
-        "summary": "This paper proposes a new framework utilizing a fine-tuned Mistral-7B-instruct model as an automated \"Supervisor-in-the-Loop\" system.",
+        "summary": "This paper proposes a new framework utilizing a fine-tuned Mistral-7B-instruct model as an automated \"Supervisor-in-the-Loop\" system. By leveraging 106 sessions from the DAIC-WOZ dataset, the model performs a tri-stream analysis…",
         "authors": [
           "Shreeya Sharma",
           "Ravish Gupta",
@@ -111,7 +111,7 @@
         "id": "oa:W7166191681",
         "originalTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
         "catchyTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "summary": "Continuous Emission Monitoring Systems (CEMS) for stationary pollution sources serve as the core data backbone for precision pollution control and environmental law enforcement.",
+        "summary": "Continuous Emission Monitoring Systems (CEMS) for stationary pollution sources serve as the core data backbone for precision pollution control and environmental law enforcement. To address the limitations of conventional methods—namely…",
         "authors": [
           "Tao Lin"
         ],
@@ -129,7 +129,7 @@
         "id": "oa:W7162095276",
         "originalTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
         "catchyTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "summary": "This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
+        "summary": "This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates…",
         "authors": [
           "Sizhen Niu"
         ],
@@ -208,7 +208,7 @@
         "id": "arxiv:2608.07567",
         "originalTitle": "Temporal Generalization in fNIRS-Based Autism Classification: A Cross-Time-Window Transfer Benchmark",
         "catchyTitle": "Temporal Generalization in fNIRS-Based Autism Classification: A Cross-Time-Window Transfer Benchmark",
-        "summary": "Functional near-infrared spectroscopy (fNIRS) is a promising modality for autism spectrum disorder (ASD) classification, yet existing approaches assume temporally aligned evaluation.",
+        "summary": "Functional near-infrared spectroscopy (fNIRS) is a promising modality for autism spectrum disorder (ASD) classification, yet existing approaches assume temporally aligned evaluation. Key findings: (1) zero-shot cross-window accuracy is near chance…",
         "authors": [
           "Marios Petrov",
           "Sahana Vinayak",
@@ -232,7 +232,7 @@
         "id": "arxiv:2608.03447",
         "originalTitle": "Approximate Speculative Decoding",
         "catchyTitle": "Approximate Speculative Decoding",
-        "summary": "Speculative decoding accelerates autoregressive generation by verifying a draft block with a target model in parallel. The source code is publicly available at: https://github.com/Kissmetothemoon/ASD",
+        "summary": "Speculative decoding accelerates autoregressive generation by verifying a draft block with a target model in parallel. Under standard greedy verification, decoding stops at the first draft token that differs from…",
         "authors": [
           "Yuannuo Feng",
           "Zegang Peng",
@@ -257,7 +257,7 @@
         "id": "arxiv:2608.10295",
         "originalTitle": "Frozen Brain-MRI Foundation Models Are Site Fingerprints",
         "catchyTitle": "Frozen Brain-MRI Foundation Models Are Site Fingerprints",
-        "summary": "Frozen foundation-model (FM) embeddings are increasingly used as off-the-shelf brain-MRI representations, on the assumption that they capture anatomy.",
+        "summary": "Frozen foundation-model (FM) embeddings are increasingly used as off-the-shelf brain-MRI representations, on the assumption that they capture anatomy. The site subspace is removable post hoc by iterative null-space projection or…",
         "authors": [
           "Saman Rahbar"
         ],
@@ -275,7 +275,7 @@
         "id": "arxiv:2608.12274",
         "originalTitle": "A Neighborhood Attention Transformer Network for Enhanced 3D Segmentation of the Left Anterior Descending Artery",
         "catchyTitle": "A Neighborhood Attention Transformer Network for Enhanced 3D Segmentation of the Left Anterior Descending Artery",
-        "summary": "Background: Accurate segmentation of the Left Anterior Descending (LAD) artery in 3D free-breathing, non-contrast CT is critical for cardiac dose sparing in thoracic radiotherapy.",
+        "summary": "Background: Accurate segmentation of the Left Anterior Descending (LAD) artery in 3D free-breathing, non-contrast CT is critical for cardiac dose sparing in thoracic radiotherapy. Methods: We propose NA-UNETR, a 3D…",
         "authors": [
           "Rafi Ibn Sultan",
           "Chengyin Li",
@@ -301,7 +301,7 @@
         "id": "arxiv:2608.18188",
         "originalTitle": "A systematic review of machine learning techniques to address diagnosis and treatment of autism: challenges and opportunities",
         "catchyTitle": "A systematic review of machine learning techniques to address diagnosis and treatment of autism: challenges and opportunities",
-        "summary": "Autism spectrum disorder (ASD) is a developmental disability characterized by challenges in social interaction and communication.",
+        "summary": "Autism spectrum disorder (ASD) is a developmental disability characterized by challenges in social interaction and communication. As the causes of ASD remain unclear, identifying relevant features and hidden correlations is…",
         "authors": [
           "Rafael Muñoz-Terol",
           "Jesús Peral",
@@ -322,7 +322,7 @@
         "id": "oa:W7166191681",
         "originalTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
         "catchyTitle": "Construction of an Automated Quality Control Model for Industrial Waste Gas Online Monitoring Data Based on Unsupervised Learning",
-        "summary": "Continuous Emission Monitoring Systems (CEMS) for stationary pollution sources serve as the core data backbone for precision pollution control and environmental law enforcement.",
+        "summary": "Continuous Emission Monitoring Systems (CEMS) for stationary pollution sources serve as the core data backbone for precision pollution control and environmental law enforcement. To address the limitations of conventional methods—namely…",
         "authors": [
           "Tao Lin"
         ],
@@ -340,7 +340,7 @@
         "id": "oa:W7162095276",
         "originalTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
         "catchyTitle": "SOAR: Smooth Online Activation Routing for Stable Neural Learning from Evolving Streams",
-        "summary": "This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates.",
+        "summary": "This revision reformulates the problem as genuine prequential online learning and introduces Smooth Online Activation Routing (SOAR), a Hedge-style routing algorithm over smooth activation experts trained by singleinstance adaptive updates…",
         "authors": [
           "Sizhen Niu"
         ],
@@ -419,7 +419,7 @@
         "id": "arxiv:2608.18359",
         "originalTitle": "0xPass: A Secure Protocol for Universal Cross-Chain Accounts",
         "catchyTitle": "0xPass: A Secure Protocol for Universal Cross-Chain Accounts",
-        "summary": "This paper presents 0xPass, a modular protocol architecture for universal cross-chain accounts. 0xPass separates request orchestration, transaction solving, and transaction signing into interoperable layers.",
+        "summary": "Universal accounts allow users to manage assets and execute operations across heterogeneous blockchain ecosystems through a single interface, but they introduce security and trust challenges involving authentication, authorization, transaction signing…",
         "authors": [
           "Bernardo David",
           "Keon Kim",
@@ -439,7 +439,7 @@
         "id": "arxiv:2608.18403",
         "originalTitle": "AoNT Trap: Borromean-Entangled Mutable Chameleon Trapdoor Hash All-or-Nothing Stream Cipher",
         "catchyTitle": "AoNT Trap: Borromean-Entangled Mutable Chameleon Trapdoor Hash All-or-Nothing Stream Cipher",
-        "summary": "This work introduces the Borromean-Entangled Chameleon Trapdoor Hash All-or-Nothing (AoNT) Stream Cipher (BEC-Trap), a novel construction that merges Borromean interdependence, trapdoor-enabled mutability, and streaming encryption into a unified framework.",
+        "summary": "This work introduces the Borromean-Entangled Chameleon Trapdoor Hash All-or-Nothing (AoNT) Stream Cipher (BEC-Trap), a novel construction that merges Borromean interdependence, trapdoor-enabled mutability, and streaming encryption into a unified framework. The…",
         "authors": [
           "Victor Kebande"
         ],
@@ -457,7 +457,7 @@
         "id": "arxiv:2608.19401",
         "originalTitle": "Redactable blockchains and polynomial equations",
         "catchyTitle": "Redactable blockchains and polynomial equations",
-        "summary": "We develop new tools for constructing redactable authenticated data structures with post-quantum security.",
+        "summary": "We develop new tools for constructing redactable authenticated data structures with post-quantum security. In our construction, inverting the proposed one-way function means solving a polynomial equation (or a system of…",
         "authors": [
           "Alexander Demin",
           "Alexey Ovchinnikov",
@@ -477,7 +477,7 @@
         "id": "arxiv:2608.20097",
         "originalTitle": "TrustRAG: Blockchain-Enhanced RAG via Committee-Based Credibility Scoring",
         "catchyTitle": "TrustRAG: Blockchain-Enhanced RAG via Committee-Based Credibility Scoring",
-        "summary": "Retrieval-Augmented Generation (RAG) lets Large Language Models (LLMs) pull in up-to-date, domain-specific information instead of relying only on what they were trained on.",
+        "summary": "Retrieval-Augmented Generation (RAG) lets Large Language Models (LLMs) pull in up-to-date, domain-specific information instead of relying only on what they were trained on. We present TrustRAG, a committee-based, blockchain-backed RAG…",
         "authors": [
           "Baixiang Liu",
           "Haotian Che",
@@ -497,7 +497,7 @@
         "id": "arxiv:2608.20145",
         "originalTitle": "Trustworthy mobile edge caching: a blockchain approach to mitigate malicious nodes and incentivize cache sharing",
         "catchyTitle": "Trustworthy mobile edge caching: a blockchain approach to mitigate malicious nodes and incentivize cache sharing",
-        "summary": "Additionally, these helper nodes can also be malicious. This paper proposes a blockchain-based trust management mechanism that addresses these challenges by accurately identifying trustworthy edge servers and mobile nodes.",
+        "summary": "As mobile network traffic continues to grow, content caching on edge servers is critical for reducing latency. To overcome the capacity limitations, helper mobile nodes can contribute their cache resources…",
         "authors": [
           "Motahare Ebrahimi",
           "Nastooh Taheri Javan",
@@ -518,7 +518,7 @@
         "id": "oa:W7172537955",
         "originalTitle": "Antitrust Regulation of Algorithmic \"Platform-Driven Involution'': From Governing the Corporate Person to Governing the Platform Ecosystem",
         "catchyTitle": "Antitrust Regulation of Algorithmic \"Platform-Driven Involution'': From Governing the Corporate Person to Governing the Platform Ecosystem",
-        "summary": "The article clarifies that ecosystem analysis supplements rather than replaces relevant-market analysis and develops an evidence architecture for separating platform-induced effects from macroeconomic, demand, cost, and merchant-specific confounders.",
+        "summary": "Digital platforms increasingly govern competition through algorithmically administered rules that allocate visibility, subsidies, commissions, participation opportunities, and sanctions. This article reconstructs ``platform-driven involution'' as a testable, portfolio-based theory-of-harm framework rather…",
         "authors": [
           "Sida Zeng"
         ],
@@ -593,7 +593,7 @@
         "id": "arxiv:2608.19130",
         "originalTitle": "Connectivity--Interference Competition in Coherent Transport on Percolated Hierarchical Small-World Networks",
         "catchyTitle": "Connectivity--Interference Competition in Coherent Transport on Percolated Hierarchical Small-World Networks",
-        "summary": "Adding links generally improves classical transport by increasing the number of available paths. We show that coherent quantum transport can display the opposite behavior.",
+        "summary": "Adding links generally improves classical transport by increasing the number of available paths. We show that coherent quantum transport can display the opposite behavior. Using continuous-time quantum walks on a…",
         "authors": [
           "Miquéias Jacinto Cirino",
           "Marcos César de Oliveira"
@@ -612,7 +612,7 @@
         "id": "arxiv:2608.19745",
         "originalTitle": "Multiplexing of Continuous-Variable and Discrete-Variable Quantum Key Distribution Systems over Fibered and Free-Space Channels",
         "catchyTitle": "Multiplexing of Continuous-Variable and Discrete-Variable Quantum Key Distribution Systems over Fibered and Free-Space Channels",
-        "summary": "Wavelength-division multiplexing (WDM) of the two protocols on a common channel would address both regimes simultaneously, but their markedly different noise sensitivities make coexistence non-trivial and, to date, experimentally untested.",
+        "summary": "Future quantum communication infrastructures will need to serve heterogeneous users on shared physical channels: short-range, high-throughput links favor Continuous-Variable Quantum Key Distribution (CV-QKD), while long-reach, high-loss links remain the domain…",
         "authors": [
           "Mattia Sabatini",
           "Edoardo Rossi",
@@ -639,7 +639,7 @@
         "id": "arxiv:2608.19787",
         "originalTitle": "Constant-round quantum advantage in communication complexity for total functions",
         "catchyTitle": "Constant-round quantum advantage in communication complexity for total functions",
-        "summary": "We show that there exists a total function for which there is a polynomial gap between the randomized and the constant-round quantum communication complexity.",
+        "summary": "We show that there exists a total function for which there is a polynomial gap between the randomized and the constant-round quantum communication complexity. Previously, such a separation was known…",
         "authors": [
           "Atsuya Hasegawa",
           "François Le Gall"
@@ -687,7 +687,7 @@
         "id": "arxiv:2608.20291",
         "originalTitle": "Programmable cavity QED with a fiber-integrated atomic array",
         "catchyTitle": "Programmable cavity QED with a fiber-integrated atomic array",
-        "summary": "Strong atom-photon interactions in optical cavities are a key resource for quantum information processing, quantum networking, and the exploration of quantum optical effects.",
+        "summary": "Strong atom-photon interactions in optical cavities are a key resource for quantum information processing, quantum networking, and the exploration of quantum optical effects. Optical tweezer arrays offer scalable, site-resolved control…",
         "authors": [
           "Stephan Roschinski",
           "Johannes Schabbauer",
@@ -784,7 +784,7 @@
         "id": "arxiv:2608.16480",
         "originalTitle": "RISE: Roadside Infrastructure Sequence Understanding across 3D Tracking and Structured Vision-Language Reasoning",
         "catchyTitle": "RISE: Roadside Infrastructure Sequence Understanding across 3D Tracking and Structured Vision-Language Reasoning",
-        "summary": "We present RISE (Roadside Infrastructure Sequence Understanding and Evaluation), a framework spanning metric 3D tracking and structured vision-language reasoning in roadside sequences.",
+        "summary": "We present RISE (Roadside Infrastructure Sequence Understanding and Evaluation), a framework spanning metric 3D tracking and structured vision-language reasoning in roadside sequences. For metric tracking, our image-only method combines SAM3…",
         "authors": [
           "Yanbo Jiang",
           "Haotian Zheng",
@@ -813,7 +813,7 @@
         "id": "arxiv:2608.16725",
         "originalTitle": "Unsupervised Anomaly Detection for Image Dataset Quality Assurance in Multi-Center Breast MRI",
         "catchyTitle": "Unsupervised Anomaly Detection for Image Dataset Quality Assurance in Multi-Center Breast MRI",
-        "summary": "We employ unsupervised anomaly detection (AD) and out-of-distribution (OOD) detection as an automated dataset QA mechanism for multi-center dynamic contrast-enhanced breast MRI.",
+        "summary": "Despite growing regulatory recognition of dataset quality assurance (QA) for high-risk medical AI, scalable automated detection remains underdeveloped. We employ unsupervised anomaly detection (AD) and out-of-distribution (OOD) detection as an…",
         "authors": [
           "Chiara Tappermann",
           "Steffen Renisch",
@@ -836,7 +836,7 @@
         "id": "arxiv:2608.17044",
         "originalTitle": "The 10th AI City Challenge",
         "catchyTitle": "The 10th AI City Challenge",
-        "summary": "Its six primary tracks cover multi-camera 3D perception, transportation safety captioning and VQA, traffic anomaly reasoning, text-based person anomaly search, generative traffic video forecasting, and cross-city object detection.",
+        "summary": "The 10th AI City Challenge, held with ECCV 2026, marks a decade of community benchmarking for intelligent transportation, smart cities, and physical AI. Its six primary tracks cover multi-camera 3D…",
         "authors": [
           "Zheng Tang",
           "Shuo Wang",
@@ -865,7 +865,7 @@
         "id": "arxiv:2608.18585",
         "originalTitle": "SPARC: Subspace Position-Aware Robust Few-Shot Calibration for Distribution-Shifted Industrial Anomaly Detection",
         "catchyTitle": "SPARC: Subspace Position-Aware Robust Few-Shot Calibration for Distribution-Shifted Industrial Anomaly Detection",
-        "summary": "We present SPARC, a few-shot calibration method that intercepts patch features between encoder and detector and removes a closed-form, spatially indexed estimate of deployment-time nuisance through per-cell subspace projection.",
+        "summary": "Vision-based industrial anomaly detectors are calibrated on one distribution but may be deployed on another that differs in illumination, fixture placement, or sensor characteristics, sharply degrading an otherwise accurate detector…",
         "authors": [
           "Seokhee Han",
           "Seungjun Chu",
@@ -886,7 +886,7 @@
         "id": "arxiv:2608.19987",
         "originalTitle": "STEP: Score-Based Temporal Energy for Human Pose Video Anomaly Detection",
         "catchyTitle": "STEP: Score-Based Temporal Energy for Human Pose Video Anomaly Detection",
-        "summary": "To address this, we introduce STEP, a simple framework that utilizes Principal Component Analysis (PCA) to project pose sequences into a compact, whitened PC-space.",
+        "summary": "Skeleton-based Video Anomaly Detection (VAD) offers a robust, privacy-preserving solution for identifying abnormal behaviors. To address this, we introduce STEP, a simple framework that utilizes Principal Component Analysis (PCA) to…",
         "authors": [
           "Jakub Micorek",
           "Mateusz Koziński",
@@ -906,7 +906,7 @@
         "id": "oa:W7172203383",
         "originalTitle": "A REVIEW OF MULTIBAND IMAGING TECHNIQUES IN AGRICULTURE",
         "catchyTitle": "A REVIEW OF MULTIBAND IMAGING TECHNIQUES IN AGRICULTURE",
-        "summary": "The multispectral imaging method entails collecting and processing an image through different wavelength bands on the electromagnetic spectrum. Keywords: Multiband Imaging, Agriculture Technology, Precision Agriculture, Multispectral Sensors",
+        "summary": "The multispectral imaging method entails collecting and processing an image through different wavelength bands on the electromagnetic spectrum. The imaging method is entirely different from the conventional imaging technique since…",
         "authors": [
           "Indian Journal of Science and Research"
         ],
@@ -924,7 +924,7 @@
         "id": "oa:W7122505737",
         "originalTitle": "A Lightweight Browser-Based Facial Recognition Framework for Preventing Impersonation in Computer-Based Examinations",
         "catchyTitle": "A Lightweight Browser-Based Facial Recognition Framework for Preventing Impersonation in Computer-Based Examinations",
-        "summary": "This study proposes a real-time facial recognition system to verify student identities during CBT, implemented at the University of Ilorin, Nigeria.",
+        "summary": "The rise of Computer-Based Testing (CBT) in academic institutions has streamlined assessment processes but introduced challenges in preventing impersonation, threatening exam integrity. This study proposes a real-time facial recognition system…",
         "authors": [
           "Muyideen Abdulraheem"
         ],
