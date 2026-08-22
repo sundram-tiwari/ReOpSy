@@ -78,6 +78,7 @@ function mapWork(work, requestedTopic) {
 
   const title = normalizeWhitespace(work.title || work.display_name);
   if (!title) return null;
+  if (work.publication_year > new Date().getFullYear()) return null;
 
   const id = shortId(work.id);
   if (!id) return null;
@@ -194,3 +195,4 @@ module.exports = {
   scholarFallback,
   OPEN_LICENSES,
 };
+

@@ -9,7 +9,7 @@ const {
   sentenceCase,
 } = require('./text');
 
-const MAX_WORDS = 30;
+const MAX_WORDS = 80;
 
 /**
  * Extractive summariser, ~30 words, no model and no network.

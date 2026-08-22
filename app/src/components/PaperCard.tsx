@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Linking, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Linking, TouchableOpacity, Platform, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Paper } from '../types';
 import { config } from '../config';
@@ -51,9 +51,7 @@ export const PaperCard: React.FC<Props> = ({ paper, cardHeight }) => {
               {paper.catchyTitle || paper.originalTitle}
             </Text>
 
-            <Text style={styles.summary}>
-              {paper.summary}
-            </Text>
+            <ScrollView style={styles.summaryScrollView} showsVerticalScrollIndicator={true}><Text style={styles.summary}>{paper.summary}</Text></ScrollView>
           </View>
 
           <View style={styles.bottomSection}>
@@ -110,6 +108,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.l,
     justifyContent: 'space-between',
   },
+  summaryScrollView: { flexShrink: 1, marginTop: spacing.s },
   topSection: {
     flexShrink: 1,
   },
@@ -163,3 +162,5 @@ const styles = StyleSheet.create({
     color: colors.textDim,
   },
 });
+
+
