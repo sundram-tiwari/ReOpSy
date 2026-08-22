@@ -156,21 +156,25 @@ async function handleRequest(req, res) {
 
       console.log(`[${new Date().toISOString()}] Webhook trigger received: topic=${topic || 'all'}, dryRun=${dryRun}`);
 
-      const result = await fetchAndSummarize({
+      // Start the pipeline asynchronously so we don't timeout the HTTP request
+      fetchAndSummarize({
         dryRun,
         topic,
         limitPerSource,
         db: adminDb
+      }).then(result => {
+        console.log(`[${new Date().toISOString()}] Pipeline background execution completed successfully.`);
+      }).catch(err => {
+        console.error(`[${new Date().toISOString()}] Pipeline background execution failed:`, err);
       });
 
-      return sendJson(200, {
+      return sendJson(202, {
         success: true,
-        message: 'Pipeline executed successfully',
-        timestamp: new Date().toISOString(),
-        result
+        message: 'Pipeline started in background',
+        timestamp: new Date().toISOString()
       });
     } catch (err) {
-      console.error('[Webhook] Pipeline execution error:', err);
+      console.error('[Webhook] Error starting pipeline:', err);
       return sendJson(500, {
         success: false,
         error: err.message || 'Pipeline execution failed'

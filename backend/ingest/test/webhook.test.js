@@ -177,10 +177,9 @@ test('webhook triggers dryRun pipeline execution with valid Bearer token', async
       },
       { topic: 'ai-mental-health', limitPerSource: 1 }
     );
-    assert.equal(res.statusCode, 200);
+    assert.equal(res.statusCode, 202);
     assert.equal(res.body.success, true);
-    assert.equal(res.body.message, 'Pipeline executed successfully');
-    assert.ok(res.body.result);
+    assert.equal(res.body.message, 'Pipeline started in background');
   } finally {
     server.close();
   }
@@ -198,7 +197,7 @@ test('webhook triggers dryRun pipeline with valid query token', async () => {
         method: 'GET'
       }
     );
-    assert.equal(res.statusCode, 200);
+    assert.equal(res.statusCode, 202);
     assert.equal(res.body.success, true);
   } finally {
     server.close();
