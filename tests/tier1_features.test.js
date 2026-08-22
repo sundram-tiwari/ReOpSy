@@ -34,8 +34,8 @@ describe('Tier 1: Feature Coverage (R1 - R5)', () => {
   // R1: Predefined Categories & Content Ingest Pipeline
   // =========================================================================
   describe('Feature R1: Predefined Categories & Content Ingest Pipeline', () => {
-    test('R1.1: Backend topics.js and app config.ts define exact 10 topics', () => {
-      assert.equal(ALL_SLUGS.length, 10, 'ALL_SLUGS should contain exactly 10 topics');
+    test('R1.1: Backend topics.js and app config.ts define exact 5 topics', () => {
+      assert.equal(ALL_SLUGS.length, EXPECTED_TOPIC_SLUGS.length, `ALL_SLUGS should contain exactly ${EXPECTED_TOPIC_SLUGS.length} topics`);
       for (const expected of EXPECTED_TOPIC_SLUGS) {
         assert.ok(ALL_SLUGS.includes(expected), `Missing topic slug: ${expected} in ALL_SLUGS`);
         assert.ok(TOPICS[expected], `Missing topic metadata for: ${expected}`);
@@ -52,7 +52,7 @@ describe('Tier 1: Feature Coverage (R1 - R5)', () => {
       }
     });
 
-    test('R1.2: Daily feed JSON contains real papers for all 10 topics', () => {
+    test('R1.2: Daily feed JSON contains real papers for all 5 topics', () => {
       const feedResult = validateDailyFeed(path.resolve(__dirname, '../app/src/data/dailyFeed.json'));
       assert.ok(feedResult.valid, `dailyFeed.json is invalid: ${feedResult.error || ''}`);
       assert.equal(feedResult.missingTopics.length, 0, `Missing topics in dailyFeed.json: ${feedResult.missingTopics.join(', ')}`);

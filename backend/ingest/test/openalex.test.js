@@ -60,7 +60,7 @@ const WORK = {
 };
 
 test('mapWork produces a complete paper row', () => {
-  const p = mapWork(WORK, 'ml');
+  const p = mapWork(WORK, 'ai-mental-health');
   assert.equal(p.id, 'oa:W2741809807');
   assert.equal(p.source, 'openalex');
   assert.equal(p.doi, '10.7717/peerj.4375');
@@ -71,31 +71,31 @@ test('mapWork produces a complete paper row', () => {
   assert.equal(p.license_ok, true);
   assert.ok(p.abstract.startsWith('Despite growing interest'));
   assert.ok(p.summary.length > 0);
-  assert.ok(p.topics.includes('ml'));
+  assert.ok(p.topics.includes('ai-mental-health'));
   assert.equal(p.title_key, 'thestateofoaalargescaleanalysis');
 });
 
 test('a closed licence blocks the abstract but still yields a summary', () => {
   const closed = { ...WORK, primary_location: { ...WORK.primary_location, license: 'cc-by-nc' }, best_oa_location: null };
-  const p = mapWork(closed, 'ml');
+  const p = mapWork(closed, 'ai-mental-health');
   assert.equal(p.license_ok, false);
   assert.equal(p.abstract, null, 'abstract must not ship without an open licence');
   assert.ok(p.summary.length > 0, 'summary is still allowed');
 });
 
 test('a work with no abstract falls back to metadata, never to an empty card', () => {
-  const p = mapWork({ ...WORK, abstract_inverted_index: null }, 'ml');
+  const p = mapWork({ ...WORK, abstract_inverted_index: null }, 'ai-mental-health');
   assert.ok(p.summary.length > 0);
   assert.ok(/no abstract/i.test(p.summary));
 });
 
 test('a titleless record is rejected rather than repaired', () => {
-  assert.equal(mapWork({ id: 'https://openalex.org/W1' }, 'ml'), null);
-  assert.equal(mapWork(null, 'ml'), null);
+  assert.equal(mapWork({ id: 'https://openalex.org/W1' }, 'ai-mental-health'), null);
+  assert.equal(mapWork(null, 'ai-mental-health'), null);
 });
 
 test('buildUrl asks for recent articles with abstracts', () => {
-  const url = buildUrl({ topic: 'nlp', limit: 5, fromDate: '2026-01-01', mailto: 'a@b.c' });
+  const url = buildUrl({ topic: 'ai-mental-health', limit: 5, fromDate: '2026-01-01', mailto: 'a@b.c' });
   assert.ok(url.startsWith('https://api.openalex.org/works?'));
   const qs = new URLSearchParams(url.split('?')[1]);
   assert.ok(qs.get('filter').includes('has_abstract:true'));
@@ -110,12 +110,12 @@ test('fetchTopic maps a stubbed response without touching the network', async ()
     ok: true,
     json: async () => ({ results: [WORK, { id: 'x', title: '' }] }),
   });
-  const rows = await fetchTopic({ topic: 'ml', limit: 2, fetchImpl });
+  const rows = await fetchTopic({ topic: 'blockchain', limit: 2, fetchImpl });
   assert.equal(rows.length, 1, 'the invalid record is dropped');
   assert.equal(rows[0].id, 'oa:W2741809807');
 });
 
 test('fetchTopic surfaces HTTP errors instead of returning nothing', async () => {
   const fetchImpl = async () => ({ ok: false, status: 429, statusText: 'Too Many Requests' });
-  await assert.rejects(() => fetchTopic({ topic: 'ml', fetchImpl }), /429/);
+  await assert.rejects(() => fetchTopic({ topic: 'blockchain', fetchImpl }), /429/);
 });

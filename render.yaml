@@ -4,3 +4,14 @@ services:
     env: static
     buildCommand: cd app && npm install && npx expo export -p web
     staticPublishPath: app/dist
+
+  - type: web
+    name: reopsy-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: WEBHOOK_SECRET
+        generateValue: true

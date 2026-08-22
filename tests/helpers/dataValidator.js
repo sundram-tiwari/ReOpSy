@@ -4,16 +4,11 @@ const fs = require('fs');
 const path = require('path');
 
 const EXPECTED_TOPIC_SLUGS = [
-  'ml',
-  'dl',
-  'nlp',
-  'cv',
-  'ai-health',
-  'llm',
-  'robotics',
-  'cybersecurity',
-  'data-science',
-  'bio'
+  'ai-mental-health',
+  'autism-diagnosis',
+  'blockchain',
+  'quantum-communication',
+  'surveillance-anomaly-detection'
 ];
 
 /**

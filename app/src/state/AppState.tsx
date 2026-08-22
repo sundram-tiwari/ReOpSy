@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Paper, StreakState, UserApiConfig } from '../types';
 import { initialStreak, recordActivity } from '../logic/streak';
@@ -49,6 +49,38 @@ export interface AppStateContext {
   isSyncing: boolean;
 }
 
+export const DEFAULT_FOLLOWED_TOPICS = [
+  'ai-mental-health',
+  'autism-diagnosis',
+  'blockchain',
+  'quantum-communication',
+  'surveillance-anomaly-detection'
+];
+
+function shuffleFeedPapers(papers: Paper[]): Paper[] {
+  const arr = [...papers];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function consolidateGlobalFeed(topicsData: Record<string, Paper[]>): Paper[] {
+  if (!topicsData || typeof topicsData !== 'object') return [];
+  const map = new Map<string, Paper>();
+  for (const [slug, papers] of Object.entries(topicsData)) {
+    if (slug !== 'global' && Array.isArray(papers)) {
+      for (const p of papers) {
+        if (p && p.id && !map.has(p.id)) {
+          map.set(p.id, p);
+        }
+      }
+    }
+  }
+  return shuffleFeedPapers(Array.from(map.values()));
+}
+
 /**
  * Pure state merge function that combines local and remote cloud states without losing
  * offline progress, bookmarks, topic preferences, or API configurations.
@@ -60,7 +92,7 @@ export function mergeCloudAndLocalState(
   if (!cloud) {
     return {
       ...local,
-      followedTopics: local.followedTopics?.length ? local.followedTopics : ['ml', 'ai-health'],
+      followedTopics: local.followedTopics?.length ? local.followedTopics : DEFAULT_FOLLOWED_TOPICS,
       savedPapers: local.savedPapers || [],
       likedPapers: local.likedPapers || [],
       streak: local.streak || initialStreak,
@@ -82,7 +114,7 @@ export function mergeCloudAndLocalState(
       mergedTopics.push(t);
     }
   }
-  const finalTopics = mergedTopics.length > 0 ? mergedTopics : ['ml', 'ai-health'];
+  const finalTopics = mergedTopics.length > 0 ? mergedTopics : DEFAULT_FOLLOWED_TOPICS;
 
   // 2. Saved papers: union deduplicated by paper ID (local recents first)
   const localSaved = Array.isArray(local.savedPapers) ? local.savedPapers : [];
@@ -188,8 +220,8 @@ export function mergeCloudAndLocalState(
 const AppContext = createContext<AppStateContext | null>(null);
 
 export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [followedTopics, setFollowedTopics] = useState<string[]>(['ml', 'ai-health']);
-  const [activeTopic, setActiveTopic] = useState<string>('ml');
+  const [followedTopics, setFollowedTopics] = useState<string[]>(DEFAULT_FOLLOWED_TOPICS);
+  const [activeTopic, setActiveTopic] = useState<string>('global');
   const [savedPapers, setSavedPapers] = useState<Paper[]>([]);
   const [likedPapers, setLikedPapers] = useState<Set<string>>(new Set());
   const [streak, setStreak] = useState<StreakState>(initialStreak);
@@ -203,8 +235,13 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const lastHydratedUidRef = useRef<string | null>(null);
   const isHydratingRef = useRef<boolean>(false);
 
-  // Load feed from dailyFeed.json
-  const feedData = dailyFeedJson.topics as Record<string, Paper[]>;
+  // Load feed from dailyFeed.json with consolidated & shuffled global feed
+  const rawTopics = (dailyFeedJson.topics || {}) as Record<string, Paper[]>;
+  const globalFeed = useMemo(() => consolidateGlobalFeed(rawTopics), [rawTopics]);
+  const feedData = useMemo(() => ({
+    ...rawTopics,
+    global: globalFeed
+  }), [rawTopics, globalFeed]);
 
   // Phase 1: Load from local AsyncStorage on mount
   useEffect(() => {
@@ -216,7 +253,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           try {
             const parsed = JSON.parse(data);
             const merged = mergeCloudAndLocalState({
-              followedTopics: ['ml', 'ai-health'],
+              followedTopics: DEFAULT_FOLLOWED_TOPICS,
               savedPapers: [],
               likedPapers: [],
               streak: initialStreak,
@@ -234,7 +271,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setCustomFeedDataState(merged.customFeedData || []);
 
             if (merged.followedTopics.length > 0) {
-              setActiveTopic(merged.followedTopics[0]);
+              setActiveTopic('global');
             }
           } catch (e) {
             console.warn("[AppState] Failed to parse local state from AsyncStorage", e);
@@ -260,8 +297,8 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (lastHydratedUidRef.current !== null) {
         // User just logged out, clear local cache to prevent data leaking
         lastHydratedUidRef.current = null;
-        setFollowedTopics(['ml', 'ai-health']);
-        setActiveTopic('ml');
+        setFollowedTopics(DEFAULT_FOLLOWED_TOPICS);
+        setActiveTopic('global');
         setSavedPapers([]);
         setLikedPapers(new Set());
         setStreak(initialStreak);
@@ -432,8 +469,8 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.warn("[AppState] Error clearing AsyncStorage cache:", e);
     }
 
-    setFollowedTopics(['ml', 'ai-health']);
-    setActiveTopic('ml');
+    setFollowedTopics(DEFAULT_FOLLOWED_TOPICS);
+    setActiveTopic('global');
     setSavedPapers([]);
     setLikedPapers(new Set());
     setStreak(initialStreak);
@@ -444,7 +481,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (user && isFirebaseConfigured() && db) {
       try {
         const emptyState: StoredAppState = {
-          followedTopics: ['ml', 'ai-health'],
+          followedTopics: DEFAULT_FOLLOWED_TOPICS,
           savedPapers: [],
           likedPapers: [],
           streak: initialStreak,

@@ -9,10 +9,10 @@ const {
   sentenceCase,
 } = require('./text');
 
-const MAX_WORDS = 60;
+const MAX_WORDS = 30;
 
 /**
- * Extractive summariser, ~60 words, no model and no network.
+ * Extractive summariser, ~30 words, no model and no network.
  *
  * Why extractive: an abstractive model would invent claims, and inventing
  * claims about someone else's paper is the one failure mode this app cannot

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.m,
     paddingBottom: spacing.l,
-    backgroundColor: 'transparent',
+    backgroundColor: colors.bg,
     borderTopWidth: 1,
     borderTopColor: colors.cardBorder,
   },

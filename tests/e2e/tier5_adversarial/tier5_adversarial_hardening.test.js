@@ -512,11 +512,11 @@ describe('Tier 5 — Adversarial Coverage Hardening & Chaos Testing Suite', () =
 
       // Enqueue mix of valid topics and malicious/invalid slugs
       const testItems = [
-        { topic: 'ml', status: 'pending' },
+        { topic: 'ai-mental-health', status: 'pending' },
         { topic: 'invalid_slug_xyz', status: 'pending' },
         { topic: '../../../etc/passwd', status: 'pending' },
         { topic: '', status: 'pending' },
-        { topic: 'cv', status: 'pending' }
+        { topic: 'blockchain', status: 'pending' }
       ];
 
       for (const item of testItems) {
@@ -530,7 +530,7 @@ describe('Tier 5 — Adversarial Coverage Hardening & Chaos Testing Suite', () =
       const allDocs = await firestore.getDocs(firestore.collection('pipeline_queue'));
       for (const doc of allDocs.docs) {
         const data = doc.data();
-        if (data.topic === 'ml' || data.topic === 'cv') {
+        if (data.topic === 'ai-mental-health' || data.topic === 'blockchain') {
           assert.equal(data.status, 'completed', `Valid topic ${data.topic} should be completed`);
         } else {
           assert.equal(data.status, 'failed', `Invalid topic ${data.topic} should be marked failed`);

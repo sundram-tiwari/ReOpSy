@@ -15,7 +15,7 @@ const ABSTRACT = [
   'We show that the Transformer generalises well to other tasks with limited training data.',
 ].join(' ');
 
-test('summary never exceeds the 60-word budget', () => {
+test('summary never exceeds the 30-word budget', () => {
   const s = summarize(ABSTRACT, 'Attention Is All You Need');
   assert.ok(wordCount(s) <= MAX_WORDS, `${wordCount(s)} words: ${s}`);
   assert.ok(s.length > 0);

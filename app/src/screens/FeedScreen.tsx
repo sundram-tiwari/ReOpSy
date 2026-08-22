@@ -23,9 +23,9 @@ export const FeedScreen: React.FC<Props> = ({ navigation }) => {
   const flatListRef = useRef<FlatList>(null);
   const [containerHeight, setContainerHeight] = useState<number>(0);
 
-  // If active topic isn't followed (and not custom), fallback handled if needed
+  // If active topic isn't followed (and not custom or global), fallback handled if needed
   useEffect(() => {
-    if (activeTopic !== 'custom' && !followedTopics.includes(activeTopic) && followedTopics.length > 0) {
+    if (activeTopic !== 'custom' && activeTopic !== 'global' && !followedTopics.includes(activeTopic) && followedTopics.length > 0) {
       // Handled gracefully
     }
   }, [followedTopics, activeTopic]);

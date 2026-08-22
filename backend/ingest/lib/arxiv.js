@@ -62,10 +62,9 @@ function parseArxivId(idUrl) {
 function categoriesToTopics(categories) {
   const set = new Set();
   for (const t of Object.values(TOPICS)) {
-    const wanted = t.arxivQuery
-      .split(/\s+OR\s+/i)
+    const matches = (t.arxivQuery.match(/cat:([a-zA-Z0-9.-]+)/g) || [])
       .map((q) => q.replace(/^cat:/, '').trim());
-    if (categories.some((c) => wanted.includes(c))) set.add(t.slug);
+    if (categories.some((c) => matches.includes(c))) set.add(t.slug);
   }
   return [...set];
 }

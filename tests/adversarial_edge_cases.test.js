@@ -36,11 +36,13 @@ const initialStreak = {
   totalDays: 0
 };
 
+const DEFAULT_FOLLOWED_TOPICS = ['ai-mental-health', 'autism-diagnosis', 'blockchain', 'quantum-communication', 'surveillance-anomaly-detection'];
+
 function mergeCloudAndLocalState(local, cloud) {
   if (!cloud) {
     return {
       ...local,
-      followedTopics: local.followedTopics?.length ? local.followedTopics : ['ml', 'ai-health'],
+      followedTopics: local.followedTopics?.length ? local.followedTopics : DEFAULT_FOLLOWED_TOPICS,
       savedPapers: local.savedPapers || [],
       likedPapers: local.likedPapers || [],
       streak: local.streak || initialStreak,
@@ -62,7 +64,7 @@ function mergeCloudAndLocalState(local, cloud) {
       mergedTopics.push(t);
     }
   }
-  const finalTopics = mergedTopics.length > 0 ? mergedTopics : ['ml', 'ai-health'];
+  const finalTopics = mergedTopics.length > 0 ? mergedTopics : DEFAULT_FOLLOWED_TOPICS;
 
   // 2. Saved papers: union deduplicated by paper ID (local recents first)
   const localSaved = Array.isArray(local.savedPapers) ? local.savedPapers : [];

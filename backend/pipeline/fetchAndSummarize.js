@@ -11,6 +11,7 @@ const { loadEnv, isoDaysAgo } = require('../ingest/ingest');
 const { fetchTldr } = require('./semanticScholar');
 const { generateCatchyTitle } = require('./llm');
 const { summarize: fallbackSummarize } = require('../ingest/lib/summarize');
+const { truncateWords, wordCount } = require('../ingest/lib/text');
 const { insertPaper, getLatestPapersForTopic, db: sqliteDb } = require('../db/db');
 
 async function delay(ms) {
@@ -395,6 +396,9 @@ async function fetchAndSummarize(options = {}) {
         }
         if (!summary) {
           summary = 'No abstract available.';
+        }
+        if (summary && wordCount(summary) > 30) {
+          summary = truncateWords(summary, 30);
         }
 
         const llmRes = await generateCatchyTitle(p.title, summary, apiKeys, { db: firestoreDb });

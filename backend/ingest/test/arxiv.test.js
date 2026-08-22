@@ -23,8 +23,8 @@ const FEED = `<?xml version="1.0" encoding="UTF-8"?>
     <arxiv:license>http://creativecommons.org/licenses/by/4.0/</arxiv:license>
     <link href="http://arxiv.org/abs/2401.01234v2" rel="alternate" type="text/html"/>
     <link title="pdf" href="http://arxiv.org/pdf/2401.01234v2" rel="related" type="application/pdf"/>
-    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
-    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
   </entry>
   <entry>
     <id>http://arxiv.org/abs/2402.09999v1</id>
@@ -38,19 +38,19 @@ const FEED = `<?xml version="1.0" encoding="UTF-8"?>
 </feed>`;
 
 test('parseAtom returns one paper per entry', () => {
-  const rows = parseAtom(FEED, 'nlp');
+  const rows = parseAtom(FEED, 'ai-mental-health');
   assert.equal(rows.length, 2);
 });
 
 test('LaTeX in titles and abstracts is stripped', () => {
-  const [p] = parseAtom(FEED, 'nlp');
+  const [p] = parseAtom(FEED, 'ai-mental-health');
   assert.equal(p.title, 'Scaling -gram Models with Sparse Attention');
   assert.ok(!p.summary.includes('\\'), p.summary);
   assert.ok(p.summary.includes('$5'), 'escaped dollar should survive');
 });
 
 test('ids, links and dates are extracted', () => {
-  const [p] = parseAtom(FEED, 'nlp');
+  const [p] = parseAtom(FEED, 'ai-mental-health');
   assert.equal(p.id, 'arxiv:2401.01234');
   assert.equal(p.arxiv_id, '2401.01234');
   assert.equal(p.pdf_url, 'http://arxiv.org/pdf/2401.01234v2');
@@ -61,13 +61,13 @@ test('ids, links and dates are extracted', () => {
 });
 
 test('cross-listed categories map to several topics', () => {
-  const [p] = parseAtom(FEED, 'nlp');
-  assert.ok(p.topics.includes('nlp'));
-  assert.ok(p.topics.includes('ml'), JSON.stringify(p.topics));
+  const [p] = parseAtom(FEED, 'ai-mental-health');
+  assert.ok(p.topics.includes('ai-mental-health'));
+  assert.ok(p.topics.includes('surveillance-anomaly-detection'), JSON.stringify(p.topics));
 });
 
 test('a CC-BY submission may show its abstract; an undeclared one may not', () => {
-  const [open, closed] = parseAtom(FEED, 'nlp');
+  const [open, closed] = parseAtom(FEED, 'ai-mental-health');
   assert.equal(open.license_ok, true);
   assert.ok(open.abstract);
   assert.equal(closed.license_ok, false);
@@ -88,7 +88,7 @@ test('parseArxivId splits the version off', () => {
 
 test('categoriesToTopics ignores categories we do not ship', () => {
   assert.deepEqual(categoriesToTopics(['math.CO']), []);
-  assert.deepEqual(categoriesToTopics(['cs.CV']), ['cv']);
+  assert.deepEqual(categoriesToTopics(['cs.CV']), ['surveillance-anomaly-detection']);
 });
 
 test('licenseFromEntry only opens for the CC family', () => {
@@ -102,20 +102,20 @@ test('decodeEntities handles numeric and named references', () => {
 });
 
 test('parseAtom on junk input returns nothing rather than throwing', () => {
-  assert.deepEqual(parseAtom('', 'ml'), []);
-  assert.deepEqual(parseAtom('<feed></feed>', 'ml'), []);
+  assert.deepEqual(parseAtom('', 'blockchain'), []);
+  assert.deepEqual(parseAtom('<feed></feed>', 'blockchain'), []);
 });
 
 test('buildUrl targets the right categories, newest first', () => {
-  const url = buildUrl({ topic: 'cv', limit: 7 });
+  const url = buildUrl({ topic: 'surveillance-anomaly-detection', limit: 7 });
   const qs = new URLSearchParams(url.split('?')[1]);
-  assert.equal(qs.get('search_query'), 'cat:cs.CV');
+  assert.ok(qs.get('search_query').includes('cat:cs.CV'));
   assert.equal(qs.get('max_results'), '7');
   assert.equal(qs.get('sortBy'), 'submittedDate');
 });
 
 test('fetchTopic parses a stubbed feed offline', async () => {
   const fetchImpl = async () => ({ ok: true, text: async () => FEED });
-  const rows = await fetchTopic({ topic: 'nlp', fetchImpl });
+  const rows = await fetchTopic({ topic: 'ai-mental-health', fetchImpl });
   assert.equal(rows.length, 2);
 });

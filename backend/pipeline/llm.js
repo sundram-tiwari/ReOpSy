@@ -4,7 +4,7 @@
  * Hardcoded default system prompt for title generation.
  * Line 120 requirement: Dynamic retrieval from Firestore config/system_prompt with fallback to this default.
  */
-const DEFAULT_SYSTEM_PROMPT = 'Rewrite the following research paper title into a catchy, engaging title in under 10 words. Only return the new title, without quotes or additional text.\n\nOriginal Title: {{originalTitle}}\nSummary: {{summary}}';
+const DEFAULT_SYSTEM_PROMPT = 'Rewrite the following research paper title into a catchy, engaging title in under 10 words, and summarize the core finding in strictly under 30 words for a mobile flashcard. Only return the new title, without quotes or additional text.\n\nOriginal Title: {{originalTitle}}\nSummary: {{summary}}';
 
 /**
  * Sanitize error message to prevent accidental credential leakage in logs.

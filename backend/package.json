@@ -8,8 +8,9 @@
     "node": ">=18.17"
   },
   "scripts": {
+    "start": "node server.js",
     "ingest": "node ingest/ingest.js",
-    "dry": "node ingest/ingest.js --dry --topics ml --limit 5",
+    "dry": "node ingest/ingest.js --dry --topics ai-mental-health --limit 5",
     "test": "node --test \"ingest/test/*.test.js\""
   },
   "license": "UNLICENSED",

@@ -8,65 +8,35 @@
  * topic is a one-object change, not a hunt through the adapters.
  */
 const TOPICS = {
-  ml: {
-    slug: 'ml',
-    label: 'Machine Learning',
-    openalexFilter: 'concepts.id:C119857082',
-    arxivQuery: 'cat:cs.LG OR cat:stat.ML',
-  },
-  dl: {
-    slug: 'dl',
-    label: 'Deep Learning',
-    openalexFilter: 'concepts.id:C119857082',
-    arxivQuery: 'cat:cs.LG OR cat:cs.NE',
-  },
-  nlp: {
-    slug: 'nlp',
-    label: 'Language & NLP',
-    openalexFilter: 'concepts.id:C204321447',
-    arxivQuery: 'cat:cs.CL',
-  },
-  cv: {
-    slug: 'cv',
-    label: 'Computer Vision',
-    openalexFilter: 'concepts.id:C31972630',
-    arxivQuery: 'cat:cs.CV',
-  },
-  'ai-health': {
-    slug: 'ai-health',
+  'ai-mental-health': {
+    slug: 'ai-mental-health',
     label: 'AI in Mental Health',
-    openalexFilter: 'concepts.id:C119857082', // ML combined with health/mental keywords via query
+    openalexFilter: 'concepts.id:C119857082',
     arxivQuery: 'cat:cs.AI AND (all:"mental health" OR all:"psychiatry" OR all:"therapy")',
   },
-  llm: {
-    slug: 'llm',
-    label: 'Large Language Models',
-    openalexFilter: 'concepts.id:C204321447',
-    arxivQuery: 'cat:cs.CL AND (all:"large language model" OR all:"LLM")',
+  'autism-diagnosis': {
+    slug: 'autism-diagnosis',
+    label: 'Autism Diagnosis using AI/ML/DL',
+    openalexFilter: 'concepts.id:C119857082',
+    arxivQuery: 'cat:cs.AI AND (all:"autism" OR all:"ASD" OR all:"autistic")',
   },
-  robotics: {
-    slug: 'robotics',
-    label: 'Robotics & Control',
-    openalexFilter: 'concepts.id:C28881434',
-    arxivQuery: 'cat:cs.RO',
-  },
-  cybersecurity: {
-    slug: 'cybersecurity',
-    label: 'Cybersecurity & AI',
+  blockchain: {
+    slug: 'blockchain',
+    label: 'Blockchain',
     openalexFilter: 'concepts.id:C38652104',
-    arxivQuery: 'cat:cs.CR',
+    arxivQuery: 'cat:cs.CR AND (all:"blockchain" OR all:"smart contract" OR all:"distributed ledger")',
   },
-  'data-science': {
-    slug: 'data-science',
-    label: 'Data Science',
-    openalexFilter: 'concepts.id:C11413529',
-    arxivQuery: 'cat:stat.ML OR cat:stat.AP',
+  'quantum-communication': {
+    slug: 'quantum-communication',
+    label: 'Quantum Communication',
+    openalexFilter: 'concepts.id:C121332964',
+    arxivQuery: 'cat:quant-ph AND (all:"quantum communication" OR all:"QKD" OR all:"quantum network")',
   },
-  bio: {
-    slug: 'bio',
-    label: 'Computational Biology',
-    openalexFilter: 'concepts.id:C70721500',
-    arxivQuery: 'cat:q-bio.QM OR cat:q-bio.GN OR cat:q-bio.BM',
+  'surveillance-anomaly-detection': {
+    slug: 'surveillance-anomaly-detection',
+    label: 'Multi-camera Surveillance & Anomaly Detection',
+    openalexFilter: 'concepts.id:C31972630',
+    arxivQuery: 'cat:cs.CV AND (all:"surveillance" OR all:"anomaly detection" OR all:"multi-camera")',
   },
 };
 

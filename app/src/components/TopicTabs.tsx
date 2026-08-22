@@ -30,7 +30,15 @@ export const TopicTabs = () => {
     followedTopics.includes('custom')
   );
 
-  const visibleTopics = [...defaultFollowed];
+  // Global Feed tab
+  const globalTab = {
+    slug: 'global',
+    label: 'Global Feed',
+    icon: 'globe',
+    blurb: 'Consolidated feed of all research topics'
+  };
+
+  const visibleTopics = [globalTab, ...defaultFollowed];
   if (hasCustom) {
     visibleTopics.push({
       slug: 'custom',

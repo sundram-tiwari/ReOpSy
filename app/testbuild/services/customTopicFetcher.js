@@ -86,6 +86,14 @@ function parseArxivAtomXml(xml) {
     }
     return entries;
 }
+function clampSummaryWords(text, maxWords = 30) {
+    if (!text)
+        return '';
+    const words = text.trim().split(/\s+/);
+    if (words.length <= maxWords)
+        return text.trim();
+    return words.slice(0, maxWords).join(' ') + '...';
+}
 /**
  * Synthesizes a catchy title and flashcard summary for a paper using the user's configured LLM provider.
  * Gracefully falls back to original title/summary if the request fails.
@@ -93,12 +101,12 @@ function parseArxivAtomXml(xml) {
 async function synthesizeWithLlm(title, summary, apiConfig) {
     const { provider, apiKey, endpoint } = apiConfig;
     if (!apiKey || apiKey.trim() === '') {
-        return { catchyTitle: title, summary };
+        return { catchyTitle: title, summary: clampSummaryWords(summary, 30) };
     }
     const cleanKey = apiKey.trim();
     const prompt = `You are a research summarizer for mobile flashcards. Given the research paper title and abstract, produce:
-1. A catchy, engaging title (under 12 words).
-2. A clear, accessible 2-3 sentence flashcard summary.
+1. A catchy, engaging title (under 10 words).
+2. A concise flashcard summary strictly under 30 words capturing the core contribution.
 
 Paper Title: ${title}
 Abstract: ${summary}
@@ -124,11 +132,11 @@ Respond ONLY in valid JSON format with keys "catchyTitle" and "summary":
                         const parsed = JSON.parse(text);
                         return {
                             catchyTitle: parsed.catchyTitle || title,
-                            summary: parsed.summary || summary
+                            summary: clampSummaryWords(parsed.summary || summary, 30)
                         };
                     }
                     catch {
-                        return { catchyTitle: text.slice(0, 100).trim(), summary };
+                        return { catchyTitle: text.slice(0, 100).trim(), summary: clampSummaryWords(summary, 30) };
                     }
                 }
             }
@@ -155,11 +163,11 @@ Respond ONLY in valid JSON format with keys "catchyTitle" and "summary":
                         const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
                         return {
                             catchyTitle: parsed.catchyTitle || title,
-                            summary: parsed.summary || summary
+                            summary: clampSummaryWords(parsed.summary || summary, 30)
                         };
                     }
                     catch {
-                        return { catchyTitle: content.slice(0, 100).trim(), summary };
+                        return { catchyTitle: content.slice(0, 100).trim(), summary: clampSummaryWords(summary, 30) };
                     }
                 }
             }
@@ -186,11 +194,11 @@ Respond ONLY in valid JSON format with keys "catchyTitle" and "summary":
                         const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
                         return {
                             catchyTitle: parsed.catchyTitle || title,
-                            summary: parsed.summary || summary
+                            summary: clampSummaryWords(parsed.summary || summary, 30)
                         };
                     }
                     catch {
-                        return { catchyTitle: content.slice(0, 100).trim(), summary };
+                        return { catchyTitle: content.slice(0, 100).trim(), summary: clampSummaryWords(summary, 30) };
                     }
                 }
             }
@@ -217,11 +225,11 @@ Respond ONLY in valid JSON format with keys "catchyTitle" and "summary":
                         const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
                         return {
                             catchyTitle: parsed.catchyTitle || title,
-                            summary: parsed.summary || summary
+                            summary: clampSummaryWords(parsed.summary || summary, 30)
                         };
                     }
                     catch {
-                        return { catchyTitle: content.slice(0, 100).trim(), summary };
+                        return { catchyTitle: content.slice(0, 100).trim(), summary: clampSummaryWords(summary, 30) };
                     }
                 }
             }
@@ -231,7 +239,7 @@ Respond ONLY in valid JSON format with keys "catchyTitle" and "summary":
         console.warn(`[CustomTopicFetcher] LLM synthesis fallback triggered: ${(0, apiValidator_1.sanitizeLogMessage)(err?.message || '', cleanKey)}`);
     }
     // Graceful fallback
-    return { catchyTitle: title, summary };
+    return { catchyTitle: title, summary: clampSummaryWords(summary, 30) };
 }
 /**
  * Searches arXiv for the user's custom topic query, synthesizes flashcard summaries via LLM,

@@ -37,7 +37,7 @@ import {
 type AdminTab = 'flashcards' | 'pipeline' | 'usage' | 'settings';
 
 const DEFAULT_SYSTEM_PROMPT =
-  'Rewrite the following research paper title into a catchy, engaging title in under 10 words. Only return the new title, without quotes or additional text.\n\nOriginal Title: {{originalTitle}}\nSummary: {{summary}}';
+  'Rewrite the following research paper title into a catchy, engaging title in under 10 words, and summarize the core finding in strictly under 30 words for a mobile flashcard. Only return the new title, without quotes or additional text.\n\nOriginal Title: {{originalTitle}}\nSummary: {{summary}}';
 
 export const AdminScreen = () => {
   const navigation = useNavigation<any>();
