@@ -3,6 +3,7 @@
 const http = require('http');
 const url = require('url');
 const { fetchAndSummarize } = require('./pipeline/fetchAndSummarize');
+const { adminDb } = require('./services/firebase');
 
 const DEFAULT_SECRET = 'reopsy-secret-token';
 
@@ -158,7 +159,8 @@ async function handleRequest(req, res) {
       const result = await fetchAndSummarize({
         dryRun,
         topic,
-        limitPerSource
+        limitPerSource,
+        db: adminDb
       });
 
       return sendJson(200, {

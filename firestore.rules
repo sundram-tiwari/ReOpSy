@@ -61,5 +61,12 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Live daily feed from backend pipeline: public-read
+    // Backend uses firebase-admin SDK (bypasses rules) for writes
+    match /feeds/{feedId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

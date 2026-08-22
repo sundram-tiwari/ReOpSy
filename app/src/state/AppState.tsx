@@ -8,6 +8,7 @@ import { db, isFirebaseConfigured } from '../services/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { fetchCustomTopicPapers } from '../services/customTopicFetcher';
 import { sanitizeLogMessage } from '../services/apiValidator';
+import { fetchLiveFeed } from '../services/feedService';
 
 export const STORAGE_KEY = 'reopsy_v2_state';
 export type { UserApiConfig };
@@ -235,8 +236,27 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const lastHydratedUidRef = useRef<string | null>(null);
   const isHydratingRef = useRef<boolean>(false);
 
-  // Load feed from dailyFeed.json with consolidated & shuffled global feed
-  const rawTopics = (dailyFeedJson.topics || {}) as Record<string, Paper[]>;
+  // Feed data: start with static JSON (instant, offline), then upgrade to live Firestore data
+  const staticTopics = useMemo(() => (dailyFeedJson.topics || {}) as Record<string, Paper[]>, []);
+  const [liveTopics, setLiveTopics] = useState<Record<string, Paper[]> | null>(null);
+
+  // Fetch live feed from Firestore on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetchLiveFeed()
+      .then((liveData) => {
+        if (isMounted && liveData && liveData.topics && Object.keys(liveData.topics).length > 0) {
+          setLiveTopics(liveData.topics);
+        }
+      })
+      .catch(() => {
+        // Silent fallback to static JSON — no user-facing error
+      });
+    return () => { isMounted = false; };
+  }, []);
+
+  // Use live data if available, otherwise static JSON
+  const rawTopics = liveTopics || staticTopics;
   const globalFeed = useMemo(() => consolidateGlobalFeed(rawTopics), [rawTopics]);
   const feedData = useMemo(() => ({
     ...rawTopics,

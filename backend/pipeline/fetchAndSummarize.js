@@ -303,6 +303,73 @@ async function applyContentOverrides(feedData, db = null) {
 }
 
 /**
+ * Sync the generated feed data to Firestore `feeds/latest` document.
+ * This enables the frontend to fetch live feed data without a GitHub push.
+ * Non-fatal: errors are caught and logged as warnings.
+ * @param {Object} feedData - The complete { generatedAt, topics } feed object
+ * @param {Object|null} db - Firestore database instance (firebase-admin)
+ * @returns {Promise<boolean>} true if sync succeeded
+ */
+async function syncFeedToFirestore(feedData, db) {
+  if (!db || !feedData || !feedData.topics) {
+    return false;
+  }
+
+  try {
+    // Write the complete feed as a single document
+    const feedDoc = {
+      generatedAt: feedData.generatedAt || new Date().toISOString(),
+      topics: {},
+      updatedAt: new Date().toISOString(),
+      topicSlugs: Object.keys(feedData.topics),
+      totalPapers: 0,
+    };
+
+    // Serialize each topic's papers into the document
+    for (const [slug, papers] of Object.entries(feedData.topics)) {
+      if (Array.isArray(papers)) {
+        feedDoc.topics[slug] = papers.map(p => ({
+          id: p.id || '',
+          originalTitle: p.originalTitle || '',
+          catchyTitle: p.catchyTitle || p.originalTitle || '',
+          summary: p.summary || '',
+          authors: Array.isArray(p.authors) ? p.authors : [],
+          source: p.source || '',
+          year: p.year || null,
+          venue: p.venue || null,
+          url: p.url || '',
+          pdfUrl: p.pdfUrl || null,
+          topics: Array.isArray(p.topics) ? p.topics : [slug],
+          likes: p.likes || 0,
+        }));
+        feedDoc.totalPapers += feedDoc.topics[slug].length;
+      }
+    }
+
+    // Firebase Admin SDK: use set() directly on a document reference
+    if (typeof db.collection === 'function') {
+      const docRef = db.collection('feeds').doc('latest');
+      await docRef.set(feedDoc);
+      console.log(`☁️  Feed synced to Firestore (feeds/latest): ${feedDoc.totalPapers} papers across ${feedDoc.topicSlugs.length} topics`);
+      return true;
+    }
+
+    // Client SDK duck-type fallback
+    if (typeof db.setDoc === 'function' && typeof db.doc === 'function') {
+      await db.setDoc(db.doc('feeds', 'latest'), feedDoc);
+      console.log(`☁️  Feed synced to Firestore (feeds/latest): ${feedDoc.totalPapers} papers across ${feedDoc.topicSlugs.length} topics`);
+      return true;
+    }
+
+    console.warn('[syncFeedToFirestore] Unknown db interface — skipping Firestore sync.');
+    return false;
+  } catch (err) {
+    console.warn('[syncFeedToFirestore] Non-fatal sync error:', err.message || err);
+    return false;
+  }
+}
+
+/**
  * Main pipeline entrypoint to fetch, summarize, and generate daily feed.
  * Fully supports offline SQLite operation and Firestore integration for metadata logging.
  * @param {Object} options
@@ -397,8 +464,8 @@ async function fetchAndSummarize(options = {}) {
         if (!summary) {
           summary = 'No abstract available.';
         }
-        if (summary && wordCount(summary) > 30) {
-          summary = truncateWords(summary, 30);
+        if (summary && wordCount(summary) > 80) {
+          summary = truncateWords(summary, 80);
         }
 
         const llmRes = await generateCatchyTitle(p.title, summary, apiKeys, { db: firestoreDb });
@@ -510,6 +577,9 @@ async function fetchAndSummarize(options = {}) {
     console.error(`Failed to write feed file at ${outPath}: ${fsErr.message}`);
     errors.push(`Failed to write feed file: ${fsErr.message}`);
   }
+
+  // Sync feed to Firestore for live frontend access
+  await syncFeedToFirestore(feedData, firestoreDb);
   
   return {
     success: status !== 'failed',

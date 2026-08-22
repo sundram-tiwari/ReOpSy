@@ -119,5 +119,5 @@ test('validate rejects the failure modes that would ship a broken card', () => {
   assert.ok(validate(paper({ url: 'notaurl' })).includes('bad url'));
   assert.ok(validate(paper({ abstract: 'text', license_ok: false }))
     .includes('abstract present without open licence'));
-  assert.ok(validate(paper({ summary: 'w '.repeat(80) })).includes('summary over budget'));
+  assert.ok(validate(paper({ summary: 'w '.repeat(100) })).includes('summary over budget'));
 });
