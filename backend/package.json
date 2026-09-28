@@ -11,7 +11,7 @@
     "start": "node server.js",
     "ingest": "node ingest/ingest.js",
     "dry": "node ingest/ingest.js --dry --topics ai-mental-health --limit 5",
-    "test": "node --test \"ingest/test/*.test.js\""
+    "test": "node --test ingest/test/*.test.js"
   },
   "license": "UNLICENSED",
   "dependencies": {
