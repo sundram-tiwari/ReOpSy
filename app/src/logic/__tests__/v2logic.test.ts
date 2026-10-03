@@ -67,6 +67,13 @@ test('serendipity card comes from an unfollowed topic and is labelled', () => {
   assert.equal(extra[0].topic, 'c');
 });
 
+test('a full goal is dealt when there is no topic left for serendipity', () => {
+  const byTopic = { a: [1, 2, 3, 4, 5, 6].map((n) => paper(`a${n}`)) };
+  const deck = buildDailyDeck({ papersByTopic: byTopic, followed: ['a'], triage: {}, goal: 5, day: '2026-10-03' });
+  assert.equal(deck.length, 5);
+  assert.equal(deck.filter((d) => d.serendipity).length, 0);
+});
+
 test('recall follows Leitner intervals and caps daily questions', () => {
   const item = scheduleNew('p', '2026-10-03');
   assert.equal(item.dueOn, '2026-10-04');

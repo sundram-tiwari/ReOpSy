@@ -63,23 +63,26 @@ export function buildDailyDeck(input: DeckInput): DeckCard[] {
   }));
 
   const wantSerendipity = input.serendipity !== false && goal >= 5;
-  const mainSlots = wantSerendipity ? goal - 1 : goal;
   const deck: DeckCard[] = [];
 
-  let progressed = true;
-  while (deck.length < mainSlots && progressed) {
-    progressed = false;
-    for (const q of queues) {
-      if (deck.length >= mainSlots) break;
-      while (q.next < q.papers.length && used.has(q.papers[q.next].id)) q.next++;
-      if (q.next < q.papers.length) {
-        const paper = q.papers[q.next++];
-        used.add(paper.id);
-        deck.push({ paper, topic: q.topic, serendipity: false });
-        progressed = true;
+  const fillTo = (slots: number) => {
+    let progressed = true;
+    while (deck.length < slots && progressed) {
+      progressed = false;
+      for (const q of queues) {
+        if (deck.length >= slots) break;
+        while (q.next < q.papers.length && used.has(q.papers[q.next].id)) q.next++;
+        if (q.next < q.papers.length) {
+          const paper = q.papers[q.next++];
+          used.add(paper.id);
+          deck.push({ paper, topic: q.topic, serendipity: false });
+          progressed = true;
+        }
       }
     }
-  }
+  };
+
+  fillTo(wantSerendipity ? goal - 1 : goal);
 
   if (wantSerendipity) {
     const others = Object.keys(papersByTopic)
@@ -96,6 +99,9 @@ export function buildDailyDeck(input: DeckInput): DeckCard[] {
     if (pool.length > 0 && deck.length >= 2) {
       const pick = pool[hashString(`${day}:serendipity`) % pool.length];
       deck.push(pick);
+    } else {
+      // Nothing outside your topics today: the slot goes to a regular card.
+      fillTo(goal);
     }
   }
 

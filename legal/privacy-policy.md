@@ -2,94 +2,79 @@
 
 **Last updated: [[DATE]]**
 
-ReOpSy ("the app") is published by [[YOUR NAME / ENTITY]], [[CITY, COUNTRY]].
-Contact: **[[CONTACT EMAIL]]**
+ReOpSy ("the app") is published by [[YOUR NAME / ENTITY]], [[CITY, COUNTRY]] ("we", "us").
+Contact and grievance officer: **[[GRIEVANCE OFFICER NAME]]**, **[[GRIEVANCE EMAIL]]**
 
 ## The short version
 
-ReOpSy does not collect your personal data. There is no account, no sign-in and
-no analytics. Everything you do in the app stays on your device.
+- You can read, recall, build your survey and export without an account. In that mode everything stays on your
+  device and we collect nothing about you.
+- If you create an account, we store what the community features need: your email and account ID, the public
+  profile you write, what you post, who you follow, and a private copy of your library so it syncs across devices.
+- No ads, no advertising IDs, no third-party analytics, and we never sell data.
+- You can download everything and delete your account from inside the app, at any time.
 
-## What we store, and where
+## 1. Without an account
 
-All of the following is written to this app's private storage on your phone and
-is never transmitted to us or to anyone else:
+Stored only on your device: your topics, daily goal, decisions on cards, library, notes, literature matrix, recall
+schedule, streak and settings. If you connect Zotero, your Zotero key is kept in your device's secure keystore (on
+the web, in your browser's local storage) and is sent only to Zotero.
 
-- the topics you selected
-- the papers you saved, and whether you marked them read
-- which papers you have already seen, so they are not shown again
-- your streak, freezes and counts
-- your settings (deck size, haptics, reduce motion)
+Network requests: the app downloads the daily paper feed. These requests carry no personal identifier.
 
-Uninstalling the app deletes all of it. You can also erase it from inside the
-app: **You → Settings → Clear saved papers and history**.
+## 2. With an account
 
-## What leaves your device
+| Data | Why | Who can see it |
+|---|---|---|
+| Email address, account ID, password hash or Google sign-in token | To sign you in | Only us (held by Google Firebase Authentication) |
+| Profile: name, handle, role, affiliation, bio, research interests, ORCID iD (optional) | So researchers can find you | Signed-in members |
+| Comments, circle posts, replies, recommendations, "Helpful" marks | The community features | Signed-in members (private-circle posts: members only) |
+| Follows and circle memberships | Following and circles | Signed-in members |
+| Notifications sent to you | Your inbox | Only you |
+| Library, decisions, recall schedule, settings (synced copy) | Sync across your devices | Only you |
+| Reports you submit | Moderation | Only moderators |
 
-One thing, and only in live mode: a request to our paper database asking for
-recent papers in your selected topics. That request contains the topic slugs
-(for example `ml,nlp`) and nothing else — no identifier, no device information
-beyond what any HTTPS request necessarily reveals to a server, and no record of
-what you saved or skipped.
+We use this data only to run these features, to keep the community safe (moderation, abuse prevention), and to
+meet legal obligations. We do not use it for advertising or profiling.
 
-If you tap **Open paper**, your device opens the publisher's website in a
-browser. From that point you are on their site and their privacy policy applies.
-We do not receive any information about what you do there.
+## 3. Processors
 
-The app ships with a built-in demo set of papers. In demo mode nothing leaves
-your device at all.
+Data is stored with Google Firebase (Authentication and Cloud Firestore), which processes it on our behalf. Paper
+data comes from arXiv, OpenAlex and similar open sources; opening a paper takes you to the publisher's site, whose
+policy then applies.
 
-## What we do not do
+## 4. Retention and deletion
 
-- We do not collect your name, email, phone number or contacts.
-- We do not use advertising identifiers, and there are no ads.
-- We do not use third-party analytics, crash reporting or attribution SDKs.
-- We do not build a profile of your reading and we do not sell anything,
-  because there is nothing to sell.
-- We do not use cookies; the app is not a website.
+- Account data is kept while your account exists.
+- **Delete account** (You → Delete account) permanently removes your profile, posts, comments, replies,
+  recommendations, follows, circles you own, notifications and synced library. Backups age out within 30 days.
+- **Download all my data** (You) exports your library and settings as JSON.
+- Reports about other people's content are kept for up to 12 months for safety and legal reasons.
+- Summary reports ("this summary is wrong") contain the paper ID, your reason and, if signed in, your account ID.
 
-## Hosting and third parties
+## 5. Your rights (Digital Personal Data Protection Act, 2023)
 
-Paper metadata is served from a database hosted on Supabase and originates from
-[OpenAlex](https://openalex.org) and [arXiv](https://arxiv.org). Our hosting
-provider processes the network requests described above in order to answer them,
-and retains standard server logs. We do not link those logs to any user, because
-we have no user identity to link them to.
+You can access, correct and erase your personal data, withdraw consent by deleting your account, nominate another
+person to exercise your rights, and complain to our grievance officer. We acknowledge complaints within 24 hours
+and resolve them within 15 days. If you are not satisfied, you may approach the Data Protection Board of India.
 
-## Children
+## 6. Security
 
-ReOpSy is not directed at children and is intended for users aged
-[[MINIMUM AGE, e.g. 13]] and above. We do not knowingly collect data from
-anyone, which necessarily includes children.
+Data is encrypted in transit (HTTPS) and at rest by our processor. Access is limited by server-side security rules:
+for example, only you can read your library and inbox. If a breach affects you, we will notify you and the
+authorities as the law requires.
 
-## Your rights
+## 7. Age
 
-Because we hold no personal data about you, there is nothing for us to disclose,
-correct, export or delete on request. Your data is in your hands: it is on your
-phone, and the app gives you a button to erase it.
+ReOpSy is for people aged **18 and over**. We do not knowingly create accounts for children. If you believe a child
+has an account, write to the grievance officer and we will delete it.
 
-If you believe we hold personal data about you, write to
-**[[CONTACT EMAIL]]** and we will respond within 30 days.
+## 8. Changes
 
-## Legal basis and jurisdiction
-
-For users in India, this policy is published in accordance with the Information
-Technology (Reasonable Security Practices and Procedures and Sensitive Personal
-Data or Information) Rules, 2011 and the Digital Personal Data Protection Act,
-2023. For users in the EEA and UK, no personal data is processed within the
-meaning of the GDPR. For users in California, we sell no personal information as
-defined by the CCPA.
-
-Any dispute is governed by the laws of [[JURISDICTION]].
-
-## Changes
-
-If this policy changes we will update the date at the top and post the new
-version at this URL before the change takes effect in a released version of the
-app.
+We will post changes here with a new date before they take effect in a released version, and tell signed-in users
+in the app when a change is material.
 
 ## Contact
 
-[[YOUR NAME / ENTITY]]
-[[POSTAL ADDRESS]]
-**[[CONTACT EMAIL]]**
+[[YOUR NAME / ENTITY]], [[POSTAL ADDRESS]]
+Grievance officer: [[GRIEVANCE OFFICER NAME]], **[[GRIEVANCE EMAIL]]**

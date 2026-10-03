@@ -1,6 +1,11 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
+import { getAuth, initializeAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+
+// Detected without importing react-native, so this module also compiles in
+// the Node-only test build (tsconfig.test.json).
+const isReactNative =
+  typeof navigator !== 'undefined' && (navigator as { product?: string }).product === 'ReactNative';
 
 declare const process: {
   env: Record<string, string | undefined>;
@@ -34,8 +39,22 @@ let db: Firestore | null = null;
 
 if (isFirebaseConfigured()) {
   try {
-    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
+    const fresh = getApps().length === 0;
+    app = fresh ? initializeApp(firebaseConfig) : getApp();
+    if (isReactNative && fresh) {
+      // Keep users signed in across app restarts on Android/iOS. The
+      // react-native build of firebase/auth exports getReactNativePersistence;
+      // the default type declarations do not, hence the require.
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getReactNativePersistence } = require('firebase/auth') as {
+        getReactNativePersistence: (storage: unknown) => any;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      auth = initializeAuth(app, { persistence: getReactNativePersistence(AsyncStorage) });
+    } else {
+      auth = getAuth(app);
+    }
     db = getFirestore(app);
   } catch (error) {
     console.warn("[Firebase] Initialization error:", error);

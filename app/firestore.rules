@@ -1,69 +1,365 @@
 rules_version = '2';
 
+// ReOpSy Firestore rules. Field limits mirror app/src/logic/social.ts (LIMITS).
+// Deploy: firebase deploy --only firestore:rules,firestore:indexes
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    function isAuthenticated() {
+
+    // ------------------------------------------------------------ helpers
+    function signedIn() {
       return request.auth != null;
     }
 
+    function me() {
+      return request.auth.uid;
+    }
+
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return signedIn() && me() == userId;
     }
 
     function isSuperAdmin() {
-      return isAuthenticated() && 
-        request.auth.token.email != null && 
+      return signedIn() &&
+        request.auth.token.email != null &&
         request.auth.token.email.lower() == "sundramtiwarims@gmail.com";
     }
 
     function isAdmin() {
-      return isSuperAdmin() || (isAuthenticated() && 
-        request.auth.token.email != null && 
+      return isSuperAdmin() || (signedIn() &&
+        request.auth.token.email != null &&
         (
           exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())) ||
           exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
         ));
     }
 
-    // User profile, preferences, API keys, and bookmarks are strictly owner-only
+    function str(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+
+    function optStr(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function myProfilePath() {
+      return /databases/$(database)/documents/profiles/$(request.auth.uid);
+    }
+
+    function hasProfile() {
+      return signedIn() && exists(myProfilePath());
+    }
+
+    // Content must be written as yourself, with the name and handle on your profile.
+    function authorOk(d) {
+      return hasProfile() &&
+        d.uid == me() &&
+        d.handle == get(myProfilePath()).data.handle &&
+        d.name == get(myProfilePath()).data.name;
+    }
+
+    function paperRefOk(p) {
+      return p == null || (
+        p is map &&
+        p.keys().hasOnly(['id', 'title', 'url', 'topic']) &&
+        str(p.id, 1, 200) && str(p.title, 1, 300) && str(p.url, 1, 500) && optStr(p.topic, 80)
+      );
+    }
+
+    // ------------------------------------------- private per-user app data
+    // Library, decisions, recall queue and preferences: owner only.
     match /users/{userId} {
       allow read, write: if isOwner(userId);
     }
 
-    // Admin whitelist collection: admin-only read/write
+    // ------------------------------------------------------ public profiles
+    function profileFieldsOk(d) {
+      return str(d.name, 1, 60) &&
+        optStr(d.role, 60) &&
+        optStr(d.affiliation, 80) &&
+        optStr(d.bio, 280) &&
+        d.interests is list && d.interests.size() <= 10 &&
+        d.orcid is string && (d.orcid == '' || d.orcid.matches('^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$'));
+    }
+
+    match /profiles/{userId} {
+      allow read: if signedIn();
+      allow create: if isOwner(userId) &&
+        request.resource.data.keys().hasOnly(['uid', 'name', 'handle', 'role', 'affiliation', 'bio', 'interests', 'orcid', 'acceptedTermsAt', 'createdAt', 'updatedAt']) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.handle.matches('^[a-z0-9_]{3,24}$') &&
+        profileFieldsOk(request.resource.data) &&
+        // Community guidelines must be accepted before any contribution.
+        request.resource.data.acceptedTermsAt == request.time &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        getAfter(/databases/$(database)/documents/handles/$(request.resource.data.handle)).data.uid == userId;
+      allow update: if isOwner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'role', 'affiliation', 'bio', 'interests', 'orcid', 'updatedAt']) &&
+        profileFieldsOk(request.resource.data) &&
+        request.resource.data.updatedAt == request.time;
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Unique handles: the document ID is the handle.
+    match /handles/{handle} {
+      allow read: if signedIn();
+      allow create: if signedIn() &&
+        handle.matches('^[a-z0-9_]{3,24}$') &&
+        request.resource.data.keys().hasOnly(['uid', 'createdAt']) &&
+        request.resource.data.uid == me() &&
+        request.resource.data.createdAt == request.time;
+      allow delete: if (signedIn() && resource.data.uid == me()) || isAdmin();
+    }
+
+    // ------------------------------------------------------------- follows
+    match /follows/{followId} {
+      allow read: if signedIn();
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['follower', 'followee', 'createdAt']) &&
+        request.resource.data.follower == me() &&
+        request.resource.data.followee is string &&
+        request.resource.data.followee != me() &&
+        followId == me() + '_' + request.resource.data.followee &&
+        request.resource.data.createdAt == request.time;
+      allow delete: if (signedIn() && (resource.data.follower == me() || resource.data.followee == me())) || isAdmin();
+    }
+
+    // ----------------------------------------------------- recommendations
+    function recommendationOk(id, d) {
+      return authorOk(d) &&
+        id.matches('^' + me() + '_.+$') &&
+        d.keys().hasOnly(['uid', 'name', 'handle', 'paper', 'note', 'createdAt']) &&
+        d.paper != null && paperRefOk(d.paper) &&
+        optStr(d.note, 280) &&
+        d.createdAt == request.time;
+    }
+
+    match /recommendations/{recId} {
+      allow read: if signedIn();
+      allow create: if recommendationOk(recId, request.resource.data);
+      allow update: if resource.data.uid == me() && recommendationOk(recId, request.resource.data);
+      allow delete: if (signedIn() && resource.data.uid == me()) || isAdmin();
+    }
+
+    // --------------------------------------------------- paper discussions
+    match /papers/{paperId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() &&
+        request.resource.data.keys().hasOnly(['paper', 'updatedAt']) &&
+        paperRefOk(request.resource.data.paper) &&
+        request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin();
+
+      function commentPath(commentId) {
+        return /databases/$(database)/documents/papers/$(paperId)/comments/$(commentId);
+      }
+
+      function markPath(commentId) {
+        return /databases/$(database)/documents/papers/$(paperId)/helpful/$(request.auth.uid + '_' + commentId);
+      }
+
+      match /comments/{commentId} {
+        allow read: if signedIn();
+        allow create: if authorOk(request.resource.data) &&
+          request.resource.data.keys().hasOnly(['uid', 'name', 'handle', 'text', 'parentId', 'helpfulCount', 'createdAt']) &&
+          str(request.resource.data.text, 1, 1000) &&
+          (request.resource.data.parentId == null ||
+            (request.resource.data.parentId is string && exists(commentPath(request.resource.data.parentId)))) &&
+          request.resource.data.helpfulCount == 0 &&
+          request.resource.data.createdAt == request.time;
+        // The only update: the helpful counter, moving by one with your own mark.
+        allow update: if signedIn() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['helpfulCount']) &&
+          (
+            (request.resource.data.helpfulCount == resource.data.helpfulCount + 1 &&
+              !exists(markPath(commentId)) && existsAfter(markPath(commentId))) ||
+            (request.resource.data.helpfulCount == resource.data.helpfulCount - 1 &&
+              exists(markPath(commentId)) && !existsAfter(markPath(commentId)))
+          );
+        allow delete: if (signedIn() && resource.data.uid == me()) || isAdmin();
+      }
+
+      match /helpful/{markId} {
+        allow read: if signedIn();
+        allow create: if signedIn() &&
+          request.resource.data.keys().hasOnly(['uid', 'commentId', 'createdAt']) &&
+          request.resource.data.uid == me() &&
+          markId == me() + '_' + request.resource.data.commentId &&
+          request.resource.data.createdAt == request.time &&
+          getAfter(commentPath(request.resource.data.commentId)).data.helpfulCount ==
+            get(commentPath(request.resource.data.commentId)).data.helpfulCount + 1;
+        allow delete: if signedIn() && resource.data.uid == me() &&
+          (!exists(commentPath(resource.data.commentId)) ||
+            getAfter(commentPath(resource.data.commentId)).data.helpfulCount ==
+              get(commentPath(resource.data.commentId)).data.helpfulCount - 1);
+      }
+    }
+
+    // ------------------------------------------------------------- circles
+    function circlePath(circleId) {
+      return /databases/$(database)/documents/circles/$(circleId);
+    }
+
+    function isMember(circleId) {
+      return signedIn() && me() in get(circlePath(circleId)).data.memberUids;
+    }
+
+    function canReadCircle(circleId) {
+      return signedIn() && (get(circlePath(circleId)).data.visibility == 'public' || isMember(circleId));
+    }
+
+    function circleFieldsOk(d) {
+      return str(d.name, 3, 60) &&
+        optStr(d.description, 280) &&
+        d.visibility in ['public', 'private'] &&
+        optStr(d.topic, 80);
+    }
+
+    match /circles/{circleId} {
+      // Knowing a private circle's ID is the invite.
+      allow get: if signedIn();
+      allow list: if signedIn() && (resource.data.visibility == 'public' || me() in resource.data.memberUids);
+      allow create: if hasProfile() &&
+        request.resource.data.keys().hasOnly(['name', 'description', 'visibility', 'topic', 'ownerUid', 'memberUids', 'createdAt', 'lastActivityAt']) &&
+        circleFieldsOk(request.resource.data) &&
+        request.resource.data.ownerUid == me() &&
+        request.resource.data.memberUids == [me()] &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.lastActivityAt == request.time;
+      allow update: if
+        // Owner edits the description.
+        (signedIn() && resource.data.ownerUid == me() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'visibility', 'topic']) &&
+          circleFieldsOk(request.resource.data)) ||
+        // Join: add only yourself.
+        (hasProfile() && !(me() in resource.data.memberUids) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids']) &&
+          request.resource.data.memberUids.toSet() == resource.data.memberUids.toSet().union([me()].toSet()) &&
+          request.resource.data.memberUids.size() <= 500) ||
+        // Leave: remove only yourself (owners delete the circle instead).
+        (signedIn() && me() in resource.data.memberUids && me() != resource.data.ownerUid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids']) &&
+          request.resource.data.memberUids.toSet() == resource.data.memberUids.toSet().difference([me()].toSet())) ||
+        // Members bump the activity time when they post.
+        (signedIn() && me() in resource.data.memberUids &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt']) &&
+          request.resource.data.lastActivityAt == request.time);
+      allow delete: if (signedIn() && resource.data.ownerUid == me()) || isAdmin();
+
+      match /posts/{postId} {
+        allow read: if canReadCircle(circleId);
+        allow create: if isMember(circleId) && authorOk(request.resource.data) &&
+          request.resource.data.keys().hasOnly(['uid', 'name', 'handle', 'text', 'paper', 'createdAt']) &&
+          str(request.resource.data.text, 1, 2000) &&
+          paperRefOk(request.resource.data.paper) &&
+          request.resource.data.createdAt == request.time;
+        allow delete: if (signedIn() && (resource.data.uid == me() || get(circlePath(circleId)).data.ownerUid == me())) || isAdmin();
+
+        match /replies/{replyId} {
+          allow read: if canReadCircle(circleId);
+          allow create: if isMember(circleId) && authorOk(request.resource.data) &&
+            request.resource.data.keys().hasOnly(['uid', 'name', 'handle', 'text', 'paper', 'createdAt']) &&
+            str(request.resource.data.text, 1, 1000) &&
+            request.resource.data.paper == null &&
+            request.resource.data.createdAt == request.time;
+          allow delete: if (signedIn() && (
+              resource.data.uid == me() ||
+              get(/databases/$(database)/documents/circles/$(circleId)/posts/$(postId)).data.uid == me() ||
+              get(circlePath(circleId)).data.ownerUid == me()
+            )) || isAdmin();
+        }
+      }
+    }
+
+    // Collection-group reads are limited to your own content (used by account deletion).
+    match /{path=**}/comments/{commentId} {
+      allow list: if signedIn() && resource.data.uid == me();
+    }
+    match /{path=**}/helpful/{markId} {
+      allow list: if signedIn() && resource.data.uid == me();
+    }
+    match /{path=**}/posts/{postId} {
+      allow list: if signedIn() && resource.data.uid == me();
+    }
+    match /{path=**}/replies/{replyId} {
+      allow list: if signedIn() && resource.data.uid == me();
+    }
+
+    // ------------------------------------------------------------- reports
+    match /reports/{reportId} {
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['reporterUid', 'targetType', 'targetPath', 'targetUid', 'reason', 'note', 'status', 'createdAt']) &&
+        request.resource.data.reporterUid == me() &&
+        request.resource.data.targetType in ['comment', 'post', 'reply', 'profile', 'circle'] &&
+        str(request.resource.data.targetPath, 1, 400) &&
+        optStr(request.resource.data.targetUid, 128) &&
+        request.resource.data.reason in ['spam', 'harassment', 'misinformation', 'plagiarism', 'other'] &&
+        optStr(request.resource.data.note, 500) &&
+        request.resource.data.status == 'open' &&
+        request.resource.data.createdAt == request.time;
+      allow read: if isAdmin();
+      allow update: if isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      allow delete: if isAdmin();
+    }
+
+    // Anyone, signed in or not, can flag an AI summary.
+    match /summary_reports/{reportId} {
+      allow create: if
+        request.resource.data.keys().hasOnly(['paperId', 'reason', 'note', 'uid', 'createdAt']) &&
+        str(request.resource.data.paperId, 1, 200) &&
+        request.resource.data.reason in ['wrong_number', 'overclaims', 'off_topic', 'other'] &&
+        optStr(request.resource.data.note, 500) &&
+        (request.resource.data.uid == null || (signedIn() && request.resource.data.uid == me())) &&
+        request.resource.data.createdAt == request.time;
+      allow read, delete: if isAdmin();
+    }
+
+    // --------------------------------------------------------------- inbox
+    match /inbox/{userId}/items/{itemId} {
+      allow read, delete: if isOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create: if signedIn() && me() != userId &&
+        request.resource.data.keys().hasOnly(['type', 'fromUid', 'fromName', 'text', 'target', 'read', 'createdAt']) &&
+        request.resource.data.fromUid == me() &&
+        request.resource.data.type in ['reply', 'follow', 'circle_join'] &&
+        str(request.resource.data.fromName, 1, 60) &&
+        str(request.resource.data.text, 1, 140) &&
+        request.resource.data.target is map &&
+        request.resource.data.target.keys().hasOnly(['screen', 'id']) &&
+        request.resource.data.target.screen in ['Paper', 'Circle', 'Profile'] &&
+        str(request.resource.data.target.id, 1, 200) &&
+        request.resource.data.read == false &&
+        request.resource.data.createdAt == request.time;
+    }
+
+    // ------------------------------------------------ admin and pipeline data
     match /admins/{adminEmail} {
       allow read, write: if isAdmin();
     }
 
-    // Global configuration (e.g. system_prompt): admin-only read/write
     match /config/{configId} {
       allow read, write: if isAdmin();
     }
 
-    // Pipeline run execution metadata: admin-only read/write
     match /pipeline_runs/{runId} {
       allow read, write: if isAdmin();
     }
 
-    // Pipeline trigger task queue: admin-only read/write
     match /pipeline_queue/{queueId} {
       allow read, write: if isAdmin();
     }
 
-    // LLM API usage tracking logs: admin-only read/write
     match /api_usage/{usageId} {
       allow read, write: if isAdmin();
     }
 
-    // Flashcard content & feed overrides: public-read, admin-write
+    // Flashcard content and feed overrides: public read, admin write.
     match /content/{contentId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Live daily feed from backend pipeline: public-read
-    // Backend uses firebase-admin SDK (bypasses rules) for writes
+    // Daily feed written by the backend (Admin SDK bypasses rules).
     match /feeds/{feedId} {
       allow read: if true;
       allow write: if false;
