@@ -22,6 +22,9 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Scratch databases written by the stress tests (recreated on every run)
+tests/scratch_db/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

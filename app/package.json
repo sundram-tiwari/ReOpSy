@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "tsc -p tsconfig.test.json && node --test \"testbuild/**/*.test.js\"",
+    "test": "tsc -p tsconfig.test.json && node --test testbuild/logic/__tests__/*.test.js",
     "typecheck": "tsc --noEmit",
     "doctor": "npx expo-doctor"
   },
