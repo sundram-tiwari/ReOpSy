@@ -1,600 +1,325 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState as RNAppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Paper, StreakState, UserApiConfig } from '../types';
-import { initialStreak, recordActivity } from '../logic/streak';
-import dailyFeedJson from '../data/dailyFeed.json';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  LibraryEntry,
+  LibraryStatus,
+  MatrixRow,
+  NotRelevantReason,
+  Paper,
+  RecallGrade,
+  TriageAction,
+} from '../types';
+import { recordActivity } from '../logic/streak';
+import { dayKey } from '../logic/date';
+import { StoredStateV3, ThemePrefValue, defaultState, mergeStates, migrate, pruneTriage } from '../logic/appData';
+import { buildDailyDeck, DeckCard } from '../logic/triage';
+import { gradeItem, scheduleNew } from '../logic/recall';
+import { prepareFeed } from '../logic/feed';
+import { topicTerms } from '../config';
 import { useAuth } from '../hooks/useAuth';
 import { db, isFirebaseConfigured } from '../services/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { fetchCustomTopicPapers } from '../services/customTopicFetcher';
-import { sanitizeLogMessage } from '../services/apiValidator';
 import { fetchLiveFeed } from '../services/feedService';
+import { ThemePrefContext } from '../ui/theme';
+import dailyFeedJson from '../data/dailyFeed.json';
+import v2SamplesJson from '../data/v2Samples.json';
 
-export const STORAGE_KEY = 'reopsy_v2_state';
-export type { UserApiConfig };
+export const STORAGE_KEY = 'reopsy_v3_state';
+const LEGACY_KEY = 'reopsy_v2_state';
 
-export interface StoredAppState {
-  followedTopics: string[];
-  savedPapers: Paper[];
-  likedPapers: string[];
-  streak: StreakState;
-  onboardingComplete: boolean;
-  userApiConfig: UserApiConfig | null;
-  customFeedData?: Paper[];
+interface UndoSnapshot {
+  paperId: string;
+  triage: StoredStateV3['triage'][string] | undefined;
+  entry: LibraryEntry | undefined;
 }
 
 export interface AppStateContext {
-  followedTopics: string[];
-  toggleTopic: (topic: string) => void;
-  feedData: Record<string, Paper[]>;
-  activeTopic: string;
-  setActiveTopic: (topic: string) => void;
-  savedPapers: Paper[];
-  toggleSavePaper: (paper: Paper) => void;
-  isSaved: (paperId: string) => boolean;
-  likedPapers: Set<string>;
-  toggleLikePaper: (paper: Paper) => void;
-  isLiked: (paperId: string) => boolean;
-  streak: StreakState;
-  recordRead: () => void;
-  onboardingComplete: boolean;
-  completeOnboarding: () => void;
-  clearCache: () => Promise<void>;
-  userApiConfig: UserApiConfig | null;
-  setUserApiConfig: (config: UserApiConfig | null) => void;
-  clearUserApiConfig: () => void;
-  customFeedData: Paper[];
-  setCustomFeedData: (papers: Paper[]) => void;
-  fetchCustomPapers: (topicQuery?: string) => Promise<{ success: boolean; count: number; error?: string; message?: string }>;
   isLoaded: boolean;
-  isSyncing: boolean;
-}
+  today: string;
+  state: StoredStateV3;
+  feed: Record<string, Paper[]>;
+  deck: DeckCard[];
+  findPaper: (id: string) => Paper | undefined;
+  libraryEntry: (id: string) => LibraryEntry | undefined;
 
-export const DEFAULT_FOLLOWED_TOPICS = [
-  'ai-mental-health',
-  'autism-diagnosis',
-  'blockchain',
-  'quantum-communication',
-  'surveillance-anomaly-detection'
-];
+  triagePaper: (paper: Paper, action: TriageAction, reason?: NotRelevantReason) => void;
+  undoLastTriage: () => void;
+  setLibraryStatus: (paper: Paper, status: LibraryStatus | null) => void;
+  updateEntry: (paperId: string, patch: { note?: string; matrix?: MatrixRow }) => void;
+  gradeRecall: (paperId: string, grade: RecallGrade) => void;
+  finishRecallSession: () => void;
 
-function shuffleFeedPapers(papers: Paper[]): Paper[] {
-  const arr = [...papers];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-export function consolidateGlobalFeed(topicsData: Record<string, Paper[]>): Paper[] {
-  if (!topicsData || typeof topicsData !== 'object') return [];
-  const map = new Map<string, Paper>();
-  for (const [slug, papers] of Object.entries(topicsData)) {
-    if (slug !== 'global' && Array.isArray(papers)) {
-      for (const p of papers) {
-        if (p && p.id && !map.has(p.id)) {
-          map.set(p.id, p);
-        }
-      }
-    }
-  }
-  return shuffleFeedPapers(Array.from(map.values()));
-}
-
-/**
- * Pure state merge function that combines local and remote cloud states without losing
- * offline progress, bookmarks, topic preferences, or API configurations.
- */
-export function mergeCloudAndLocalState(
-  local: StoredAppState,
-  cloud?: Partial<StoredAppState> | null
-): StoredAppState {
-  if (!cloud) {
-    return {
-      ...local,
-      followedTopics: local.followedTopics?.length ? local.followedTopics : DEFAULT_FOLLOWED_TOPICS,
-      savedPapers: local.savedPapers || [],
-      likedPapers: local.likedPapers || [],
-      streak: local.streak || initialStreak,
-      onboardingComplete: Boolean(local.onboardingComplete),
-      userApiConfig: local.userApiConfig || null,
-      customFeedData: local.customFeedData || []
-    };
-  }
-
-  // 1. Followed topics: union of unique topics with fallback
-  const cloudTopics = Array.isArray(cloud.followedTopics) ? cloud.followedTopics : [];
-  const localTopics = Array.isArray(local.followedTopics) ? local.followedTopics : [];
-  const topicSet = new Set<string>();
-  const mergedTopics: string[] = [];
-
-  for (const t of [...cloudTopics, ...localTopics]) {
-    if (typeof t === 'string' && t.trim() !== '' && !topicSet.has(t)) {
-      topicSet.add(t);
-      mergedTopics.push(t);
-    }
-  }
-  const finalTopics = mergedTopics.length > 0 ? mergedTopics : DEFAULT_FOLLOWED_TOPICS;
-
-  // 2. Saved papers: union deduplicated by paper ID (local recents first)
-  const localSaved = Array.isArray(local.savedPapers) ? local.savedPapers : [];
-  const cloudSaved = Array.isArray(cloud.savedPapers) ? cloud.savedPapers : [];
-  const seenPaperIds = new Set<string>();
-  const mergedSaved: Paper[] = [];
-
-  for (const paper of localSaved) {
-    if (paper && paper.id && !seenPaperIds.has(paper.id)) {
-      seenPaperIds.add(paper.id);
-      mergedSaved.push(paper);
-    }
-  }
-  for (const paper of cloudSaved) {
-    if (paper && paper.id && !seenPaperIds.has(paper.id)) {
-      seenPaperIds.add(paper.id);
-      mergedSaved.push(paper);
-    }
-  }
-
-  // 3. Liked papers: union of string IDs
-  const localLiked = Array.isArray(local.likedPapers) ? local.likedPapers : [];
-  const cloudLiked = Array.isArray(cloud.likedPapers) ? cloud.likedPapers : [];
-  const mergedLiked = Array.from(
-    new Set([...cloudLiked, ...localLiked].filter(id => typeof id === 'string' && id.trim() !== ''))
-  );
-
-  // 4. Streak state: preserve highest activity and latest active day
-  const localStreak = local.streak || initialStreak;
-  const cloudStreak = cloud.streak || initialStreak;
-
-  let current = Math.max(localStreak.current || 0, cloudStreak.current || 0);
-  let lastActiveDay = localStreak.lastActiveDay;
-
-  if (!lastActiveDay && cloudStreak.lastActiveDay) {
-    lastActiveDay = cloudStreak.lastActiveDay;
-    current = cloudStreak.current || 0;
-  } else if (lastActiveDay && cloudStreak.lastActiveDay) {
-    if (cloudStreak.lastActiveDay > lastActiveDay) {
-      lastActiveDay = cloudStreak.lastActiveDay;
-      current = cloudStreak.current || 0;
-    } else if (lastActiveDay > cloudStreak.lastActiveDay) {
-      lastActiveDay = localStreak.lastActiveDay;
-      current = localStreak.current || 0;
-    } else {
-      current = Math.max(localStreak.current || 0, cloudStreak.current || 0);
-    }
-  }
-
-  const mergedStreak: StreakState = {
-    current,
-    longest: Math.max(localStreak.longest || 0, cloudStreak.longest || 0, current),
-    lastActiveDay: lastActiveDay || null,
-    freezes: Math.max(localStreak.freezes || 0, cloudStreak.freezes || 0),
-    freezesEarned: Math.max(localStreak.freezesEarned || 0, cloudStreak.freezesEarned || 0),
-    totalDays: Math.max(localStreak.totalDays || 0, cloudStreak.totalDays || 0)
-  };
-
-  // 5. User API Config: prioritize configured key
-  let mergedApiConfig: UserApiConfig | null = null;
-  if (local.userApiConfig && local.userApiConfig.apiKey && local.userApiConfig.apiKey.trim() !== '') {
-    mergedApiConfig = {
-      provider: local.userApiConfig.provider || cloud.userApiConfig?.provider || 'Gemini',
-      apiKey: local.userApiConfig.apiKey,
-      endpoint: local.userApiConfig.endpoint || cloud.userApiConfig?.endpoint || '',
-      customTopic: local.userApiConfig.customTopic || cloud.userApiConfig?.customTopic || ''
-    };
-  } else if (cloud.userApiConfig && cloud.userApiConfig.apiKey && cloud.userApiConfig.apiKey.trim() !== '') {
-    mergedApiConfig = {
-      provider: cloud.userApiConfig.provider || 'Gemini',
-      apiKey: cloud.userApiConfig.apiKey,
-      endpoint: cloud.userApiConfig.endpoint || '',
-      customTopic: cloud.userApiConfig.customTopic || ''
-    };
-  } else if (local.userApiConfig || cloud.userApiConfig) {
-    mergedApiConfig = {
-      provider: local.userApiConfig?.provider || cloud.userApiConfig?.provider || 'Gemini',
-      apiKey: local.userApiConfig?.apiKey || cloud.userApiConfig?.apiKey || '',
-      endpoint: local.userApiConfig?.endpoint || cloud.userApiConfig?.endpoint || '',
-      customTopic: local.userApiConfig?.customTopic || cloud.userApiConfig?.customTopic || ''
-    };
-  }
-
-  // 6. Onboarding status
-  const mergedOnboarding = Boolean(local.onboardingComplete || cloud.onboardingComplete);
-
-  // 7. Custom feed data
-  const localCustom = Array.isArray(local.customFeedData) ? local.customFeedData : [];
-  const cloudCustom = Array.isArray(cloud.customFeedData) ? cloud.customFeedData : [];
-  const mergedCustomFeed = localCustom.length > 0 ? localCustom : cloudCustom;
-
-  return {
-    followedTopics: finalTopics,
-    savedPapers: mergedSaved,
-    likedPapers: mergedLiked,
-    streak: mergedStreak,
-    onboardingComplete: mergedOnboarding,
-    userApiConfig: mergedApiConfig,
-    customFeedData: mergedCustomFeed
-  };
+  toggleTopic: (slug: string) => void;
+  setDailyGoal: (goal: number) => void;
+  completeOnboarding: () => void;
+  setThemePref: (pref: ThemePrefValue) => void;
+  setSurveyTitle: (title: string) => void;
+  blockUser: (uid: string) => void;
+  unblockUser: (uid: string) => void;
+  markInboxSeen: () => void;
+  noteExport: () => void;
+  notePost: () => void;
+  setZotero: (z: StoredStateV3['zotero']) => void;
+  resetLocalData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppStateContext | null>(null);
 
+const staticFeed = ((dailyFeedJson as { topics?: Record<string, Paper[]> }).topics || {}) as Record<string, Paper[]>;
+const curatedFeed = ((v2SamplesJson as { topics?: Record<string, Paper[]> }).topics || {}) as Record<string, Paper[]>;
+
+/** Firestore rejects `undefined` values; JSON round-trip strips them. */
+function toFirestore(state: StoredStateV3, today: string): StoredStateV3 {
+  return JSON.parse(JSON.stringify({ ...state, triage: pruneTriage(state.triage, today) }));
+}
+
 export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [followedTopics, setFollowedTopics] = useState<string[]>(DEFAULT_FOLLOWED_TOPICS);
-  const [activeTopic, setActiveTopic] = useState<string>('global');
-  const [savedPapers, setSavedPapers] = useState<Paper[]>([]);
-  const [likedPapers, setLikedPapers] = useState<Set<string>>(new Set());
-  const [streak, setStreak] = useState<StreakState>(initialStreak);
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(false);
-  const [userApiConfig, setUserApiConfigState] = useState<UserApiConfig | null>(null);
-  const [customFeedData, setCustomFeedDataState] = useState<Paper[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-
   const { user } = useAuth();
-  const lastHydratedUidRef = useRef<string | null>(null);
-  const isHydratingRef = useRef<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [state, setState] = useState<StoredStateV3>(defaultState);
+  const [today, setToday] = useState(dayKey());
+  const [liveFeed, setLiveFeed] = useState<Record<string, Paper[]> | null>(null);
+  const undoRef = useRef<UndoSnapshot | null>(null);
+  const hydratedUid = useRef<string | null>(null);
+  const hydrating = useRef(false);
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Feed data: start with static JSON (instant, offline), then upgrade to live Firestore data
-  const staticTopics = useMemo(() => (dailyFeedJson.topics || {}) as Record<string, Paper[]>, []);
-  const [liveTopics, setLiveTopics] = useState<Record<string, Paper[]> | null>(null);
-
-  // Fetch live feed from Firestore on mount
+  // The day rolls over while the app stays open in the background.
   useEffect(() => {
-    let isMounted = true;
-    fetchLiveFeed()
-      .then((liveData) => {
-        if (isMounted && liveData && liveData.topics && Object.keys(liveData.topics).length > 0) {
-          setLiveTopics(liveData.topics);
-        }
-      })
-      .catch(() => {
-        // Silent fallback to static JSON — no user-facing error
-      });
-    return () => { isMounted = false; };
+    const sub = RNAppState.addEventListener('change', (s) => {
+      if (s === 'active') setToday(dayKey());
+    });
+    return () => sub.remove();
   }, []);
 
-  // Use live data if available, otherwise static JSON
-  const rawTopics = liveTopics || staticTopics;
-  const globalFeed = useMemo(() => consolidateGlobalFeed(rawTopics), [rawTopics]);
-  const feedData = useMemo(() => ({
-    ...rawTopics,
-    global: globalFeed
-  }), [rawTopics, globalFeed]);
-
-  // Phase 1: Load from local AsyncStorage on mount
+  // 1. Local load (with migration from the v2 key).
   useEffect(() => {
-    let isMounted = true;
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((data) => {
-        if (!isMounted) return;
-        if (data) {
-          try {
-            const parsed = JSON.parse(data);
-            const merged = mergeCloudAndLocalState({
-              followedTopics: DEFAULT_FOLLOWED_TOPICS,
-              savedPapers: [],
-              likedPapers: [],
-              streak: initialStreak,
-              onboardingComplete: false,
-              userApiConfig: null,
-              customFeedData: []
-            }, parsed);
-
-            setFollowedTopics(merged.followedTopics);
-            setSavedPapers(merged.savedPapers);
-            setLikedPapers(new Set(merged.likedPapers));
-            setStreak(merged.streak);
-            setOnboardingComplete(merged.onboardingComplete);
-            setUserApiConfigState(merged.userApiConfig);
-            setCustomFeedDataState(merged.customFeedData || []);
-
-            if (merged.followedTopics.length > 0) {
-              setActiveTopic('global');
-            }
-          } catch (e) {
-            console.warn("[AppState] Failed to parse local state from AsyncStorage", e);
-          }
-        }
-        setIsLoaded(true);
-      })
-      .catch((e) => {
-        console.warn("[AppState] Failed to load local state from AsyncStorage", e);
-        if (isMounted) setIsLoaded(true);
-      });
-
+    let alive = true;
+    (async () => {
+      try {
+        const raw = (await AsyncStorage.getItem(STORAGE_KEY)) ?? (await AsyncStorage.getItem(LEGACY_KEY));
+        if (alive && raw) setState(migrate(JSON.parse(raw), dayKey()));
+      } catch {
+        // Corrupt storage: start fresh rather than crash.
+      } finally {
+        if (alive) setIsLoaded(true);
+      }
+    })();
     return () => {
-      isMounted = false;
+      alive = false;
     };
   }, []);
 
-  // Phase 2: Remote Hydration from Firestore on User Authentication
+  // 2. Live feed from Firestore when configured; bundled feed otherwise.
+  useEffect(() => {
+    let alive = true;
+    fetchLiveFeed()
+      .then((live) => alive && live && setLiveFeed(live.topics))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // 3. Cloud hydration on sign-in; local data is cleared on sign-out.
   useEffect(() => {
     if (!isLoaded) return;
-
     if (!user) {
-      if (lastHydratedUidRef.current !== null) {
-        // User just logged out, clear local cache to prevent data leaking
-        lastHydratedUidRef.current = null;
-        setFollowedTopics(DEFAULT_FOLLOWED_TOPICS);
-        setActiveTopic('global');
-        setSavedPapers([]);
-        setLikedPapers(new Set());
-        setStreak(initialStreak);
-        setOnboardingComplete(false);
-        setUserApiConfigState(null);
-        setCustomFeedDataState([]);
-        AsyncStorage.removeItem(STORAGE_KEY).catch(err => console.warn(err));
+      if (hydratedUid.current) {
+        hydratedUid.current = null;
+        setState(defaultState());
+        AsyncStorage.multiRemove([STORAGE_KEY, LEGACY_KEY]).catch(() => {});
       }
       return;
     }
-
-    if (lastHydratedUidRef.current === user.uid) {
-      return;
-    }
-
-    lastHydratedUidRef.current = user.uid;
-
-    if (!isFirebaseConfigured() || !db) {
-      return;
-    }
-
-    let isMounted = true;
-    isHydratingRef.current = true;
-    setIsSyncing(true);
-
-    const userDocRef = doc(db, 'users', user.uid);
-
-    getDoc(userDocRef)
-      .then(async (docSnap) => {
-        if (!isMounted) return;
-
-        const currentLocalState: StoredAppState = {
-          followedTopics,
-          savedPapers,
-          likedPapers: Array.from(likedPapers),
-          streak,
-          onboardingComplete,
-          userApiConfig,
-          customFeedData
-        };
-
-        if (docSnap.exists()) {
-          const cloudData = docSnap.data() as Partial<StoredAppState>;
-          const merged = mergeCloudAndLocalState(currentLocalState, cloudData);
-
-          setFollowedTopics(merged.followedTopics);
-          setSavedPapers(merged.savedPapers);
-          setLikedPapers(new Set(merged.likedPapers));
-          setStreak(merged.streak);
-          setOnboardingComplete(merged.onboardingComplete);
-          setUserApiConfigState(merged.userApiConfig);
-          setCustomFeedDataState(merged.customFeedData || []);
-
-          if (!merged.followedTopics.includes(activeTopic) && merged.followedTopics.length > 0) {
-            setActiveTopic(merged.followedTopics[0]);
-          }
-
-          // Persist merged state locally and back to Firestore
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-          await setDoc(userDocRef, merged, { merge: true });
-        } else {
-          // Initialize new cloud document with existing local state
-          await setDoc(userDocRef, currentLocalState, { merge: true });
-        }
+    if (hydratedUid.current === user.uid || !isFirebaseConfigured() || !db) return;
+    hydratedUid.current = user.uid;
+    hydrating.current = true;
+    const ref = doc(db, 'users', user.uid);
+    getDoc(ref)
+      .then((snap) => {
+        setState((local) => {
+          const merged = snap.exists() ? mergeStates(local, migrate(snap.data(), dayKey())) : local;
+          setDoc(ref, toFirestore(merged, dayKey())).catch(() => {});
+          return merged;
+        });
       })
-      .catch((err) => {
-        console.warn("[AppState] Firestore hydration error:", err);
-      })
+      .catch(() => {})
       .finally(() => {
-        if (isMounted) {
-          isHydratingRef.current = false;
-          setIsSyncing(false);
-        }
+        hydrating.current = false;
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, [user, isLoaded]);
 
-  // Phase 3: Local-First Persistence & Background Firestore Sync
+  // 4. Persist locally on every change; sync to the cloud, debounced.
   useEffect(() => {
-    if (!isLoaded || isHydratingRef.current) return;
+    if (!isLoaded) return;
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
+    if (!user || !db || hydrating.current) return;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    const uid = user.uid;
+    syncTimer.current = setTimeout(() => {
+      if (db) setDoc(doc(db, 'users', uid), toFirestore(state, dayKey())).catch(() => {});
+    }, 1500);
+  }, [state, isLoaded, user]);
 
-    const stateToSave: StoredAppState = {
-      followedTopics,
-      savedPapers,
-      likedPapers: Array.from(likedPapers),
-      streak,
-      onboardingComplete,
-      userApiConfig,
-      customFeedData
-    };
+  const feed = useMemo(
+    () => prepareFeed(liveFeed || staticFeed, curatedFeed, topicTerms(), new Date().getFullYear()),
+    [liveFeed],
+  );
 
-    // Local-first write
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave)).catch((err) => {
-      console.warn("[AppState] AsyncStorage write error:", err);
-    });
+  const paperIndex = useMemo(() => {
+    const m = new Map<string, Paper>();
+    for (const list of Object.values(feed)) for (const p of list) m.set(p.id, p);
+    for (const e of state.library) if (!m.has(e.paper.id)) m.set(e.paper.id, e.paper);
+    return m;
+  }, [feed, state.library]);
 
-    // Cloud sync when authenticated
-    if (user && isFirebaseConfigured() && db) {
-      setDoc(doc(db, 'users', user.uid), stateToSave, { merge: true }).catch((err) => {
-        console.warn("[AppState] Firestore write error:", err);
+  const deck = useMemo(
+    () =>
+      buildDailyDeck({
+        papersByTopic: feed,
+        followed: state.followedTopics,
+        triage: state.triage,
+        goal: state.dailyGoal,
+        day: today,
+      }),
+    // The deck must not reshuffle as the user triages: it depends on today's
+    // decisions only through availability, which buildDailyDeck keeps stable.
+    [feed, state.followedTopics, state.dailyGoal, today, state.triage],
+  );
+
+  const update = useCallback((fn: (s: StoredStateV3) => StoredStateV3) => setState((s) => fn(s)), []);
+
+  const triagePaper = useCallback(
+    (paper: Paper, action: TriageAction, reason?: NotRelevantReason) => {
+      update((s) => {
+        const existing = s.library.find((e) => e.paper.id === paper.id);
+        undoRef.current = { paperId: paper.id, triage: s.triage[paper.id], entry: existing };
+        const triage = { ...s.triage, [paper.id]: reason ? { action, day: today, reason } : { action, day: today } };
+        let library = s.library;
+        if (action === 'saved' || action === 'later' || action === 'survey') {
+          const entry: LibraryEntry = existing
+            ? { ...existing, status: action === 'saved' ? 'saved' : action }
+            : { paper, status: action === 'saved' ? 'saved' : action, addedOn: today };
+          library = [entry, ...s.library.filter((e) => e.paper.id !== paper.id)];
+        }
+        let recallQueue = s.recallQueue;
+        if ((action === 'saved' || action === 'survey') && !s.recallQueue.some((q) => q.paperId === paper.id)) {
+          recallQueue = [...s.recallQueue, scheduleNew(paper.id, today)];
+        }
+        return { ...s, triage, library, recallQueue, streak: recordActivity(s.streak, today).state };
       });
-    }
-  }, [
-    followedTopics,
-    savedPapers,
-    likedPapers,
-    streak,
-    onboardingComplete,
-    userApiConfig,
-    customFeedData,
-    isLoaded,
-    user
-  ]);
+    },
+    [today, update],
+  );
 
-  const toggleTopic = useCallback((topic: string) => {
-    setFollowedTopics((prev) => {
-      if (prev.includes(topic)) {
-        return prev.filter((t) => t !== topic);
-      }
-      return [...prev, topic];
+  const undoLastTriage = useCallback(() => {
+    const snap = undoRef.current;
+    if (!snap) return;
+    undoRef.current = null;
+    update((s) => {
+      const triage = { ...s.triage };
+      if (snap.triage) triage[snap.paperId] = snap.triage;
+      else delete triage[snap.paperId];
+      const others = s.library.filter((e) => e.paper.id !== snap.paperId);
+      const library = snap.entry ? [snap.entry, ...others] : others;
+      const recallQueue = snap.entry ? s.recallQueue : s.recallQueue.filter((q) => q.paperId !== snap.paperId);
+      return { ...s, triage, library, recallQueue };
     });
-  }, []);
+  }, [update]);
 
-  const toggleSavePaper = useCallback((paper: Paper) => {
-    setSavedPapers((prev) => {
-      const exists = prev.find((p) => p.id === paper.id);
-      if (exists) {
-        return prev.filter((p) => p.id !== paper.id);
-      }
-      return [paper, ...prev];
-    });
-  }, []);
+  const setLibraryStatus = useCallback(
+    (paper: Paper, status: LibraryStatus | null) => {
+      update((s) => {
+        const others = s.library.filter((e) => e.paper.id !== paper.id);
+        if (!status) return { ...s, library: others, recallQueue: s.recallQueue.filter((q) => q.paperId !== paper.id) };
+        const existing = s.library.find((e) => e.paper.id === paper.id);
+        const entry: LibraryEntry = existing ? { ...existing, status } : { paper, status, addedOn: today };
+        const recallQueue =
+          status !== 'later' && !s.recallQueue.some((q) => q.paperId === paper.id)
+            ? [...s.recallQueue, scheduleNew(paper.id, today)]
+            : s.recallQueue;
+        return { ...s, library: [entry, ...others], recallQueue };
+      });
+    },
+    [today, update],
+  );
 
-  const isSaved = useCallback((paperId: string) => {
-    return savedPapers.some((p) => p.id === paperId);
-  }, [savedPapers]);
+  const updateEntry = useCallback(
+    (paperId: string, patch: { note?: string; matrix?: MatrixRow }) => {
+      update((s) => ({
+        ...s,
+        library: s.library.map((e) => (e.paper.id === paperId ? { ...e, ...patch } : e)),
+      }));
+    },
+    [update],
+  );
 
-  const toggleLikePaper = useCallback((paper: Paper) => {
-    setLikedPapers((prev) => {
-      const next = new Set(prev);
-      if (next.has(paper.id)) {
-        next.delete(paper.id);
-      } else {
-        next.add(paper.id);
-      }
-      return next;
-    });
-  }, []);
+  const gradeRecall = useCallback(
+    (paperId: string, grade: RecallGrade) => {
+      update((s) => ({
+        ...s,
+        recallQueue: s.recallQueue.map((q) => (q.paperId === paperId ? gradeItem(q, grade, today) : q)),
+      }));
+    },
+    [today, update],
+  );
 
-  const isLiked = useCallback((paperId: string) => {
-    return likedPapers.has(paperId);
-  }, [likedPapers]);
+  const finishRecallSession = useCallback(() => {
+    update((s) => ({
+      ...s,
+      recallSessions: s.recallSessions + 1,
+      recallDays: s.recallDays.includes(today) ? s.recallDays : [...s.recallDays, today],
+      streak: recordActivity(s.streak, today).state,
+    }));
+  }, [today, update]);
 
-  const recordRead = useCallback(() => {
-    setStreak((prev) => {
-      const nextStreak = recordActivity(prev);
-      return nextStreak.state;
-    });
-  }, []);
-
-  const clearCache = useCallback(async () => {
-    try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
-    } catch (e) {
-      console.warn("[AppState] Error clearing AsyncStorage cache:", e);
-    }
-
-    setFollowedTopics(DEFAULT_FOLLOWED_TOPICS);
-    setActiveTopic('global');
-    setSavedPapers([]);
-    setLikedPapers(new Set());
-    setStreak(initialStreak);
-    setOnboardingComplete(false);
-    setUserApiConfigState(null);
-    setCustomFeedDataState([]);
-
-    if (user && isFirebaseConfigured() && db) {
-      try {
-        const emptyState: StoredAppState = {
-          followedTopics: DEFAULT_FOLLOWED_TOPICS,
-          savedPapers: [],
-          likedPapers: [],
-          streak: initialStreak,
-          onboardingComplete: false,
-          userApiConfig: null,
-          customFeedData: []
-        };
-        await setDoc(doc(db, 'users', user.uid), emptyState);
-      } catch (e) {
-        console.warn("[AppState] Failed to reset Firestore state on clearCache:", e);
-      }
-    }
-  }, [user]);
-
-  const setUserApiConfig = useCallback((config: UserApiConfig | null) => {
-    setUserApiConfigState(config);
-  }, []);
-
-  const clearUserApiConfig = useCallback(() => {
-    setUserApiConfigState(null);
-    setCustomFeedDataState([]);
-  }, []);
-
-  const setCustomFeedData = useCallback((papers: Paper[]) => {
-    setCustomFeedDataState(papers);
-  }, []);
-
-  const fetchCustomPapers = useCallback(async (topicQuery?: string) => {
-    const query = topicQuery?.trim() || userApiConfig?.customTopic?.trim() || '';
-    if (!query) {
-      return { success: false, count: 0, error: 'Please enter a research topic first.' };
-    }
-
-    try {
-      const configToUse: UserApiConfig = userApiConfig || {
-        provider: 'Gemini',
-        apiKey: '',
-        customTopic: query
-      };
-
-      const papers = await fetchCustomTopicPapers(query, configToUse, 5);
-      setCustomFeedDataState(papers);
-
-      if (userApiConfig) {
-        setUserApiConfigState({
-          ...userApiConfig,
-          customTopic: query
-        });
-      }
-
-      return {
-        success: true,
-        count: papers.length,
-        message: `Successfully fetched ${papers.length} papers for "${query}".`
-      };
-    } catch (err: any) {
-      const sanitized = sanitizeLogMessage(err?.message || 'Failed to fetch custom topic papers');
-      return { success: false, count: 0, error: sanitized };
-    }
-  }, [userApiConfig]);
+  const value = useMemo<AppStateContext>(
+    () => ({
+      isLoaded,
+      today,
+      state,
+      feed,
+      deck,
+      findPaper: (id) => paperIndex.get(id),
+      libraryEntry: (id) => state.library.find((e) => e.paper.id === id),
+      triagePaper,
+      undoLastTriage,
+      setLibraryStatus,
+      updateEntry,
+      gradeRecall,
+      finishRecallSession,
+      toggleTopic: (slug) =>
+        update((s) => ({
+          ...s,
+          followedTopics: s.followedTopics.includes(slug)
+            ? s.followedTopics.filter((t) => t !== slug)
+            : [...s.followedTopics, slug],
+        })),
+      setDailyGoal: (goal) => update((s) => ({ ...s, dailyGoal: goal })),
+      completeOnboarding: () => update((s) => ({ ...s, onboardingComplete: true })),
+      setThemePref: (themePref) => update((s) => ({ ...s, themePref })),
+      setSurveyTitle: (surveyTitle) => update((s) => ({ ...s, surveyTitle })),
+      blockUser: (uid) => update((s) => ({ ...s, blockedUids: [...new Set([...s.blockedUids, uid])] })),
+      unblockUser: (uid) => update((s) => ({ ...s, blockedUids: s.blockedUids.filter((u) => u !== uid) })),
+      markInboxSeen: () => update((s) => ({ ...s, lastInboxSeenAt: Date.now() })),
+      noteExport: () => update((s) => ({ ...s, exportsCount: s.exportsCount + 1 })),
+      notePost: () => update((s) => ({ ...s, postsCount: s.postsCount + 1 })),
+      setZotero: (zotero) => update((s) => ({ ...s, zotero })),
+      resetLocalData: async () => {
+        await AsyncStorage.multiRemove([STORAGE_KEY, LEGACY_KEY]).catch(() => {});
+        setState(defaultState());
+      },
+    }),
+    [isLoaded, today, state, feed, deck, paperIndex, triagePaper, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
+  );
 
   if (!isLoaded) return null;
 
   return (
-    <AppContext.Provider
-      value={{
-        followedTopics,
-        toggleTopic,
-        feedData,
-        activeTopic,
-        setActiveTopic,
-        savedPapers,
-        toggleSavePaper,
-        isSaved,
-        likedPapers,
-        toggleLikePaper,
-        isLiked,
-        streak,
-        recordRead,
-        onboardingComplete,
-        completeOnboarding: () => setOnboardingComplete(true),
-        clearCache,
-        userApiConfig,
-        setUserApiConfig,
-        clearUserApiConfig,
-        customFeedData,
-        setCustomFeedData,
-        fetchCustomPapers,
-        isLoaded,
-        isSyncing
-      }}
-    >
-      {children}
+    <AppContext.Provider value={value}>
+      <ThemePrefContext.Provider value={state.themePref}>{children}</ThemePrefContext.Provider>
     </AppContext.Provider>
   );
 };

@@ -16,7 +16,7 @@
  * 1. **Order.** The Indian Copyright Office asks for the first and last 25
  *    pages of source for a Form XIV filing. Whatever leads the deposit is what
  *    an examiner actually reads, so the distinctive code goes first —
- *    SwipeDeck, deck, streak, AppState, DeckScreen, PaperCard — rather than
+ *    the daily deck, recall, card, exporters and community layer — rather than
  *    whichever file happens to sort first alphabetically.
  *
  * 2. **Secrets.** The deposit becomes a public record. A key that ships in it
@@ -30,14 +30,14 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'dist', 'copyright');
 
-const WORK_TITLE = 'ReOpSy — a swipe-based reading interface for scientific literature';
+const WORK_TITLE = 'ReOpSy — a daily research-reading, recall and literature-survey application with a researcher community';
 const AUTHOR = '[[YOUR NAME]]';
 const YEAR = new Date().getFullYear();
 
 // ---------------------------------------------------------------------------
 // which files go in
 // ---------------------------------------------------------------------------
-const INCLUDE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.sql', '.json', '.yml', '.yaml']);
+const INCLUDE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.sql', '.json', '.yml', '.yaml', '.rules']);
 
 const SKIP_DIRS = new Set([
   'node_modules', '.git', '.expo', 'dist', 'build', 'web-build',
@@ -54,20 +54,32 @@ const SKIP_FILES = new Set([
  * should meet them. Anything not listed follows in a stable path order.
  */
 const LEAD_FILES = [
-  'app/src/components/SwipeDeck.tsx',
-  'app/src/logic/deck.ts',
-  'app/src/logic/streak.ts',
+  // The reading loop: deck, recall, card, exports. This is what makes ReOpSy itself.
+  'app/src/logic/triage.ts',
+  'app/src/logic/recall.ts',
+  'app/src/logic/cardView.ts',
+  'app/src/logic/exporters.ts',
+  'app/src/logic/overleaf.ts',
+  'app/src/logic/feed.ts',
+  'app/src/logic/appData.ts',
+  'app/src/screens/TodayScreen.tsx',
+  'app/src/components/PaperCardView.tsx',
+  'app/src/components/TriageBar.tsx',
   'app/src/state/AppState.tsx',
-  'app/src/screens/DeckScreen.tsx',
-  'app/src/components/PaperCard.tsx',
-  'app/src/logic/bibtex.ts',
-  'app/src/logic/date.ts',
-  'app/src/state/storage.ts',
+  // The research community layer and its enforcement.
+  'app/src/services/community.ts',
+  'app/firestore.rules',
+  'app/src/screens/PaperScreen.tsx',
+  'app/src/screens/CircleScreen.tsx',
+  'app/src/screens/LibraryScreen.tsx',
+  'app/src/logic/social.ts',
+  'app/src/logic/streak.ts',
+  'app/src/ui/kit.tsx',
+  'app/src/ui/theme.ts',
   'backend/ingest/lib/summarize.js',
   'backend/ingest/lib/openalex.js',
   'backend/ingest/lib/arxiv.js',
   'backend/ingest/lib/dedupe.js',
-  'backend/schema.sql',
 ];
 
 // ---------------------------------------------------------------------------

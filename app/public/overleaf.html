@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Opening in Overleaf · ReOpSy</title>
+<style>
+  :root { color-scheme: light dark; --bg: #F5F6F2; --ink: #16202A; --muted: #56616B; --accent: #0E5D6C; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0F1316; --ink: #E6E9E4; --muted: #9DA6AE; --accent: #7CC8D6; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--ink);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 0 16px; }
+  main { max-width: 420px; text-align: center; }
+  p { color: var(--muted); }
+  button { min-height: 48px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--accent); color: var(--bg);
+           font: 600 15px system-ui, sans-serif; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Opening your survey in Overleaf…</h1>
+  <p id="msg">If nothing happens, tap the button below.</p>
+  <form id="f" method="POST" action="https://www.overleaf.com/docs">
+    <input type="hidden" name="encoded_snip" id="snip">
+    <input type="hidden" name="snip_name" value="main.tex">
+    <input type="hidden" name="engine" value="pdflatex">
+    <button type="submit">Open in Overleaf</button>
+  </form>
+</main>
+<script>
+  // The LaTeX travels in the URL fragment (after #), which browsers never send
+  // to a server. Decode base64url -> UTF-8, then post to Overleaf.
+  (function () {
+    var b64 = (location.hash || '').slice(1).replace(/-/g, '+').replace(/_/g, '/');
+    if (!b64) {
+      document.getElementById('msg').textContent = 'Nothing to open. Go back to ReOpSy and try again.';
+      document.getElementById('f').hidden = true;
+      return;
+    }
+    while (b64.length % 4) b64 += '=';
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    var tex = new TextDecoder('utf-8').decode(bytes);
+    document.getElementById('snip').value = encodeURIComponent(tex);
+    history.replaceState(null, '', location.pathname);
+    document.getElementById('f').submit();
+  })();
+</script>
+</body>
+</html>
