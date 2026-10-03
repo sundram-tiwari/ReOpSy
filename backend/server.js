@@ -2,10 +2,26 @@
 
 const http = require('http');
 const url = require('url');
+const crypto = require('crypto');
 const { fetchAndSummarize } = require('./pipeline/fetchAndSummarize');
 const { adminDb } = require('./services/firebase');
 
-const DEFAULT_SECRET = 'reopsy-secret-token';
+/**
+ * The webhook secret comes only from the environment. There is deliberately no
+ * built-in fallback: this repo is public, so any default would be a known token.
+ */
+function getConfiguredSecret() {
+  return process.env.WEBHOOK_SECRET || process.env.CRON_SECRET || null;
+}
+
+/**
+ * Constant-time string comparison (hashing first makes the lengths equal).
+ */
+function safeEqual(a, b) {
+  const ha = crypto.createHash('sha256').update(String(a)).digest();
+  const hb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
 
 /**
  * Extract authentication token from headers or query parameters
@@ -42,17 +58,26 @@ function extractToken(req, parsedUrl) {
  * Authenticates the incoming request against the configured secret
  */
 function authenticateRequest(req, parsedUrl) {
-  const expectedSecret = process.env.WEBHOOK_SECRET || process.env.CRON_SECRET || DEFAULT_SECRET;
+  const expectedSecret = getConfiguredSecret();
+  if (!expectedSecret) {
+    return {
+      authenticated: false,
+      status: 503,
+      error: 'Webhook disabled: WEBHOOK_SECRET is not configured on the server.'
+    };
+  }
   const token = extractToken(req, parsedUrl);
   if (!token) {
     return {
       authenticated: false,
+      status: 401,
       error: 'Missing authorization token. Provide token via Authorization header (Bearer <token>), x-webhook-token header, or ?token= query parameter.'
     };
   }
-  if (token !== expectedSecret) {
+  if (!safeEqual(token, expectedSecret)) {
     return {
       authenticated: false,
+      status: 401,
       error: 'Invalid authorization token.'
     };
   }
@@ -135,9 +160,10 @@ async function handleRequest(req, res) {
 
     const auth = authenticateRequest(req, parsedUrl);
     if (!auth.authenticated) {
-      return sendJson(401, {
+      const status = auth.status || 401;
+      return sendJson(status, {
         success: false,
-        error: `Unauthorized: ${auth.error}`
+        error: status === 401 ? `Unauthorized: ${auth.error}` : auth.error
       });
     }
 
@@ -202,6 +228,9 @@ function startServer(port = process.env.PORT || 3000) {
     console.log(`🚀 ReOpSy backend webhook server listening on http://localhost:${port}`);
     console.log(`   Health check: http://localhost:${port}/health`);
     console.log(`   Webhook: POST/GET http://localhost:${port}/api/webhook/fetch (requires token)`);
+    if (!getConfiguredSecret()) {
+      console.warn('⚠️  WEBHOOK_SECRET is not set: the webhook will reject every request (503) until it is configured.');
+    }
   });
   return server;
 }
@@ -216,5 +245,6 @@ module.exports = {
   authenticateRequest,
   extractToken,
   startServer,
-  DEFAULT_SECRET
+  getConfiguredSecret,
+  safeEqual
 };
