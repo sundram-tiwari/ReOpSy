@@ -3,7 +3,22 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('http');
-const { createServer, authenticateRequest, extractToken, DEFAULT_SECRET } = require('../../server');
+const { createServer, authenticateRequest, extractToken, safeEqual } = require('../../server');
+
+// The server reads the secret from the environment on every request.
+const TEST_SECRET = 'test-webhook-secret';
+process.env.WEBHOOK_SECRET = TEST_SECRET;
+delete process.env.CRON_SECRET;
+
+// Runs fn with no webhook secret configured, then restores the test secret.
+async function withoutSecret(fn) {
+  delete process.env.WEBHOOK_SECRET;
+  try {
+    return await fn();
+  } finally {
+    process.env.WEBHOOK_SECRET = TEST_SECRET;
+  }
+}
 
 // Helper to make local HTTP requests to a test server
 function makeRequest(server, options, bodyData = null) {
@@ -95,9 +110,9 @@ test('extractToken handles multiple header and query param formats', () => {
 });
 
 test('authenticateRequest validates token correctly', () => {
-  // Default secret
+  // Configured secret
   assert.equal(
-    authenticateRequest({ headers: { authorization: `Bearer ${DEFAULT_SECRET}` } }, { query: {} }).authenticated,
+    authenticateRequest({ headers: { authorization: `Bearer ${TEST_SECRET}` } }, { query: {} }).authenticated,
     true
   );
 
@@ -112,6 +127,21 @@ test('authenticateRequest validates token correctly', () => {
     authenticateRequest({ headers: {} }, { query: {} }).authenticated,
     false
   );
+});
+
+test('authenticateRequest fails closed with 503 when no secret is configured', async () => {
+  await withoutSecret(() => {
+    // The old public default token must no longer work.
+    const result = authenticateRequest({ headers: { authorization: 'Bearer reopsy-secret-token' } }, { query: {} });
+    assert.equal(result.authenticated, false);
+    assert.equal(result.status, 503);
+  });
+});
+
+test('safeEqual compares tokens of any length', () => {
+  assert.equal(safeEqual('abc', 'abc'), true);
+  assert.equal(safeEqual('abc', 'abd'), false);
+  assert.equal(safeEqual('short', 'a-much-longer-token'), false);
 });
 
 test('health check returns HTTP 200 and status ok', async () => {
@@ -171,7 +201,7 @@ test('webhook triggers dryRun pipeline execution with valid Bearer token', async
         path: '/api/webhook/fetch?dryRun=true',
         method: 'POST',
         headers: {
-          authorization: `Bearer ${DEFAULT_SECRET}`,
+          authorization: `Bearer ${TEST_SECRET}`,
           'content-type': 'application/json'
         }
       },
@@ -193,12 +223,32 @@ test('webhook triggers dryRun pipeline with valid query token', async () => {
     const res = await makeRequest(
       server,
       {
-        path: `/api/webhook/fetch?token=${DEFAULT_SECRET}&dryRun=true&topic=blockchain`,
+        path: `/api/webhook/fetch?token=${TEST_SECRET}&dryRun=true&topic=blockchain`,
         method: 'GET'
       }
     );
     assert.equal(res.statusCode, 202);
     assert.equal(res.body.success, true);
+  } finally {
+    server.close();
+  }
+});
+
+test('webhook returns 503 when the server has no secret configured', async () => {
+  const server = createServer();
+  await new Promise((res) => server.listen(0, res));
+
+  try {
+    await withoutSecret(async () => {
+      const res = await makeRequest(server, {
+        path: '/api/webhook/fetch',
+        method: 'POST',
+        headers: { authorization: 'Bearer reopsy-secret-token' }
+      });
+      assert.equal(res.statusCode, 503);
+      assert.equal(res.body.success, false);
+      assert.ok(res.body.error.includes('WEBHOOK_SECRET'));
+    });
   } finally {
     server.close();
   }

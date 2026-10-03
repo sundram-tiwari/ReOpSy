@@ -46,7 +46,7 @@ describe('Tier 2 - Boundary: F9 LLM API Usage Logging', () => {
   test('B9.3: Unknown or unexpected LLM provider name is preserved and categorized as Other/Custom', async () => {
     const usageDoc = {
       id: 'usage_custom',
-      provider: 'Claude-3.7-Sonnet',
+      provider: 'Unlisted-LLM-v1',
       success: true,
       timestamp: new Date().toISOString(),
       date: '2026-08-16'
@@ -54,7 +54,7 @@ describe('Tier 2 - Boundary: F9 LLM API Usage Logging', () => {
 
     await firestore.setDoc(firestore.doc('api_usage', 'usage_custom'), usageDoc);
     const saved = (await firestore.getDoc(firestore.doc('api_usage', 'usage_custom'))).data();
-    assert.equal(saved.provider, 'Claude-3.7-Sonnet');
+    assert.equal(saved.provider, 'Unlisted-LLM-v1');
   });
 
   test('B9.4: High-throughput batch logging (100 concurrent logs) writes all entries without dropped records', async () => {

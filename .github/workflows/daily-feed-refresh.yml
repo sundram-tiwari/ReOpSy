@@ -1,0 +1,88 @@
+name: Daily feed refresh (temporary)
+
+# Stopgap until the v2 pipeline replaces the Render backend
+# (docs/replan/build-playbook.md, Phase 6).
+#
+# The Render free instance sleeps when idle and nothing external was calling
+# the webhook, so the feed stopped refreshing. This job wakes the instance,
+# triggers fetchAndSummarize through the webhook, then keeps the instance awake
+# while the pipeline runs in the background (free instances spin down after
+# ~15 idle minutes, which would kill a run part-way).
+#
+# Needs one repository secret: WEBHOOK_SECRET, the same value as the
+# WEBHOOK_SECRET environment variable on the reopsy-backend Render service.
+
+on:
+  schedule:
+    - cron: '30 1 * * *'   # 01:30 UTC = 07:00 IST
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (fetch and summarize without writing the feed)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: feed-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BACKEND_URL: https://reopsy-backend.onrender.com
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check the secret is configured
+        env:
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$WEBHOOK_SECRET" ]; then
+            echo "::error::Add the WEBHOOK_SECRET repository secret (same value as on Render)."
+            exit 1
+          fi
+
+      # A cold start on the free plan can take about a minute.
+      - name: Wake the Render instance
+        run: |
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$BACKEND_URL/health" || true)
+            echo "Attempt $i: /health -> HTTP $code"
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::The backend did not wake up."
+          exit 1
+
+      - name: Trigger the pipeline
+        env:
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
+        run: |
+          code=$(curl -s -o response.json -w '%{http_code}' --max-time 60 \
+            -X POST "$BACKEND_URL/api/webhook/fetch" \
+            -H "Authorization: Bearer $WEBHOOK_SECRET" \
+            -H 'Content-Type: application/json' \
+            -d "{\"dryRun\": $DRY_RUN}")
+          echo "Webhook -> HTTP $code"
+          cat response.json; echo
+          if [ "$code" = "503" ]; then
+            echo "::error::WEBHOOK_SECRET is not set on the Render service."
+            exit 1
+          fi
+          if [ "$code" != "202" ]; then
+            echo "::error::Expected HTTP 202 from the webhook, got $code."
+            exit 1
+          fi
+
+      - name: Keep the instance awake while the pipeline runs
+        run: |
+          for i in $(seq 1 10); do
+            sleep 120
+            curl -s -o /dev/null -w "Keep-alive $i/10: HTTP %{http_code}\n" --max-time 60 "$BACKEND_URL/health" || true
+          done
