@@ -44,6 +44,8 @@ export interface AppStateContext {
   libraryEntry: (id: string) => LibraryEntry | undefined;
 
   triagePaper: (paper: Paper, action: TriageAction, reason?: NotRelevantReason) => void;
+  /** Swiping past a card counts as "seen", unless you already decided on it today. */
+  markSeen: (paper: Paper) => void;
   undoLastTriage: () => void;
   setLibraryStatus: (paper: Paper, status: LibraryStatus | null) => void;
   updateEntry: (paperId: string, patch: { note?: string; matrix?: MatrixRow }) => void;
@@ -214,6 +216,20 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [today, update],
   );
 
+  const markSeen = useCallback(
+    (paper: Paper) => {
+      update((s) => {
+        if (s.triage[paper.id]) return s;
+        return {
+          ...s,
+          triage: { ...s.triage, [paper.id]: { action: 'seen', day: today } },
+          streak: recordActivity(s.streak, today).state,
+        };
+      });
+    },
+    [today, update],
+  );
+
   const undoLastTriage = useCallback(() => {
     const snap = undoRef.current;
     if (!snap) return;
@@ -285,6 +301,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       findPaper: (id) => paperIndex.get(id),
       libraryEntry: (id) => state.library.find((e) => e.paper.id === id),
       triagePaper,
+      markSeen,
       undoLastTriage,
       setLibraryStatus,
       updateEntry,
@@ -312,7 +329,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setState(defaultState());
       },
     }),
-    [isLoaded, today, state, feed, deck, paperIndex, triagePaper, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
+    [isLoaded, today, state, feed, deck, paperIndex, triagePaper, markSeen, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
   );
 
   if (!isLoaded) return null;

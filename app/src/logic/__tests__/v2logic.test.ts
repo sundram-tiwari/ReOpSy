@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Paper, TriageRecord, LibraryEntry } from '../../types';
-import { cleanText, isPartialSummary, paperKey, toCardView } from '../cardView';
+import { cleanText, isPartialSummary, paperKey, splitSentences, summaryBullets, toCardView } from '../cardView';
 import { buildDailyDeck, deckProgress } from '../triage';
 import { dueItems, gradeItem, recallPrompt, scheduleNew } from '../recall';
 import { citationKeys, csvCell, escapeLatex, toBibTeX, toMatrixCSV, toRIS } from '../exporters';
@@ -34,6 +34,24 @@ test('truncated v1 summaries are flagged, not shown as complete', () => {
   const view = toCardView(paper('arxiv:1', { summary: 'We present X, a framework for…' }));
   assert.equal(view.summaryIsPartial, true);
   assert.ok(!view.summary!.endsWith('…'));
+});
+
+test('summary bullets: labelled parts for v2, whole sentences for v1', () => {
+  const v2 = paper('arxiv:9', {
+    summaryParts: { problem: 'P.', approach: 'A.', result: 'R.', limits: 'L.' },
+  });
+  assert.deepEqual(
+    summaryBullets(v2).map((b) => b.label),
+    ['Problem', 'Method', 'Result', 'Limits'],
+  );
+  const v1 = paper('arxiv:10', {
+    summary: 'Simulators are too cooperative. We tested 2.5 s windows. We present X, a framework for…',
+  });
+  const bullets = summaryBullets(v1);
+  assert.equal(bullets.length, 2);
+  assert.equal(bullets[1].text, 'We tested 2.5 s windows.');
+  assert.ok(bullets.every((b) => b.label === null));
+  assert.deepEqual(splitSentences('One. Two? three'), ['One.', 'Two? three']);
 });
 
 test('paperKey makes DOI ids Firestore-safe', () => {

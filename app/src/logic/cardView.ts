@@ -81,6 +81,58 @@ function sourceLabel(paper: Paper): string {
   return paper.source || 'Source';
 }
 
+export interface SummaryBullet {
+  label: string | null;
+  text: string;
+}
+
+const BULLET_PARTS: [keyof SummaryParts, string][] = [
+  ['problem', 'Problem'],
+  ['approach', 'Method'],
+  ['result', 'Result'],
+  ['limits', 'Limits'],
+];
+
+/** Splits on sentence ends followed by a capital, digit or quote, so "2.5 s" stays whole. */
+export function splitSentences(text: string): string[] {
+  const out: string[] = [];
+  let start = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch !== '.' && ch !== '!' && ch !== '?') continue;
+    const end = i + 1 === text.length;
+    if (end || (text[i + 1] === ' ' && /[A-Z0-9("“]/.test(text[i + 2] || ''))) {
+      out.push(text.slice(start, i + 1).trim());
+      start = i + 1;
+    }
+  }
+  const rest = text.slice(start).trim();
+  if (rest) out.push(rest);
+  return out.filter(Boolean);
+}
+
+/**
+ * A few short bullets for the shorts feed: deliberately limited, with the
+ * full paper one tap away. Structured papers use their labelled parts; older
+ * papers are split into whole sentences, and a sentence an earlier pipeline
+ * cut off is dropped instead of shown half-finished.
+ */
+export function summaryBullets(paper: Paper, max = 4): SummaryBullet[] {
+  if (paper.summaryParts) {
+    return BULLET_PARTS.map(([key, label]) => ({ label, text: cleanText(paper.summaryParts![key]) }))
+      .filter((b) => b.text)
+      .slice(0, max);
+  }
+  const raw = cleanText(paper.summary).replace(ELLIPSIS_END, '').trim();
+  if (!raw) return [];
+  let sentences = splitSentences(raw);
+  const last = sentences[sentences.length - 1];
+  if (isPartialSummary(paper.summary) && sentences.length > 1 && !/[.!?]$/.test(last)) {
+    sentences = sentences.slice(0, -1);
+  }
+  return sentences.slice(0, Math.min(max, 3)).map((text) => ({ label: null, text }));
+}
+
 export function toCardView(paper: Paper, opts: { serendipity?: boolean } = {}): CardView {
   const originalTitle = cleanText(paper.originalTitle);
   const headline = cleanText(paper.headline || paper.catchyTitle || paper.originalTitle) || originalTitle;

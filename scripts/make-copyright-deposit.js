@@ -64,7 +64,7 @@ const LEAD_FILES = [
   'app/src/logic/appData.ts',
   'app/src/screens/TodayScreen.tsx',
   'app/src/components/PaperCardView.tsx',
-  'app/src/components/TriageBar.tsx',
+  'app/src/components/ShortCard.tsx',
   'app/src/state/AppState.tsx',
   // The research community layer and its enforcement.
   'app/src/services/community.ts',
