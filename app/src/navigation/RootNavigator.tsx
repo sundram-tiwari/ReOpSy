@@ -1,5 +1,5 @@
 import React from 'react';
-import { useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { DarkTheme, DefaultTheme, NavigationContainer, Theme as NavTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -29,11 +29,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
-const TAB_ICONS: Record<keyof TabParamList, FeatherName> = {
-  Today: 'sun',
-  Circles: 'users',
-  Library: 'book',
-  You: 'user',
+const TAB_ITEMS: Record<keyof TabParamList, { name: string; icon: FeatherName }> = {
+  Today: { name: 'Today', icon: 'sun' },
+  Circles: { name: 'Community', icon: 'users' },
+  Library: { name: 'Library', icon: 'book-open' },
+  You: { name: 'Profile', icon: 'user' },
 };
 
 /** Four tabs, one job each: read today, talk with people, keep what matters, see your progress. */
@@ -47,11 +47,21 @@ function Tabs() {
         headerShown: false,
         tabBarActiveTintColor: c.accent,
         tabBarInactiveTintColor: c.muted,
+        title: TAB_ITEMS[route.name].name,
+        tabBarAccessibilityLabel: TAB_ITEMS[route.name].name,
+        tabBarLabel: route.name === 'Circles' ? TAB_ITEMS.Circles.name : () => null,
+        tabBarLabelPosition: 'below-icon',
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarItemStyle: styles.tabItem,
         tabBarStyle: [
           { backgroundColor: c.surface, borderTopColor: c.rule },
           route.name === 'Today' && width > 500 ? { width: 500, alignSelf: 'center' } : undefined,
         ],
-        tabBarIcon: ({ color, size }) => <Feather name={TAB_ICONS[route.name]} size={size} color={color} />,
+        tabBarIcon: ({ color, focused }) => (
+          <View style={[styles.tabIcon, focused && { backgroundColor: c.accentSoft }]} pointerEvents="none">
+            <Feather name={TAB_ITEMS[route.name].icon} size={20} color={color} />
+          </View>
+        ),
       })}
     >
       <Tab.Screen name="Today" component={TodayScreen} />
@@ -59,7 +69,6 @@ function Tabs() {
         name="Circles"
         component={CirclesScreen}
         options={{
-          title: 'Community',
           // A dot, never a number: it says "something new", not "you are behind".
           tabBarBadge: unread ? '' : undefined,
           tabBarBadgeStyle: { backgroundColor: c.accent, minWidth: 10, maxHeight: 10, borderRadius: 5, top: 4 },
@@ -103,3 +112,9 @@ export const RootNavigator = () => {
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  tabItem: { minHeight: 48 },
+  tabLabel: { fontSize: 10, fontWeight: '600' },
+  tabIcon: { width: 38, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+});

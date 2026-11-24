@@ -8,7 +8,7 @@ import { T } from '../ui/kit';
 import { radius, space, useTheme } from '../ui/theme';
 
 type Icon = React.ComponentProps<typeof Feather>['name'];
-type Action = { label: string; icon: Icon; run: () => void };
+type Action = { label: string; text?: string; icon: Icon; run: () => void; primary?: boolean };
 
 export function FeedPaperPreview({
   paper, serendipity, height, isCurrent, onDetails, onOpen, onDiscuss, onShare, onReport,
@@ -35,9 +35,9 @@ export function FeedPaperPreview({
   const lineHeight = small ? 20 : 24;
   const excerptLines = Math.min(small ? 5 : 7, Math.floor((excerptHeight + 0.5) / (lineHeight * Math.max(fontScale, 1))));
   const actions: Action[] = [
-    { label: 'Details', icon: 'file-text', run: onDetails },
-    { label: 'Open paper', icon: 'external-link', run: onOpen },
-    { label: 'Discuss', icon: 'message-circle', run: onDiscuss },
+    { label: 'Read full card', text: 'Details', icon: 'file-text', run: onDetails, primary: true },
+    { label: 'Open paper', text: 'Open', icon: 'external-link', run: onOpen },
+    { label: 'Discuss', text: 'Discuss', icon: 'message-circle', run: onDiscuss },
     { label: 'Share', icon: 'share-2', run: onShare },
   ];
 
@@ -45,8 +45,8 @@ export function FeedPaperPreview({
     <View style={[styles.page, small && styles.smallPage]}>
       <View style={[styles.card, small && styles.smallCard, { backgroundColor: c.surface, borderColor: c.rule }]}>
         <View style={styles.topicRow}>
-          <T v="label" tone="accent" numberOfLines={1} style={styles.topic}>{topicLabel(paper.topics?.[0] || '')}</T>
-          {serendipity ? <Feather name="compass" color={c.accent} size={15} accessibilityLabel="Outside your topics" /> : null}
+          <T v="label" tone="muted" numberOfLines={1} style={styles.topic}>{topicLabel(paper.topics?.[0] || '')}</T>
+          {serendipity ? <Feather name="compass" color={c.muted} size={15} accessibilityLabel="Outside your topics" /> : null}
         </View>
         <T v={tiny ? 'heading' : 'headline'} accessibilityRole="header" numberOfLines={tiny ? 2 : small ? 3 : 4} style={styles.headline}>
           {v.headline}
@@ -57,7 +57,7 @@ export function FeedPaperPreview({
           </T>
         )}
         {!tiny && excerpt ? (
-          <View style={[styles.finding, small && styles.smallFinding, { borderTopColor: c.rule }]}>
+          <View style={[styles.finding, small && styles.smallFinding]}>
             <T v="label" tone="muted" numberOfLines={1}>{excerptLabel}</T>
             <View style={styles.excerpt} onLayout={(e) => setExcerptHeight((h) => {
               const next = e.nativeEvent.layout.height;
@@ -77,7 +77,7 @@ export function FeedPaperPreview({
               accessibilityLabel="Report summary"
               style={({ pressed }) => [styles.report, pressed && styles.pressed]}
             >
-              <T v="caption" tone="accent" numberOfLines={1}>Report</T>
+              <T v="caption" tone="muted" numberOfLines={1} style={styles.reportLabel}>Report</T>
             </Pressable>
           </View>
         ) : null}
@@ -88,11 +88,19 @@ export function FeedPaperPreview({
               onPress={a.run}
               disabled={!isCurrent}
               accessibilityRole="button"
-              accessibilityLabel={a.label === 'Details' ? 'Read full card' : a.label}
-              style={({ pressed }) => [styles.action, pressed && { backgroundColor: c.accentSoft }]}
+              accessibilityLabel={a.label}
+              style={({ pressed }) => [
+                styles.action,
+                !tiny && a.text ? styles.labeledAction : styles.iconAction,
+                pressed && { backgroundColor: c.surfaceAlt },
+              ]}
             >
-              <Feather name={a.icon} color={c.accent} size={small ? 16 : 19} />
-              {!tiny && <T v="caption" tone="accent" numberOfLines={1} style={styles.actionLabel}>{a.label}</T>}
+              <Feather name={a.icon} color={a.primary ? c.accent : c.muted} size={16} />
+              {!tiny && a.text ? (
+                <T v="caption" tone={a.primary ? 'accent' : 'muted'} numberOfLines={1} style={styles.actionLabel}>
+                  {a.text}
+                </T>
+              ) : null}
             </Pressable>
           ))}
         </View>
@@ -109,14 +117,17 @@ const styles = StyleSheet.create({
   topicRow: { flexDirection: 'row', alignItems: 'center', gap: space.s, marginBottom: space.xs },
   topic: { flex: 1, minWidth: 0 },
   headline: { marginBottom: space.xs },
-  finding: { flex: 1, minHeight: 0, gap: space.xs, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.m, marginTop: space.m, overflow: 'hidden' },
-  smallFinding: { paddingTop: space.xs, marginTop: space.s },
+  finding: { flex: 1, minHeight: 0, gap: space.xs, marginTop: space.l, overflow: 'hidden' },
+  smallFinding: { marginTop: space.s },
   excerpt: { flex: 1, minHeight: 0, overflow: 'hidden' },
   disclosure: { flexDirection: 'row', alignItems: 'center', gap: space.s },
   report: { minHeight: 36, paddingHorizontal: space.xs, justifyContent: 'center' },
+  reportLabel: { textDecorationLine: 'underline' },
   pressed: { opacity: 0.6 },
   actions: { flexDirection: 'row', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth },
-  action: { flex: 1, minWidth: 0, minHeight: 44, alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: radius.s },
-  actionLabel: { maxWidth: '95%', fontWeight: '600' },
+  action: { flexDirection: 'row', minHeight: 44, alignItems: 'center', justifyContent: 'center', gap: space.xs, borderRadius: radius.s },
+  labeledAction: { flex: 1, minWidth: 0 },
+  iconAction: { flexGrow: 0.75, minWidth: 44 },
+  actionLabel: { flexShrink: 1, fontWeight: '600' },
   spacer: { flex: 1, minHeight: 0 },
 });
