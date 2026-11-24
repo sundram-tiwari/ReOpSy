@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Share, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as WebBrowser from 'expo-web-browser';
 import { RouteProp, useRoute } from '@react-navigation/native';
@@ -29,7 +30,7 @@ import { paperKey } from '../logic/cardView';
 import { LIMITS, cleanPostText, rateLimit } from '../logic/social';
 import { relativeTime } from '../logic/date';
 import { Avatar, Button, Chip, Divider, EmptyState, IconButton, ListRow, Screen, SectionTitle, Sheet, T, TextField } from '../ui/kit';
-import { space } from '../ui/theme';
+import { space, useTheme } from '../ui/theme';
 import { useToast } from '../ui/Toast';
 
 const STATUS: { key: LibraryStatus | 'none'; label: string }[] = [
@@ -49,6 +50,7 @@ export function PaperScreen() {
   const { user } = useAuth();
   const { enabled } = useCommunity();
   const toast = useToast();
+  const { c: colors } = useTheme();
   const contributor = useContributor((s) => nav.navigate(s));
 
   const paper: Paper | undefined =
@@ -202,6 +204,7 @@ export function PaperScreen() {
 
   const renderComment = (c: Comment, isReply: boolean) => {
     const mine = user?.uid === c.uid;
+    const markedHelpful = helpful.has(c.id);
     return (
       <View key={c.id} style={{ flexDirection: 'row', gap: space.m, marginTop: space.m, marginLeft: isReply ? 44 : 0 }}>
         <Pressable onPress={() => nav.navigate('Profile', { uid: c.uid })} accessibilityRole="button" accessibilityLabel={`Open ${c.name}'s profile`}>
@@ -219,8 +222,16 @@ export function PaperScreen() {
             {c.text}
           </T>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.l, marginTop: space.xs }}>
-            <Pressable onPress={() => toggleHelpful(c)} accessibilityRole="button" accessibilityState={{ selected: helpful.has(c.id) }} hitSlop={8}>
-              <T v="caption" tone={helpful.has(c.id) ? 'accent' : 'muted'} style={{ fontWeight: '600' }}>
+            <Pressable
+              onPress={() => toggleHelpful(c)}
+              accessibilityRole="button"
+              accessibilityLabel={markedHelpful ? 'Remove helpful reaction' : 'Mark comment helpful'}
+              accessibilityHint={c.helpfulCount ? `${c.helpfulCount} helpful reactions` : undefined}
+              accessibilityState={{ selected: markedHelpful }}
+              style={{ minHeight: 44, flexDirection: 'row', gap: space.xs, alignItems: 'center' }}
+            >
+              <Feather name="thumbs-up" size={15} color={markedHelpful ? colors.accent : colors.muted} />
+              <T v="caption" tone={markedHelpful ? 'accent' : 'muted'} style={{ fontWeight: '600' }}>
                 Helpful{c.helpfulCount > 0 ? ` · ${c.helpfulCount}` : ''}
               </T>
             </Pressable>

@@ -8,11 +8,11 @@ type FeatherName = React.ComponentProps<typeof Feather>['name'];
 
 export type TriageChoice = 'not_relevant' | 'skip' | 'save' | 'survey';
 
-const ACTIONS: { key: TriageChoice; label: string; icon: FeatherName; hint: string }[] = [
+const ACTIONS: { key: TriageChoice; label: string; accessibleName?: string; icon: FeatherName; hint: string }[] = [
   { key: 'not_relevant', label: 'Not for me', icon: 'x', hint: 'Hide this paper and tune your feed' },
   { key: 'skip', label: 'Skip', icon: 'chevron-right', hint: 'Move on without saving' },
+  { key: 'survey', label: 'Review', accessibleName: 'Add to literature review', icon: 'plus-square', hint: 'Store this paper in your survey list' },
   { key: 'save', label: 'Save', icon: 'bookmark', hint: 'Save to your library and recall it later' },
-  { key: 'survey', label: 'Survey', icon: 'plus-square', hint: 'Add to your literature survey' },
 ];
 
 /** One decision per card. Every option is a button, so no gesture is required. */
@@ -32,7 +32,7 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
             key={a.key}
             onPress={() => onChoose(a.key)}
             accessibilityRole="button"
-            accessibilityLabel={a.label}
+            accessibilityLabel={a.accessibleName || a.label}
             accessibilityHint={a.hint}
             style={({ pressed }) => [styles.btn, pressed && { opacity: 0.6 }]}
           >
