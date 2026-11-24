@@ -7,6 +7,7 @@ import { daysBetween, isDayKey } from './date';
  * Pure functions only, so migration and merge are unit-tested.
  */
 export type ThemePrefValue = 'system' | 'light' | 'dark';
+type PaperLike = { liked: boolean; updatedAt: number };
 
 export interface StoredStateV3 {
   version: 3;
@@ -14,6 +15,7 @@ export interface StoredStateV3 {
   onboardingComplete: boolean;
   dailyGoal: number;
   triage: Record<string, TriageRecord>;
+  paperLikes: Record<string, PaperLike>;
   library: LibraryEntry[];
   recallQueue: RecallItem[];
   recallDays: string[];
@@ -43,6 +45,7 @@ export function defaultState(): StoredStateV3 {
     onboardingComplete: false,
     dailyGoal: 10,
     triage: {},
+    paperLikes: {},
     library: [],
     recallQueue: [],
     recallDays: [],
@@ -62,6 +65,26 @@ const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const str = (v: unknown, d: string): string => (typeof v === 'string' ? v : d);
 
+function readPaperLikes(raw: unknown): StoredStateV3['paperLikes'] {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  return Object.fromEntries(Object.entries(raw).flatMap(([id, value]) => {
+    if (!id || !value || typeof value !== 'object') return [];
+    const { liked, updatedAt } = value as Partial<PaperLike>;
+    return typeof liked === 'boolean' && typeof updatedAt === 'number' && Number.isFinite(updatedAt) && updatedAt >= 0
+      ? [[id, { liked, updatedAt }]]
+      : [];
+  }));
+}
+
+export function withPaperLike(state: StoredStateV3, id: string, liked: boolean, now: number): StoredStateV3 {
+  const before = state.paperLikes[id];
+  if (!id || (before?.liked === true) === liked) return state;
+  return {
+    ...state,
+    paperLikes: { ...state.paperLikes, [id]: { liked, updatedAt: Math.max(now, (before?.updatedAt ?? -1) + 1) } },
+  };
+}
+
 function isPaper(p: unknown): p is Paper {
   return Boolean(p && typeof p === 'object' && typeof (p as Paper).id === 'string' && typeof (p as Paper).originalTitle === 'string');
 }
@@ -79,6 +102,7 @@ export function migrate(raw: unknown, today: string): StoredStateV3 {
       onboardingComplete: Boolean(r.onboardingComplete),
       dailyGoal: [5, 10, 15].includes(r.dailyGoal as number) ? (r.dailyGoal as number) : base.dailyGoal,
       triage: r.triage && typeof r.triage === 'object' ? (r.triage as Record<string, TriageRecord>) : {},
+      paperLikes: readPaperLikes(r.paperLikes),
       library: arr<LibraryEntry>(r.library).filter((e) => e && isPaper(e.paper)),
       recallQueue: arr<RecallItem>(r.recallQueue).filter((q) => q && typeof q.paperId === 'string' && isDayKey(q.dueOn)),
       recallDays: arr<string>(r.recallDays).filter(isDayKey),
@@ -101,6 +125,9 @@ export function migrate(raw: unknown, today: string): StoredStateV3 {
     ...base,
     followedTopics: followed.length ? followed : base.followedTopics,
     onboardingComplete: Boolean(r.onboardingComplete),
+    paperLikes: Object.fromEntries(arr<unknown>(r.likedPapers)
+      .filter((id): id is string => typeof id === 'string' && !!id)
+      .map((id) => [id, { liked: true, updatedAt: 0 }])),
     library: saved.map((paper) => ({ paper, status: 'saved' as const, addedOn: today })),
     triage: Object.fromEntries(saved.map((p) => [p.id, { action: 'saved' as const, day: today }])),
     streak: { ...initialStreak, ...((r.streak as StreakState) || {}) },
@@ -138,6 +165,15 @@ export function mergeStates(local: StoredStateV3, cloud: StoredStateV3): StoredS
     if (!other || rec.day >= other.day) triage[id] = rec;
   }
 
+  // Include unlikes so an older device does not restore a removed Like.
+  const paperLikes = new Map(Object.entries(cloud.paperLikes));
+  for (const [id, rec] of Object.entries(local.paperLikes)) {
+    const other = paperLikes.get(id);
+    if (!other || rec.updatedAt > other.updatedAt || (rec.updatedAt === other.updatedAt && !rec.liked)) {
+      paperLikes.set(id, rec);
+    }
+  }
+
   const recall = new Map<string, RecallItem>();
   for (const q of [...cloud.recallQueue, ...local.recallQueue]) {
     const prev = recall.get(q.paperId);
@@ -153,6 +189,7 @@ export function mergeStates(local: StoredStateV3, cloud: StoredStateV3): StoredS
     version: 3,
     onboardingComplete: local.onboardingComplete || cloud.onboardingComplete,
     triage,
+    paperLikes: Object.fromEntries(paperLikes),
     library: [...library.values()],
     recallQueue: [...recall.values()],
     recallDays: [...new Set([...cloud.recallDays, ...local.recallDays])].sort(),

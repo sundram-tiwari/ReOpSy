@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { recordActivity } from '../logic/streak';
 import { dayKey } from '../logic/date';
-import { StoredStateV3, ThemePrefValue, defaultState, mergeStates, migrate, pruneTriage } from '../logic/appData';
+import { StoredStateV3, ThemePrefValue, defaultState, mergeStates, migrate, pruneTriage, withPaperLike } from '../logic/appData';
 import { buildDailyDeck, DeckCard } from '../logic/triage';
 import { gradeItem, scheduleNew } from '../logic/recall';
 import { prepareFeed } from '../logic/feed';
@@ -44,6 +44,7 @@ export interface AppStateContext {
   findPaper: (id: string) => Paper | undefined;
   libraryEntry: (id: string) => LibraryEntry | undefined;
 
+  setPaperLiked: (id: string, liked: boolean) => void;
   triagePaper: (paper: Paper, action: TriageAction, reason?: NotRelevantReason) => void;
   undoLastTriage: () => void;
   setLibraryStatus: (paper: Paper, status: LibraryStatus | null) => void;
@@ -208,6 +209,11 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const update = useCallback((fn: (s: StoredStateV3) => StoredStateV3) => setState((s) => fn(s)), []);
 
+  const setPaperLiked = useCallback((id: string, liked: boolean) => {
+    const now = Date.now();
+    update((s) => withPaperLike(s, id, liked, now));
+  }, [update]);
+
   const triagePaper = useCallback(
     (paper: Paper, action: TriageAction, reason?: NotRelevantReason) => {
       update((s) => {
@@ -302,6 +308,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       deck,
       findPaper: (id) => paperIndex.get(id),
       libraryEntry: (id) => state.library.find((e) => e.paper.id === id),
+      setPaperLiked,
       triagePaper,
       undoLastTriage,
       setLibraryStatus,
@@ -330,7 +337,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setState(defaultState());
       },
     }),
-    [isLoaded, today, state, feed, liveFeed, deck, paperIndex, triagePaper, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
+    [isLoaded, today, state, feed, liveFeed, deck, paperIndex, setPaperLiked, triagePaper, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
   );
 
   if (!isLoaded) return null;
