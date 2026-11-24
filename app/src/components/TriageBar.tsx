@@ -1,7 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { T } from '../ui/kit';
 import { space, useTheme } from '../ui/theme';
 
@@ -19,12 +18,11 @@ const ACTIONS: { key: TriageChoice; label: string; icon: FeatherName; hint: stri
 /** One decision per card. Every option is a button, so no gesture is required. */
 export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => void }) {
   const { c } = useTheme();
-  const insets = useSafeAreaInsets();
   return (
     <View
       style={[
         styles.bar,
-        { backgroundColor: c.surface, borderTopColor: c.rule, paddingBottom: Math.max(insets.bottom, space.s) },
+        { backgroundColor: c.surface, borderTopColor: c.rule },
       ]}
     >
       {ACTIONS.map((a) => {
@@ -41,7 +39,7 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
             <View style={[styles.icon, { backgroundColor: primary ? c.accentSoft : c.surfaceAlt }]}>
               <Feather name={a.icon} size={20} color={primary ? c.accent : c.muted} />
             </View>
-            <T v="caption" tone={primary ? 'accent' : 'muted'} style={{ fontWeight: '600', marginTop: 4 }}>
+            <T v="caption" numberOfLines={1} tone={primary ? 'accent' : 'muted'} style={{ fontWeight: '600', marginTop: 4 }}>
               {a.label}
             </T>
           </Pressable>
@@ -52,7 +50,7 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.s, paddingHorizontal: space.s },
+  bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs, paddingHorizontal: space.s },
   btn: { flex: 1, alignItems: 'center', minHeight: 56, justifyContent: 'center' },
   icon: { width: 44, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 });
