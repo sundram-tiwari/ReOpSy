@@ -1,10 +1,10 @@
-import { useNavigation } from '@react-navigation/native';
+import { NavigatorScreenParams, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PaperRef } from '../services/community';
 
 export type RootStackParamList = {
   Onboarding: undefined;
-  Tabs: undefined;
+  Tabs: NavigatorScreenParams<TabParamList> | undefined;
   Paper: { paperId: string; ref?: PaperRef };
   Recall: undefined;
   Circle: { circleId: string };
@@ -21,7 +21,7 @@ export type RootStackParamList = {
 export type TabParamList = {
   Today: undefined;
   Circles: undefined;
-  Library: undefined;
+  Library: { openSurveyExport?: boolean } | undefined;
   You: undefined;
 };
 
