@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { T } from '../ui/kit';
 import { space, useTheme } from '../ui/theme';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
@@ -15,7 +16,7 @@ const ACTIONS: { key: TriageChoice; label: string; accessibleName?: string; icon
 ];
 
 /** One decision per card. Every option is a button, so no gesture is required. */
-export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => void }) {
+export function TriageBar({ onChoose, showLabels, onFocus }: { onChoose: (choice: TriageChoice) => void; showLabels?: boolean; onFocus?: () => void }) {
   const { c } = useTheme();
   return (
     <View
@@ -30,6 +31,7 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
           <Pressable
             key={a.key}
             onPress={() => onChoose(a.key)}
+            onFocus={onFocus}
             accessibilityRole="button"
             accessibilityLabel={a.accessibleName || a.label}
             accessibilityHint={a.hint}
@@ -38,7 +40,7 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
             <View style={[styles.icon, primary && { backgroundColor: c.accentSoft }]}>
               <Feather name={a.icon} size={20} color={primary ? c.accent : c.muted} />
             </View>
-
+            {showLabels ? <T v="caption" tone={primary ? 'accent' : 'muted'}>{a.label}</T> : null}
           </Pressable>
         );
       })}

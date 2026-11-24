@@ -13,6 +13,8 @@ import { shortCitation } from '../logic/exporters';
 import { FeedAnchor, feedIndex } from '../logic/feedPager';
 import { NotRelevantReason } from '../types';
 import { useNav } from '../navigation/types';
+import { DesktopToday, useTodayColumns } from '../components/DesktopToday';
+import type { TodayPaper } from '../components/DesktopToday';
 import { DailyBriefSheet } from '../components/DailyBriefSheet';
 import { FeedPager } from '../components/FeedPager';
 import { FeedPaperPreview } from '../components/FeedPaperPreview';
@@ -34,6 +36,7 @@ export function TodayScreen() {
   const tabs = useNavigation<any>();
   const toast = useToast();
   const focused = useIsFocused();
+  const columns = useTodayColumns();
   const { deck, state, today, feed, liveFeed, triagePaper, undoLastTriage } = useAppState();
   const [anchor, setAnchor] = useState<(FeedAnchor & { day: string }) | undefined>();
   const [reasonFor, setReasonFor] = useState<string | null>(null);
@@ -57,23 +60,32 @@ export function TodayScreen() {
   const streak = effectiveStreak(state.streak, today);
   const recallDue = useMemo(() => dueItems(state.recallQueue, today).length, [state.recallQueue, today]);
 
-  const decide = (choice: TriageChoice, reason?: NotRelevantReason) => {
-    if (!current) return;
+  const focusCard = (card: TodayPaper) => setAnchor({ day: today, paperId: card.paperId, deckIndex: card.deckIndex });
+  const shareCard = (card: TodayPaper) => {
+    const message = `${shortCitation(card.paper)}
+${card.paper.url}`;
+    if (Platform.OS === 'web') {
+      Clipboard.setStringAsync(message).then((copied) => toast(copied ? 'Citation and link copied.' : 'Could not copy the citation.')).catch(() => toast('Could not copy the citation.'));
+    } else {
+      Share.share({ message }).catch(() => {});
+    }
+  };
+  const decide = (card: TodayPaper, choice: TriageChoice, reason?: NotRelevantReason) => {
     if (choice === 'not_relevant' && !reason) {
-      setReasonFor(current.paperId);
+      setReasonFor(card.paperId);
       return;
     }
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     const action = choice === 'skip' ? 'seen' : choice === 'save' ? 'saved' : choice === 'survey' ? 'survey' : 'not_relevant';
-    goTo(index);
-    triagePaper(current.paper, action, reason);
+    focusCard(card);
+    triagePaper(card.paper, action, reason);
     const msg =
       action === 'saved' ? 'Saved. You will get a recall question tomorrow.'
       : action === 'survey' ? 'Added to your survey.'
       : action === 'not_relevant' ? 'Hidden. Your feed will lean away from this.'
       : 'Skipped.';
     toast(msg, { label: 'Undo', onPress: () => {
-      goTo(index);
+      focusCard(card);
       undoLastTriage();
     } });
   };
@@ -162,15 +174,34 @@ export function TodayScreen() {
     );
   }
 
-  const paper = current.paper;
+  const reasonCard = unread.find((card) => reasonFor === card.paperId);
+  const reportCard = unread.find((card) => reportFor === card.paperId);
+  const detailsCard = unread.find((card) => detailsFor === card.paperId);
+  const active = focused && !briefOpen && !reasonCard && !reportCard && !detailsCard;
   return (
     <Screen scroll={false} padded={false}>
-      <View style={styles.feed}>
+      {columns ? (
+        <DesktopToday
+          header={header}
+          cards={unread}
+          columns={columns}
+          index={index}
+          active={active}
+          onSelect={goTo}
+          onFocusCard={focusCard}
+          onDetails={(card) => { focusCard(card); setDetailsFor(card.paperId); }}
+          onOpen={(card) => { focusCard(card); void WebBrowser.openBrowserAsync(card.paper.url); }}
+          onDiscuss={(card) => { focusCard(card); nav.navigate('Paper', { paperId: card.paperId }); }}
+          onShare={shareCard}
+          onReport={(card) => setReportFor(card.paperId)}
+          onDecide={decide}
+        />
+      ) : <View style={styles.feed}>
         <View style={styles.feedHeader}>{header}</View>
         <FeedPager
           index={index}
           paperIds={paperIds}
-          active={focused && !briefOpen && ![reasonFor, reportFor, detailsFor].includes(paper.id)}
+          active={active}
           onChange={goTo}
           render={(page, height, isCurrent) => {
             const card = unread[page];
@@ -183,14 +214,7 @@ export function TodayScreen() {
                 onDetails={() => setDetailsFor(card.paperId)}
                 onOpen={() => WebBrowser.openBrowserAsync(card.paper.url)}
                 onDiscuss={() => nav.navigate('Paper', { paperId: card.paperId })}
-                onShare={() => {
-                  const message = `${shortCitation(card.paper)}\n${card.paper.url}`;
-                  if (Platform.OS === 'web') {
-                    Clipboard.setStringAsync(message).then((copied) => toast(copied ? 'Citation and link copied.' : 'Could not copy the citation.')).catch(() => toast('Could not copy the citation.'));
-                  } else {
-                    Share.share({ message }).catch(() => {});
-                  }
-                }}
+                onShare={() => shareCard(card)}
                 onReport={() => setReportFor(card.paperId)}
               />
             );
@@ -210,11 +234,11 @@ export function TodayScreen() {
         >
           <T v="caption" tone="muted" numberOfLines={1}>{`${index + 1} / ${unread.length}`}</T>
         </View>
-        <TriageBar onChoose={decide} />
-      </View>
+        <TriageBar onChoose={(choice) => decide(current, choice)} />
+      </View>}
 
       {researchBrief}
-      <Sheet visible={reasonFor === paper.id} title="Why is this not for you?" onClose={() => setReasonFor(null)}>
+      <Sheet visible={!!reasonCard} title="Why is this not for you?" onClose={() => setReasonFor(null)}>
         <T tone="muted" style={{ marginBottom: space.m }}>
           Your answer tunes future decks. It is stored on your device and in your private sync.
         </T>
@@ -226,16 +250,16 @@ export function TodayScreen() {
               label={r.label}
               onPress={() => {
                 setReasonFor(null);
-                decide('not_relevant', r.key);
+                if (reasonCard) decide(reasonCard, 'not_relevant', r.key);
               }}
             />
           ))}
         </View>
       </Sheet>
-      <Sheet visible={detailsFor === paper.id} title="Paper details" onClose={() => setDetailsFor(null)}>
-        <PaperCardView paper={paper} serendipity={current.serendipity} />
+      <Sheet visible={!!detailsCard} title="Paper details" onClose={() => setDetailsFor(null)}>
+        {detailsCard ? <PaperCardView paper={detailsCard.paper} serendipity={detailsCard.serendipity} /> : null}
       </Sheet>
-      <ReportSummarySheet paperId={paper.id} visible={reportFor === paper.id} onClose={() => setReportFor(null)} />
+      {reportCard ? <ReportSummarySheet paperId={reportCard.paperId} visible onClose={() => setReportFor(null)} /> : null}
     </Screen>
   );
 }

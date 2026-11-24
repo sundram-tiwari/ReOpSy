@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Paper } from '../types';
@@ -22,16 +23,24 @@ export function PaperCardView({
   paper,
   serendipity,
   onReportSummary,
+  desk,
+  current,
+  onFocus,
+  footer,
 }: {
   paper: Paper;
   serendipity?: boolean;
   onReportSummary?: () => void;
+  desk?: boolean;
+  current?: boolean;
+  onFocus?: () => void;
+  footer?: ReactNode;
 }) {
   const { c } = useTheme();
   const v = toCardView(paper, { serendipity });
 
   return (
-    <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.rule }]}>
+    <View style={[styles.card, { backgroundColor: c.surface, borderColor: current ? c.accent : c.rule }]}>
       <T v="label" tone="muted" style={{ marginBottom: space.s }}>
         {topicLabel(paper.topics?.[0] || '')}
       </T>
@@ -48,11 +57,11 @@ export function PaperCardView({
         {v.parts ? (
           PART_LABELS.map(([key, label]) =>
             v.parts![key] ? (
-              <View key={key} style={styles.part}>
-                <T v="label" tone={key === 'limits' ? 'warn' : 'faint'} style={styles.partLabel}>
+              <View key={key} style={[styles.part, desk && styles.deskPart]}>
+                <T v="label" tone={key === 'limits' ? 'warn' : 'faint'} style={desk ? undefined : styles.partLabel}>
                   {label}
                 </T>
-                <T style={{ flex: 1 }}>{v.parts![key]}</T>
+                <T style={desk ? undefined : { flex: 1 }}>{v.parts![key]}</T>
               </View>
             ) : null,
           )
@@ -116,7 +125,7 @@ export function PaperCardView({
             AI-written summary. Check the abstract before citing.
           </T>
           {onReportSummary ? (
-            <Pressable onPress={onReportSummary} accessibilityRole="button" hitSlop={8}>
+            <Pressable onPress={onReportSummary} onFocus={onFocus} accessibilityRole="button" hitSlop={8}>
               <T v="caption" tone="accent" style={{ fontWeight: '600' }}>
                 Report
               </T>
@@ -124,6 +133,7 @@ export function PaperCardView({
           ) : null}
         </View>
       ) : null}
+      {footer}
     </View>
   );
 }
@@ -131,6 +141,7 @@ export function PaperCardView({
 const styles = StyleSheet.create({
   card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.l, padding: space.l },
   part: { flexDirection: 'row', gap: space.m },
+  deskPart: { flexDirection: 'column', gap: space.xs },
   partLabel: { width: 72, paddingTop: 5 },
   numbers: { flexDirection: 'row', flexWrap: 'wrap', gap: space.s, marginTop: space.l },
   number: { borderRadius: radius.s, paddingHorizontal: space.m, paddingVertical: space.s, maxWidth: 160 },
