@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { isFirebaseConfigured } from '../services/firebase';
 import { Author, Profile, getProfile, hasUnread, listFollowing } from '../services/community';
@@ -8,6 +8,7 @@ interface CommunityContext {
   enabled: boolean;
   profile: Profile | null;
   profileLoading: boolean;
+  profileLoadFailed: boolean;
   me: Author | null;
   following: Set<string>;
   unread: boolean;
@@ -22,23 +23,31 @@ const Ctx = createContext<CommunityContext | null>(null);
 export function CommunityProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const enabled = isFirebaseConfigured();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
+  const [loadedProfile, setProfile] = useState<Profile | null>(null);
+  const [profileCheck, setProfileCheck] = useState<{ uid: string; failed: boolean } | null>(null);
+  const profileRequest = useRef(0);
+  const profile = user?.uid === loadedProfile?.uid ? loadedProfile : null;
+  const profileLoading = Boolean(user && profileCheck?.uid !== user.uid);
+  const profileLoadFailed = Boolean(user && profileCheck?.uid === user.uid && profileCheck.failed);
   const [following, setFollowing] = useState<Set<string>>(new Set());
   const [unread, setUnread] = useState(false);
 
   const refreshProfile = useCallback(async () => {
+    const id = ++profileRequest.current;
     if (!enabled || !user) {
       setProfile(null);
+      setProfileCheck(null);
       return;
     }
-    setProfileLoading(true);
+    setProfileCheck(null);
     try {
-      setProfile(await getProfile(user.uid));
+      const current = await getProfile(user.uid);
+      if (id !== profileRequest.current) return;
+      setProfile(current);
+      setProfileCheck({ uid: user.uid, failed: false });
     } catch {
-      setProfile(null);
-    } finally {
-      setProfileLoading(false);
+      if (id !== profileRequest.current) return;
+      setProfileCheck({ uid: user.uid, failed: true });
     }
   }, [enabled, user]);
 
@@ -71,6 +80,7 @@ export function CommunityProvider({ children }: { children: React.ReactNode }) {
       enabled,
       profile,
       profileLoading,
+      profileLoadFailed,
       me: profile ? { uid: profile.uid, name: profile.name, handle: profile.handle } : null,
       following,
       unread,
@@ -85,7 +95,7 @@ export function CommunityProvider({ children }: { children: React.ReactNode }) {
           return next;
         }),
     }),
-    [enabled, profile, profileLoading, following, unread, refreshProfile, refreshFollowing, refreshUnread],
+    [enabled, profile, profileLoading, profileLoadFailed, following, unread, refreshProfile, refreshFollowing, refreshUnread],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
