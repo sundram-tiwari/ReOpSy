@@ -1,12 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { DarkTheme, DefaultTheme, NavigationContainer, Theme as NavTheme } from '@react-navigation/native';
+import { PlatformPressable } from '@react-navigation/elements';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
 import { useAppState } from '../state/AppState';
 import { useCommunity } from '../state/Community';
 import { useTheme } from '../ui/theme';
+import { useIconTooltip } from '../ui/IconTooltip';
 import { RootStackParamList, TabParamList } from './types';
 import { TodayScreen } from '../screens/TodayScreen';
 import { CirclesScreen } from '../screens/CirclesScreen';
@@ -36,6 +38,16 @@ const TAB_ITEMS: Record<keyof TabParamList, { name: string; icon: FeatherName }>
   You: { name: 'Profile', icon: 'user' },
 };
 
+function LabeledTabButton({ children, label, ...props }: React.ComponentProps<typeof PlatformPressable> & { label: string }) {
+  const { handlers, tooltip } = useIconTooltip(label, 'top');
+  return (
+    <PlatformPressable {...props} {...handlers}>
+      {children}
+      {tooltip}
+    </PlatformPressable>
+  );
+}
+
 /** Four tabs, one job each: read today, talk with people, keep what matters, see your progress. */
 function Tabs() {
   const { c } = useTheme();
@@ -50,6 +62,9 @@ function Tabs() {
         title: TAB_ITEMS[route.name].name,
         tabBarAccessibilityLabel: TAB_ITEMS[route.name].name,
         tabBarShowLabel: false,
+        tabBarButton: Platform.OS === 'web'
+          ? (props) => <LabeledTabButton {...props} label={TAB_ITEMS[route.name].name} />
+          : undefined,
         tabBarItemStyle: styles.tabItem,
         tabBarStyle: [
           { backgroundColor: c.surface, borderTopColor: c.rule },
