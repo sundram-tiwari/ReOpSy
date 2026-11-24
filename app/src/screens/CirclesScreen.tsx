@@ -34,7 +34,7 @@ export function CirclesScreen() {
   const toast = useToast();
   const { user } = useAuth();
   const { state } = useAppState();
-  const { enabled, me, profile, profileLoading, following, unread, refreshUnread, setFollowingLocal } = useCommunity();
+  const { enabled, me, profile, profileLoading, profileLoadFailed, refreshProfile, following, unread, refreshUnread, setFollowingLocal } = useCommunity();
   const [seg, setSeg] = useState<Seg>('circles');
 
   const [mine, setMine] = useState<Circle[] | null>(null);
@@ -133,9 +133,11 @@ export function CirclesScreen() {
         {header}
         <EmptyState
           icon="user-plus"
-          title={profileLoading ? 'Loading your profile…' : 'Create your researcher profile'}
-          body="Your name, role and research interests help the right people find you. It takes a minute."
-          action={profileLoading ? undefined : <Button label="Create profile" onPress={() => nav.navigate('EditProfile')} />}
+          title={profileLoading ? 'Loading your profile…' : profileLoadFailed ? 'Could not load your profile' : 'Create your researcher profile'}
+          body={profileLoadFailed ? 'Check your connection and try again.' : 'Your display name, role and research interests help the right people find you.'}
+          action={profileLoading ? undefined : profileLoadFailed
+            ? <Button label="Retry loading profile" onPress={() => refreshProfile()} />
+            : <Button label="Create profile" onPress={() => nav.navigate('EditProfile')} />}
         />
       </Screen>
     );

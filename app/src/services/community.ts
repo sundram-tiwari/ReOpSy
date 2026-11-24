@@ -10,6 +10,7 @@ import {
   doc,
   getCountFromServer,
   getDoc,
+  getDocFromServer,
   getDocs,
   getDocsFromServer,
   increment,
@@ -139,6 +140,13 @@ function profileFrom(id: string, d: Record<string, any>): Profile {
 
 export async function getProfile(uid: string): Promise<Profile | null> {
   const snap = await getDoc(doc(store(), 'profiles', uid));
+  return snap.exists() ? profileFrom(snap.id, snap.data()) : null;
+}
+
+/** Only an authoritative absence can open the account creation form. */
+export async function getOwnProfile(uid: string): Promise<Profile | null> {
+  const snap = await getDocFromServer(doc(store(), 'profiles', uid));
+  if (snap.metadata.hasPendingWrites) throw new CommunityError('Could not confirm your profile with the server.');
   return snap.exists() ? profileFrom(snap.id, snap.data()) : null;
 }
 

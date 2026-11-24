@@ -17,10 +17,12 @@ export function ProfileScreen() {
   const nav = useNav();
   const { uid } = useRoute<RouteProp<RootStackParamList, 'Profile'>>().params;
   const { user } = useAuth();
-  const { me, following, setFollowingLocal } = useCommunity();
+  const { me, profile: ownProfile, profileLoading, following, setFollowingLocal } = useCommunity();
   const { state, blockUser, unblockUser } = useAppState();
   const toast = useToast();
-  const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
+  const self = user?.uid === uid;
+  const [publicProfile, setProfile] = useState<Profile | null | undefined>(undefined);
+  const profile = self && ownProfile ? ownProfile : publicProfile;
   const [counts, setCounts] = useState<{ followers: number; following: number } | null>(null);
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [report, setReport] = useState<ReportTargetInfo | null>(null);
@@ -49,10 +51,9 @@ export function ProfileScreen() {
   }, [uid]);
 
   const back = <IconButton icon="arrow-left" label="Back" onPress={() => nav.goBack()} />;
-  if (profile === undefined) return <Screen title="Profile" left={back}><T tone="muted">Loading…</T></Screen>;
+  if (profile === undefined || (self && profileLoading)) return <Screen title="Profile" left={back}><T tone="muted">Loading…</T></Screen>;
   if (profile === null) return <Screen title="Profile" left={back}><EmptyState icon="user-x" title="Profile not found" /></Screen>;
 
-  const self = user?.uid === uid;
   const blocked = state.blockedUids.includes(uid);
   const isFollowing = following.has(uid);
 
@@ -110,7 +111,7 @@ export function ProfileScreen() {
           )}
         </View>
       ) : (
-        <Button kind="secondary" icon="edit-2" label="Edit profile" style={{ marginTop: space.l }} onPress={() => nav.navigate('EditProfile')} />
+        <Button kind="secondary" icon="edit-2" label="Edit Profile" style={{ marginTop: space.l }} onPress={() => nav.navigate('EditProfile')} />
       )}
 
       <SectionTitle>Recommends</SectionTitle>

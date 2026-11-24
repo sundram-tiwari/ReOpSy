@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useNav } from '../navigation/types';
@@ -23,8 +24,9 @@ type SettingsPage = 'settings' | 'account' | 'delete';
 export function YouScreen() {
   const nav = useNav();
   const toast = useToast();
-  const { user, isAdmin, signOut, deleteAuthAccount } = useAuth();
+  const { user, loading: authLoading, isAdmin, signOut, deleteAuthAccount } = useAuth();
   const { profile, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
+  useFocusEffect(useCallback(() => { void refreshProfile(); }, [refreshProfile]));
   const app = useAppState();
   const { state, today } = app;
 
@@ -64,11 +66,13 @@ export function YouScreen() {
         </View>
         <IconButton icon="settings" label="Settings" onPress={() => setSettingsPage('settings')} />
       </View>
-      {user ? (
+      {authLoading ? (
+        <T tone="muted">Checking sign-in…</T>
+      ) : user ? (
         profile ? (
           <View style={{ flexDirection: 'row', gap: space.s }}>
             <Button kind="secondary" label="View profile" onPress={() => nav.navigate('Profile', { uid: profile.uid })} style={{ flex: 1 }} />
-            <Button kind="secondary" label="Edit" icon="edit-2" onPress={() => nav.navigate('EditProfile')} style={{ flex: 1 }} />
+            <Button kind="secondary" label="Edit Profile" icon="edit-2" onPress={() => nav.navigate('EditProfile')} style={{ flex: 1 }} />
           </View>
         ) : profileLoading ? (
           <View accessibilityLiveRegion="polite"><T tone="muted">Checking your profile…</T></View>
