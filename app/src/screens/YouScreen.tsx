@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useNav } from '../navigation/types';
+import { MilestoneStickers } from '../components/MilestoneStickers';
 import { useAuth } from '../hooks/useAuth';
 import { useAppState } from '../state/AppState';
 import { useCommunity } from '../state/Community';
@@ -13,7 +14,7 @@ import { milestones, weekRhythm } from '../logic/progress';
 import { effectiveStreak, streakSummary } from '../logic/streak';
 import { fromDayKey } from '../logic/date';
 import { config } from '../config';
-import { Avatar, Button, Card, Chip, IconButton, ListRow, Screen, SectionTitle, Segmented, Sheet, T, TextField } from '../ui/kit';
+import { Avatar, Button, Card, IconButton, ListRow, Screen, SectionTitle, Segmented, Sheet, T, TextField } from '../ui/kit';
 import { space, useTheme } from '../ui/theme';
 import { useToast } from '../ui/Toast';
 
@@ -106,11 +107,7 @@ export function YouScreen() {
       </Card>
 
       <SectionTitle>Milestones</SectionTitle>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.s }}>
-        {ms.map((m) => (
-          <Chip key={m.id} label={`${m.label} · ${m.progress}`} icon={m.done ? 'check-circle' : 'circle'} tone={m.done ? 'good' : 'muted'} filled={m.done} />
-        ))}
-      </View>
+      <MilestoneStickers items={ms} />
 
       <Sheet visible={settingsOpen} title="Reading settings" onClose={() => setSettingsOpen(false)}>
         <ListRow icon="list" title="Topics" subtitle={`${state.followedTopics.length} followed`} onPress={() => { setSettingsOpen(false); nav.navigate('Topics'); }} />
