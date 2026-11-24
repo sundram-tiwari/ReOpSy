@@ -1,6 +1,10 @@
 name: Nightly ingest
 
 on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ingest.yml'
   schedule:
     # 02:15 UTC = 07:45 IST. Off-peak for both OpenAlex and arXiv.
     - cron: '15 2 * * *'
@@ -21,8 +25,11 @@ on:
         default: false
 
 # Two ingests writing at once would race on the upsert. One at a time.
+permissions:
+  contents: read
+
 concurrency:
-  group: ingest
+  group: ${{ github.event_name == 'pull_request' && format('ingest-pr-{0}', github.event.pull_request.number) || 'ingest' }}
   cancel-in-progress: false
 
 jobs:
@@ -32,17 +39,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # No install step: the pipeline has zero npm dependencies by design.
+      # The ingest-only suite is dependency-free; the webhook suite is separate.
       - name: Run tests
         working-directory: backend
         run: npm test
 
+      - name: Ingest dry run (no database writes)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        working-directory: backend
+        run: node ingest/ingest.js --topics ai-mental-health --limit 2 --days 30 --dry
+
       - name: Ingest
+        if: github.event_name != 'pull_request'
         working-directory: backend
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
