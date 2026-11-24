@@ -1,10 +1,10 @@
 'use strict';
 
 /**
- * The six shipping topics, and how each one maps onto the two upstream APIs.
+ * The shipping topics, and how each one maps onto the two upstream APIs.
  *
- * `openalexFilter` uses OpenAlex "concepts" (C-prefixed ids). `arxivQuery`
- * uses the arXiv search grammar. Keeping both here means adding a seventh
+ * `openalexFilter` uses OpenAlex Works filters. Optional `arxivQuery`
+ * is reserved for well-matched arXiv categories. Keeping both here means adding a seventh
  * topic is a one-object change, not a hunt through the adapters.
  */
 const TOPICS = {
@@ -19,6 +19,12 @@ const TOPICS = {
     label: 'Autism Diagnosis using AI/ML/DL',
     openalexFilter: 'concepts.id:C119857082',
     arxivQuery: 'cat:cs.AI AND (all:"autism" OR all:"ASD" OR all:"autistic")',
+  },
+  'management-organizations': {
+    slug: 'management-organizations',
+    label: 'Management & Organizations',
+    openalexFilter: 'topics.field.id:14',
+    metadataAllowed: true,
   },
   blockchain: {
     slug: 'blockchain',

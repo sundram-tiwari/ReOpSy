@@ -80,6 +80,8 @@ test('a closed licence blocks the abstract but still yields a summary', () => {
   const p = mapWork(closed, 'ai-mental-health');
   assert.equal(p.license_ok, false);
   assert.equal(p.abstract, null, 'abstract must not ship without an open licence');
+  assert.match(p.summary, /Open the cited paper/);
+  assert.doesNotMatch(p.summary, /Despite growing interest/);
   assert.ok(p.summary.length > 0, 'summary is still allowed');
 });
 
@@ -118,4 +120,10 @@ test('fetchTopic maps a stubbed response without touching the network', async ()
 test('fetchTopic surfaces HTTP errors instead of returning nothing', async () => {
   const fetchImpl = async () => ({ ok: false, status: 429, statusText: 'Too Many Requests' });
   await assert.rejects(() => fetchTopic({ topic: 'blockchain', fetchImpl }), /429/);
+});
+
+test('management searches the official multidisciplinary field and allows metadata-only papers', () => {
+  const url = new URL(buildUrl({ topic: 'management-organizations', fromDate: '2026-11-19' }));
+  assert.match(url.searchParams.get('filter'), /topics.field.id:14/);
+  assert.doesNotMatch(url.searchParams.get('filter'), /has_abstract/);
 });

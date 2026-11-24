@@ -11,7 +11,7 @@
     "start": "node server.js",
     "ingest": "node ingest/ingest.js",
     "dry": "node ingest/ingest.js --dry --topics ai-mental-health --limit 5",
-    "test": "node --test ingest/test",
+    "test": "node scripts/test-ingest.cjs",
     "test:webhook": "node --test test/webhook.test.js"
   },
   "license": "UNLICENSED",

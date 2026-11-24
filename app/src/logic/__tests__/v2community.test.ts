@@ -36,13 +36,13 @@ test('quality gate rejects the three failures from the feed audit', () => {
   assert.equal(qualityGate(paper('ok'), 2026, /autis/i), null);
 });
 
-test('prepareFeed lets curated cards win and files each paper once', () => {
+test('prepareFeed lets curated cards win and preserves cross-topic membership', () => {
   const base = { autism: [paper('p1'), paper('p2')], other: [paper('p1')] };
   const curated = { autism: [paper('p2', { headline: 'Curated', whyShown: 'x' })] };
   const feed = prepareFeed(base, curated, { autism: 'autis' }, 2026);
   assert.equal(feed.autism[0].headline, 'Curated');
   assert.equal(feed.autism.length, 2);
-  assert.equal(feed.other.length, 0);
+  assert.equal(feed.other.length, 1);
 });
 
 test('handles and ORCID iDs are validated', () => {

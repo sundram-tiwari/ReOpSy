@@ -8,11 +8,11 @@ const API = 'https://api.openalex.org/works';
 
 /**
  * Licences under which reproducing an abstract verbatim is safe.
- * Anything not on this list gets summary-only treatment. When in doubt the
+ * Anything not on this list gets metadata-only treatment. When in doubt the
  * answer is "not on the list" — this is the copyright gate, not a nice-to-have.
  */
 const OPEN_LICENSES = new Set([
-  'cc0', 'cc-by', 'cc-by-sa', 'cc-by-nd', 'public-domain', 'pd',
+  'cc0', 'cc-by', 'cc-by-sa', 'public-domain', 'pd',
 ]);
 
 function isLicenseOpen(license) {
@@ -98,9 +98,9 @@ function mapWork(work, requestedTopic) {
 
   const abstract = reconstructAbstract(work.abstract_inverted_index);
 
-  const summary = abstract
+  const summary = licenseOk && abstract
     ? summarize(abstract, title)
-    : summarizeFromMetadata({ title, authors, year: work.publication_year, venue });
+    : summarizeFromMetadata({ title, authors, year: work.publication_year, venue, abstractWithheld: !!abstract });
 
   // Topics: whichever of our slugs the work's concepts match, plus the topic
   // we asked for (so a card never lands in the deck with an empty topic list).
@@ -148,7 +148,8 @@ function buildUrl({ topic, limit = 25, fromDate, mailto }) {
   const t = TOPICS[topic];
   if (!t) throw new Error(`Unknown topic: ${topic}`);
 
-  const filters = [t.openalexFilter, 'has_abstract:true', 'type:article'];
+  const filters = [t.openalexFilter, 'type:article'];
+  if (!t.metadataAllowed) filters.push('has_abstract:true');
   if (fromDate) filters.push(`from_publication_date:${fromDate}`);
 
   const params = new URLSearchParams({

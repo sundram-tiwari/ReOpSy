@@ -33,6 +33,13 @@ export const config = {
       terms: 'autis|\\bASD\\b',
     },
     {
+      slug: 'management-organizations',
+      label: 'Management & Organizations',
+      icon: 'briefcase',
+      blurb: 'Management, strategy, organizations, and workplace research',
+      terms: 'manage|organiz|strategy|leadership|employee|enterprise|business|innovation|account|market|workplace',
+    },
+    {
       slug: 'blockchain',
       label: 'Blockchain',
       icon: 'link',

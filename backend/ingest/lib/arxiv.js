@@ -1,7 +1,7 @@
 'use strict';
 
 const { stripLatex, normalizeWhitespace, titleKey } = require('./text');
-const { summarize } = require('./summarize');
+const { summarize, summarizeFromMetadata } = require('./summarize');
 const { TOPICS } = require('./topics');
 
 const API = 'https://export.arxiv.org/api/query';
@@ -62,7 +62,7 @@ function parseArxivId(idUrl) {
 function categoriesToTopics(categories) {
   const set = new Set();
   for (const t of Object.values(TOPICS)) {
-    const matches = (t.arxivQuery.match(/cat:([a-zA-Z0-9.-]+)/g) || [])
+    const matches = ((t.arxivQuery || '').match(/cat:([a-zA-Z0-9.-]+)/g) || [])
       .map((q) => q.replace(/^cat:/, '').trim());
     if (categories.some((c) => matches.includes(c))) set.add(t.slug);
   }
@@ -71,8 +71,8 @@ function categoriesToTopics(categories) {
 
 /**
  * arXiv submissions carry a licence chosen by the author. The API exposes it
- * only sometimes; when it is absent we must assume "all rights reserved", which
- * means summary-only.
+ * only sometimes; when the licence is unclear, the UI gets metadata and a link,
+ * not text copied from the abstract.
  */
 function licenseFromEntry(entryXml) {
   const m = entryXml.match(/<arxiv:license[^>]*>([\s\S]*?)<\/arxiv:license>/);
@@ -80,7 +80,7 @@ function licenseFromEntry(entryXml) {
   if (!raw) return { license: null, licenseOk: false };
 
   const lower = raw.toLowerCase();
-  const ok = /creativecommons\.org\/(licenses\/by(-sa|-nd)?|publicdomain\/zero)/.test(lower);
+  const ok = /^https?:\/\/creativecommons\.org\/(licenses\/by(-sa)?|publicdomain\/zero)\/[0-9.]+\/?$/.test(lower);
   return { license: raw, licenseOk: ok };
 }
 
@@ -157,7 +157,9 @@ function parseEntry(entryXml, requestedTopic) {
     year: Number.isInteger(year) ? year : null,
     venue: journal || 'arXiv preprint',
     topics: [...topics],
-    summary: summarize(abstract, title),
+    summary: licenseOk && abstract
+      ? summarize(abstract, title)
+      : summarizeFromMetadata({ title, authors, year, venue: journal || 'arXiv preprint', abstractWithheld: !!abstract }),
     abstract: licenseOk ? abstract || null : null,
     license,
     license_ok: licenseOk,
@@ -173,7 +175,7 @@ function parseEntry(entryXml, requestedTopic) {
 
 function buildUrl({ topic, limit = 25, start = 0 }) {
   const t = TOPICS[topic];
-  if (!t) throw new Error(`Unknown topic: ${topic}`);
+  if (!t || !t.arxivQuery) throw new Error(`No arXiv query configured for topic: ${topic}`);
 
   const params = new URLSearchParams({
     search_query: t.arxivQuery,

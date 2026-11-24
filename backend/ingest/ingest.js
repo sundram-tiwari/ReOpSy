@@ -16,11 +16,13 @@ const path = require('path');
 
 const openalex = require('./lib/openalex');
 const arxiv = require('./lib/arxiv');
+const { fetchManagement } = require('./lib/crossref');
 const { dedupe } = require('./lib/dedupe');
-const { resolveTopics, TOPICS } = require('./lib/topics');
+const { resolveTopics, TOPICS, ALL_SLUGS } = require('./lib/topics');
 const { Db } = require('./lib/db');
 const { wordCount } = require('./lib/text');
 const { MAX_WORDS } = require('./lib/summarize');
+const { makeFeedSnapshot } = require('./lib/feedSnapshot');
 
 // ---------------------------------------------------------------------------
 // .env loading (no dotenv dependency)
@@ -50,7 +52,7 @@ function loadEnv(file) {
 // args
 // ---------------------------------------------------------------------------
 function parseArgs(argv) {
-  const args = { dry: false, topics: null, limit: 30, days: 30, source: 'both' };
+  const args = { dry: false, topics: null, limit: 30, days: 30, source: 'both', feedOut: null };
 
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -59,6 +61,7 @@ function parseArgs(argv) {
     else if (a === '--limit' || a === '-l') args.limit = Number(argv[++i]) || 30;
     else if (a === '--days' || a === '-d') args.days = Number(argv[++i]) || 30;
     else if (a === '--source' || a === '-s') args.source = String(argv[++i] || 'both');
+    else if (a === '--feed-out') args.feedOut = argv[++i];
     else if (a === '--help' || a === '-h') args.help = true;
   }
   return args;
@@ -146,18 +149,31 @@ async function main() {
 
   for (const topic of topics) {
     if (args.source === 'openalex' || args.source === 'both') {
+      let openAlexError = null;
+      let rows = [];
       try {
-        const rows = await openalex.fetchTopic({ topic, limit: args.limit, fromDate, mailto });
-        fetched += rows.length;
-        collected.push(...rows);
+        rows = await openalex.fetchTopic({ topic, limit: args.limit, fromDate, mailto });
         log(`  openalex/${topic}: ${rows.length}`);
       } catch (err) {
-        failures.push(`openalex/${topic}: ${err.message}`);
+        openAlexError = err;
         warn(`  openalex/${topic}: FAILED — ${err.message}`);
       }
+      if (!rows.length && topic === 'management-organizations') {
+        try {
+          rows = await fetchManagement({ fromDate, limit: args.limit });
+          log(`  crossref/${topic}: ${rows.length}`);
+          openAlexError = null;
+        } catch (err) {
+          failures.push(`crossref/${topic}: ${err.message}`);
+          warn(`  crossref/${topic}: FAILED — ${err.message}`);
+        }
+      }
+      if (openAlexError) failures.push(`openalex/${topic}: ${openAlexError.message}`);
+      fetched += rows.length;
+      collected.push(...rows);
     }
 
-    if (args.source === 'arxiv' || args.source === 'both') {
+    if (TOPICS[topic].arxivQuery && (args.source === 'arxiv' || args.source === 'both')) {
       try {
         const rows = await arxiv.fetchTopic({ topic, limit: args.limit });
         fetched += rows.length;
@@ -208,6 +224,17 @@ async function main() {
       fetched, skipped, ok: false, error: String(err.message).slice(0, 2000),
     });
     throw err;
+  }
+
+  if (args.feedOut) {
+    if (failures.length || !ALL_SLUGS.every((topic) => topics.includes(topic))) {
+      warn('No feed snapshot: all configured topics and successful source requests are required.');
+      return 1;
+    }
+    const snapshot = await makeFeedSnapshot({ papers: valid, allowedTopics: ALL_SLUGS });
+    if (!snapshot) { warn('No feed snapshot: no valid dated papers.'); return 1; }
+    fs.writeFileSync(args.feedOut, JSON.stringify(snapshot), { flag: 'wx', mode: 0o600 });
+    log('Prepared a validated feed snapshot for publishing.');
   }
 
   // A run where every single source failed is a failure even if the DB write
