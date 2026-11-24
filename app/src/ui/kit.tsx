@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useReducedMotion } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { Palette, radius, space, type, useTheme } from './theme';
+import { useIconTooltip } from './IconTooltip';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
 type Tone = 'ink' | 'muted' | 'faint' | 'accent' | 'bad' | 'good' | 'warn';
@@ -107,8 +108,10 @@ export function IconButton({
   dot?: boolean;
 }) {
   const { c } = useTheme();
+  const { handlers, tooltip } = useIconTooltip(label);
   return (
     <Pressable
+      {...handlers}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -117,6 +120,7 @@ export function IconButton({
     >
       <Feather name={icon} size={size} color={c[tone]} />
       {dot && <View style={[styles.dot, { backgroundColor: c.accent, borderColor: c.bg }]} />}
+      {tooltip}
     </Pressable>
   );
 }

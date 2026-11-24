@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useNav } from '../navigation/types';
 import { MilestoneStickers } from '../components/MilestoneStickers';
+import { ReadingStreak } from '../components/ReadingStreak';
 import { useAuth } from '../hooks/useAuth';
 import { useAppState } from '../state/AppState';
 import { useCommunity } from '../state/Community';
@@ -12,27 +13,26 @@ import { secretsAreDeviceProtected } from '../platform/secrets';
 import { shareTextFile } from '../platform/files';
 import { milestones, weekRhythm } from '../logic/progress';
 import { effectiveStreak, streakSummary } from '../logic/streak';
-import { fromDayKey } from '../logic/date';
 import { config } from '../config';
-import { Avatar, Button, Card, IconButton, ListRow, Screen, SectionTitle, Segmented, Sheet, T, TextField } from '../ui/kit';
-import { space, useTheme } from '../ui/theme';
+import { Avatar, Button, IconButton, ListRow, Screen, SectionTitle, Segmented, Sheet, T, TextField } from '../ui/kit';
+import { space } from '../ui/theme';
 import { useToast } from '../ui/Toast';
 
-const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+type SettingsPage = 'settings' | 'account' | 'delete';
 
 export function YouScreen() {
   const nav = useNav();
-  const { c } = useTheme();
   const toast = useToast();
   const { user, isAdmin, signOut, deleteAuthAccount } = useAuth();
   const { profile, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
   const app = useAppState();
   const { state, today } = app;
 
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsPage, setSettingsPage] = useState<SettingsPage | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
   const [zoteroOpen, setZoteroOpen] = useState(false);
   const [zoteroKey, setZoteroKey] = useState('');
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -49,7 +49,6 @@ export function YouScreen() {
     [state],
   );
   const streak = effectiveStreak(state.streak, today);
-  const activeDays = dots.filter((d) => d.active).length;
 
   const legal = (page: string) => WebBrowser.openBrowserAsync(`${config.legalBaseUrl}${page}`);
 
@@ -63,7 +62,7 @@ export function YouScreen() {
             {profile ? `@${profile.handle}${profile.role ? ` · ${profile.role}` : ''}` : user ? user.email || '' : 'Reading offline, no account'}
           </T>
         </View>
-        <IconButton icon="settings" label="Open reading settings" onPress={() => setSettingsOpen(true)} />
+        <IconButton icon="settings" label="Settings" onPress={() => setSettingsPage('settings')} />
       </View>
       {user ? (
         profile ? (
@@ -79,67 +78,24 @@ export function YouScreen() {
             <Button kind="secondary" label="Retry loading profile" onPress={() => refreshProfile()} />
           </View>
         ) : (
-          <Button label="Create your researcher profile" onPress={() => nav.navigate('EditProfile')} />
+          <Button kind="secondary" label="Create your researcher profile" onPress={() => nav.navigate('EditProfile')} style={{ alignSelf: 'flex-start', maxWidth: '100%' }} />
         )
       ) : (
         <Button label="Sign in to sync and join the community" onPress={() => nav.navigate('SignIn')} />
       )}
 
       <SectionTitle>This week</SectionTitle>
-      <Card>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          {dots.map((d) => (
-            <View key={d.day} style={{ alignItems: 'center', gap: space.xs }} accessibilityLabel={`${d.day}: ${d.active ? 'active' : 'no reading'}`}>
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
-                  backgroundColor: d.active ? c.accent : c.surfaceAlt,
-                  borderWidth: d.day === today ? 2 : 0,
-                  borderColor: c.ink,
-                }}
-              />
-              <T v="caption" tone="muted">{DAY_LETTERS[fromDayKey(d.day).getDay()]}</T>
-            </View>
-          ))}
-        </View>
-        <T style={{ marginTop: space.m }}>
-          {activeDays} of 7 days · {streak > 0 ? `${streak}-day streak` : 'no streak running'} · longest {state.streak.longest}
-        </T>
-        <T v="small" tone="muted" style={{ marginTop: space.xs }}>
-          {streakSummary(state.streak, today)}
-          {state.streak.freezes > 0 ? ` ${state.streak.freezes} freeze${state.streak.freezes === 1 ? '' : 's'} saved for a missed day.` : ''}
-        </T>
-      </Card>
+      <ReadingStreak
+        days={dots}
+        today={today}
+        current={streak}
+        longest={state.streak.longest}
+        freezes={state.streak.freezes}
+        summary={streakSummary(state.streak, today)}
+      />
 
       <SectionTitle>Milestones</SectionTitle>
       <MilestoneStickers items={ms} />
-
-      <Sheet visible={settingsOpen} title="Reading settings" onClose={() => setSettingsOpen(false)}>
-        <ListRow icon="list" title="Topics" subtitle={`${state.followedTopics.length} followed`} onPress={() => { setSettingsOpen(false); nav.navigate('Topics'); }} />
-        <View style={{ paddingVertical: space.m }}>
-          <T v="small" tone="muted" style={{ marginBottom: space.s }}>Cards per day</T>
-          <Segmented
-            options={config.dailyGoals.map((g) => ({ key: String(g), label: `${g}` }))}
-            value={String(state.dailyGoal)}
-            onChange={(g) => app.setDailyGoal(Number(g))}
-          />
-        </View>
-        <View style={{ paddingVertical: space.m }}>
-          <T v="small" tone="muted" style={{ marginBottom: space.s }}>Appearance</T>
-          <Segmented
-            options={[
-              { key: 'system', label: 'System' },
-              { key: 'light', label: 'Light' },
-              { key: 'dark', label: 'Dark' },
-            ]}
-            value={state.themePref}
-            onChange={app.setThemePref}
-          />
-        </View>
-
-      </Sheet>
 
       <SectionTitle>Connected tools</SectionTitle>
       <ListRow
@@ -153,27 +109,17 @@ export function YouScreen() {
         icon="download"
         title="Download all my data"
         subtitle="Library, notes, matrix and settings as JSON"
-        onPress={async () => {
-          try {
-            await shareTextFile(`reopsy-backup-${today}.json`, 'application/json', JSON.stringify(state, null, 2));
-          } catch {
-            toast('Could not export. Try again.');
-          }
-        }}
+        onPress={() => setDownloadOpen(true)}
       />
 
       <SectionTitle>About</SectionTitle>
-      <ListRow icon="shield" title="Community guidelines" onPress={() => nav.navigate('Guidelines')} />
-      <ListRow icon="lock" title="Privacy policy" onPress={() => legal('privacy-policy')} />
-      <ListRow icon="file-text" title="Terms of use" onPress={() => legal('terms-of-use')} />
-      <ListRow icon="info" title="Data sources" subtitle="arXiv, OpenAlex (CC0), Crossref, Unpaywall. Summaries are AI-written; check the abstract." />
+      <ListRow icon="info" title="About / Legal" onPress={() => setAboutOpen(true)} />
       {isAdmin ? <ListRow icon="flag" title="Moderation queue" onPress={() => nav.navigate('Moderation')} /> : null}
       {isAdmin ? <ListRow icon="sliders" title="Mission Control (admin)" onPress={() => nav.navigate('Admin')} /> : null}
 
       {user ? (
         <View style={{ gap: space.s, marginTop: space.xl }}>
           <Button kind="secondary" icon="log-out" label="Sign out" onPress={signOut} />
-          <Button kind="danger" icon="trash-2" label="Delete account" onPress={() => setDeleteOpen(true)} />
         </View>
       ) : null}
       <T v="caption" tone="faint" style={{ textAlign: 'center', marginTop: space.xl }}>
@@ -225,37 +171,105 @@ export function YouScreen() {
         )}
       </Sheet>
 
-      <Sheet visible={deleteOpen} title="Delete your account" onClose={() => setDeleteOpen(false)}>
-        <T>
-          This permanently deletes your profile, comments, posts, replies, recommendations, follows, circles you own, notifications and synced library. It cannot be undone.
-        </T>
-        <T tone="muted" style={{ marginVertical: space.m }}>Download your data first if you want a copy. Type DELETE to confirm.</T>
-        <TextField label="Confirmation" value={confirmText} onChangeText={setConfirmText} autoCapitalize="none" />
-        <Button
-          kind="danger"
-          label="Delete everything"
-          loading={busy}
-          disabled={confirmText.trim().toUpperCase() !== 'DELETE'}
-          onPress={async () => {
-            if (!user) return;
-            setBusy(true);
-            try {
-              await deleteMyData(user.uid, profile?.handle || null);
-              const err = await deleteAuthAccount();
-              if (err) {
-                toast(err);
-                return;
+      <Sheet visible={aboutOpen} title="About / Legal" onClose={() => setAboutOpen(false)}>
+        <ListRow icon="shield" title="Community Guidelines" onPress={() => { setAboutOpen(false); nav.navigate('Guidelines'); }} />
+        <ListRow icon="lock" title="Privacy Policy" onPress={() => legal('privacy-policy')} />
+        <ListRow icon="file-text" title="Terms of Use" onPress={() => legal('terms-of-use')} />
+        <ListRow icon="info" title="Data Sources" subtitle="arXiv, OpenAlex (CC0), Crossref, Unpaywall. Summaries are AI-written; check the abstract." />
+      </Sheet>
+
+      <Sheet visible={downloadOpen} title="Download all your data?" onClose={() => setDownloadOpen(false)}>
+        <T tone="muted">Save a JSON backup of your library, notes, matrix and settings.</T>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: space.s, marginTop: space.l }}>
+          <Button kind="secondary" label="Cancel" onPress={() => setDownloadOpen(false)} />
+          <Button
+            label="Download"
+            onPress={async () => {
+              setDownloadOpen(false);
+              try {
+                await shareTextFile(`reopsy-backup-${today}.json`, 'application/json', JSON.stringify(state, null, 2));
+              } catch {
+                toast('Could not export. Try again.');
               }
-              await app.resetLocalData();
-              setDeleteOpen(false);
-              toast('Your account and data are deleted.');
-            } catch {
-              toast('Deletion did not finish. Try again to remove what is left.');
-            } finally {
-              setBusy(false);
-            }
-          }}
-        />
+            }}
+          />
+        </View>
+      </Sheet>
+
+      <Sheet
+        visible={settingsPage !== null}
+        title={settingsPage === 'delete' ? 'Delete your account' : settingsPage === 'account' ? 'Account' : 'Settings'}
+        onClose={() => setSettingsPage(null)}
+      >
+        {settingsPage === 'settings' ? (
+          <>
+            <ListRow icon="user" title="Account" onPress={() => setSettingsPage('account')} />
+            <SectionTitle>Reading</SectionTitle>
+            <ListRow icon="list" title="Topics" subtitle={`${state.followedTopics.length} followed`} onPress={() => { setSettingsPage(null); nav.navigate('Topics'); }} />
+            <View style={{ paddingVertical: space.m }}>
+              <T v="small" tone="muted" style={{ marginBottom: space.s }}>Cards per day</T>
+              <Segmented
+                options={config.dailyGoals.map((g) => ({ key: String(g), label: `${g}` }))}
+                value={String(state.dailyGoal)}
+                onChange={(g) => app.setDailyGoal(Number(g))}
+              />
+            </View>
+            <View style={{ paddingVertical: space.m }}>
+              <T v="small" tone="muted" style={{ marginBottom: space.s }}>Appearance</T>
+              <Segmented
+                options={[
+                  { key: 'system', label: 'System' },
+                  { key: 'light', label: 'Light' },
+                  { key: 'dark', label: 'Dark' },
+                ]}
+                value={state.themePref}
+                onChange={app.setThemePref}
+              />
+            </View>
+          </>
+        ) : settingsPage === 'account' ? (
+          <>
+            <ListRow icon="arrow-left" title="Back to Settings" onPress={() => setSettingsPage('settings')} />
+            {user ? (
+              <ListRow icon="trash-2" tone="bad" title="Delete account" onPress={() => { setConfirmText(''); setSettingsPage('delete'); }} />
+            ) : (
+              <T tone="muted" style={{ marginTop: space.m }}>You’re not signed in.</T>
+            )}
+          </>
+        ) : settingsPage === 'delete' ? (
+          <>
+            <T>
+              This permanently deletes your profile, comments, posts, replies, recommendations, follows, circles you own, notifications and synced library. It cannot be undone.
+            </T>
+            <T tone="muted" style={{ marginVertical: space.m }}>Download your data first if you want a copy. Type DELETE to confirm.</T>
+            <TextField label="Confirmation" value={confirmText} onChangeText={setConfirmText} autoCapitalize="none" />
+            <Button
+              kind="danger"
+              label="Delete everything"
+              loading={busy}
+              disabled={confirmText.trim().toUpperCase() !== 'DELETE'}
+              onPress={async () => {
+                if (!user) return;
+                setBusy(true);
+                try {
+                  await deleteMyData(user.uid, profile?.handle || null);
+                  const err = await deleteAuthAccount();
+                  if (err) {
+                    toast(err);
+                    return;
+                  }
+                  await app.resetLocalData();
+                  setSettingsPage(null);
+                  toast('Your account and data are deleted.');
+                } catch {
+                  toast('Deletion did not finish. Try again to remove what is left.');
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            />
+          </>
+        ) : null}
       </Sheet>
     </Screen>
   );
