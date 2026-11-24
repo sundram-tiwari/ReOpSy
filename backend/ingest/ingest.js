@@ -16,6 +16,7 @@ const path = require('path');
 
 const openalex = require('./lib/openalex');
 const arxiv = require('./lib/arxiv');
+const { fetchManagement } = require('./lib/crossref');
 const { dedupe } = require('./lib/dedupe');
 const { resolveTopics, TOPICS, ALL_SLUGS } = require('./lib/topics');
 const { Db } = require('./lib/db');
@@ -148,15 +149,28 @@ async function main() {
 
   for (const topic of topics) {
     if (args.source === 'openalex' || args.source === 'both') {
+      let openAlexError = null;
+      let rows = [];
       try {
-        const rows = await openalex.fetchTopic({ topic, limit: args.limit, fromDate, mailto });
-        fetched += rows.length;
-        collected.push(...rows);
+        rows = await openalex.fetchTopic({ topic, limit: args.limit, fromDate, mailto });
         log(`  openalex/${topic}: ${rows.length}`);
       } catch (err) {
-        failures.push(`openalex/${topic}: ${err.message}`);
+        openAlexError = err;
         warn(`  openalex/${topic}: FAILED — ${err.message}`);
       }
+      if (!rows.length && topic === 'management-organizations') {
+        try {
+          rows = await fetchManagement({ fromDate, limit: args.limit });
+          log(`  crossref/${topic}: ${rows.length}`);
+          openAlexError = null;
+        } catch (err) {
+          failures.push(`crossref/${topic}: ${err.message}`);
+          warn(`  crossref/${topic}: FAILED — ${err.message}`);
+        }
+      }
+      if (openAlexError) failures.push(`openalex/${topic}: ${openAlexError.message}`);
+      fetched += rows.length;
+      collected.push(...rows);
     }
 
     if (TOPICS[topic].arxivQuery && (args.source === 'arxiv' || args.source === 'both')) {
