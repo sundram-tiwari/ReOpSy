@@ -5,10 +5,20 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { ALL_SLUGS } = require('../ingest/lib/topics');
 
 async function main() {
+  const expectedProject = process.env.REOPSY_FIRESTORE_PROJECT_ID?.trim();
+  if (!expectedProject) throw new Error('Configure the expected Firebase project ID before publishing.');
+  let account;
+  try {
+    account = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+  } catch {
+    throw new Error('Firebase service account is missing or invalid.');
+  }
+  if (account?.project_id !== expectedProject) {
+    throw new Error('Firebase service account does not match the expected project.');
+  }
   let adminDb;
   try {
-    const account = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
-    adminDb = getFirestore(initializeApp({ credential: cert(account) }));
+    adminDb = getFirestore(initializeApp({ projectId: expectedProject, credential: cert(account) }));
   } catch {
     throw new Error('Firebase service account is missing or invalid.');
   }
@@ -37,4 +47,4 @@ async function main() {
   console.log(written ? `Published ${total} topic-paper entries to feeds/latest` : 'Skipped: an equal or newer feed is already live.');
 }
 
-main().catch((error) => { console.error('Feed publish failed:', error.code || (String(error.message).startsWith('Firebase service account') ? error.message : 'see snapshot validation or service permissions')); process.exitCode = 1; });
+main().catch((error) => { console.error('Feed publish failed:', error.code || (/^(Firebase service account|Configure the expected Firebase project)/.test(String(error.message)) ? error.message : 'see snapshot validation or service permissions')); process.exitCode = 1; });

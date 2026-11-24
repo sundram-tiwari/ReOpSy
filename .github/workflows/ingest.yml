@@ -59,12 +59,15 @@ jobs:
           node ingest/ingest.js --topics management-organizations --source openalex --limit 2 --days 30 --dry
 
       - name: Ingest
+        id: scheduled_ingest
+        shell: bash
         if: github.event_name != 'pull_request'
         working-directory: backend
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
+          INGEST_EVENT: ${{ github.event_name }}
           INGEST_TOPICS: ${{ inputs.topics || secrets.INGEST_TOPICS || 'all' }}
           INGEST_LIMIT: ${{ inputs.limit || secrets.INGEST_LIMIT || '40' }}
           INGEST_DRY: ${{ inputs.dry == true }}
@@ -77,28 +80,45 @@ jobs:
           ALLOW_XAI_SUMMARY: ${{ vars.ALLOW_XAI_SUMMARY }}
         run: |
           args=(--topics "$INGEST_TOPICS" --limit "$INGEST_LIMIT" --days 30)
+          snapshot="$RUNNER_TEMP/reopsy-feed.json"
+          publish=false
           if [[ "$INGEST_DRY" == "true" ]]; then
             args+=(--dry)
-          elif [[ "$PUBLISH_FEED" == "true" && "$INGEST_TOPICS" == "all" ]]; then
-            args+=(--feed-out "$RUNNER_TEMP/reopsy-feed.json")
+            echo "Dry run: no Firestore feed will be published."
+          elif [[ "$PUBLISH_FEED" == "true" ]]; then
+            if [[ "$INGEST_TOPICS" == "all" ]]; then
+              publish=true
+              args+=(--feed-out "$snapshot")
+            elif [[ "$INGEST_EVENT" == "schedule" ]]; then
+              echo "::error::Firestore publishing requires a full scheduled run. Set INGEST_TOPICS to all or remove the legacy topic-list secret."
+              exit 1
+            else
+              echo "Scoped manual run: Firestore publication skipped."
+            fi
+          else
+            echo "Firestore publishing is disabled."
           fi
           node ingest/ingest.js "${args[@]}"
+          if [[ "$publish" == "true" && ! -s "$snapshot" ]]; then
+            echo "::error::The full ingest did not produce the required feed snapshot."
+            exit 1
+          fi
+          echo "publish_snapshot=$publish" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v4
-        if: github.event_name != 'pull_request' && vars.REOPSY_PUBLISH_FIRESTORE_FEED == 'true' && inputs.dry != true
+        if: steps.scheduled_ingest.outputs.publish_snapshot == 'true'
         with:
           node-version: '24'
 
       - name: Publish validated Firestore feed
-        if: github.event_name != 'pull_request' && vars.REOPSY_PUBLISH_FIRESTORE_FEED == 'true' && inputs.dry != true
+        if: steps.scheduled_ingest.outputs.publish_snapshot == 'true'
         working-directory: backend
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          REOPSY_FIRESTORE_PROJECT_ID: ${{ vars.REOPSY_FIRESTORE_PROJECT_ID }}
         run: |
-          if [[ -f "$RUNNER_TEMP/reopsy-feed.json" ]]; then
-            npm ci --no-audit --no-fund
-            node scripts/publish-feed.cjs "$RUNNER_TEMP/reopsy-feed.json"
-          fi
+          npm ci --no-audit --no-fund
+          node scripts/publish-feed.cjs "$RUNNER_TEMP/reopsy-feed.json"
 
   # A silent failure is the failure mode that actually bites: the job stops
   # working, the data goes stale, and nobody notices for a month. This opens an
