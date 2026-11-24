@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Opening in Overleaf · ReOpSy</title>
+<title>Open in Overleaf · ReOpSy</title>
 <style>
   :root { color-scheme: light dark; --bg: #F5F6F2; --ink: #16202A; --muted: #56616B; --accent: #0E5D6C; }
   @media (prefers-color-scheme: dark) { :root { --bg: #0F1316; --ink: #E6E9E4; --muted: #9DA6AE; --accent: #7CC8D6; } }
@@ -18,34 +18,50 @@
 </head>
 <body>
 <main>
-  <h1>Opening your survey in Overleaf…</h1>
-  <p id="msg">If nothing happens, tap the button below.</p>
-  <form id="f" method="POST" action="https://www.overleaf.com/docs">
+  <h1>Open your survey in Overleaf</h1>
+  <p id="msg" role="status">Getting the survey ready…</p>
+  <noscript>JavaScript is required for this hand-off. You can download the LaTeX file from ReOpSy instead.</noscript>
+  <form id="f" method="POST" action="https://www.overleaf.com/docs" accept-charset="UTF-8" rel="noreferrer" hidden>
     <input type="hidden" name="encoded_snip" id="snip">
     <input type="hidden" name="snip_name" value="main.tex">
     <input type="hidden" name="engine" value="pdflatex">
-    <button type="submit">Open in Overleaf</button>
+    <button id="send" type="submit" disabled>Send survey to Overleaf</button>
   </form>
 </main>
 <script>
-  // The LaTeX travels in the URL fragment (after #), which browsers never send
-  // to a server. Decode base64url -> UTF-8, then post to Overleaf.
-  (function () {
-    var b64 = (location.hash || '').slice(1).replace(/-/g, '+').replace(/_/g, '/');
-    if (!b64) {
-      document.getElementById('msg').textContent = 'Nothing to open. Go back to ReOpSy and try again.';
-      document.getElementById('f').hidden = true;
+  // The URL fragment stays in the browser. Never submit a user-provided
+  // fragment on load; the reader explicitly sends it after seeing the notice.
+  function prepareSurvey() {
+    var form = document.getElementById('f');
+    var send = document.getElementById('send');
+    var snippet = document.getElementById('snip');
+    form.hidden = true;
+    send.disabled = true;
+    snippet.value = '';
+    var value = (location.hash || '').slice(1);
+    history.replaceState(null, '', location.pathname);
+    var msg = document.getElementById('msg');
+    if (!/^[A-Za-z0-9_-]{1,32768}$/.test(value) || value.length % 4 === 1) {
+      msg.textContent = 'No valid survey was found. Go back to ReOpSy and try again, or download the LaTeX file.';
       return;
     }
-    while (b64.length % 4) b64 += '=';
-    var bin = atob(b64);
-    var bytes = new Uint8Array(bin.length);
-    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    var tex = new TextDecoder('utf-8').decode(bytes);
-    document.getElementById('snip').value = encodeURIComponent(tex);
-    history.replaceState(null, '', location.pathname);
-    document.getElementById('f').submit();
-  })();
+    try {
+      var b64 = value.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var bin = atob(b64);
+      var bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      var tex = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      snippet.value = encodeURIComponent(tex);
+      msg.textContent = 'This sends your survey, including any notes and matrix entries, to Overleaf. Sign in there if asked.';
+      send.disabled = false;
+      form.hidden = false;
+    } catch {
+      msg.textContent = 'This survey could not be read. Go back to ReOpSy and download the LaTeX file instead.';
+    }
+  }
+  window.addEventListener('hashchange', prepareSurvey);
+  prepareSurvey();
 </script>
 </body>
 </html>

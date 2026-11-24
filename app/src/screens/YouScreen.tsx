@@ -104,7 +104,12 @@ export function YouScreen() {
         subtitle={state.zotero ? `Connected as ${state.zotero.username || state.zotero.userId}` : 'Send papers straight to your Zotero library'}
         onPress={() => setZoteroOpen(true)}
       />
-      <ListRow icon="edit-3" title="Overleaf" subtitle="Library > Survey > Export opens a ready survey project" />
+      <ListRow
+        icon="edit-3"
+        title="Overleaf"
+        subtitle="Open Survey exports in Library"
+        onPress={() => nav.navigate('Tabs', { screen: 'Library', params: { openSurveyExport: true } })}
+      />
       <ListRow
         icon="download"
         title="Download all my data"

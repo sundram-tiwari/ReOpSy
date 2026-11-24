@@ -1,22 +1,24 @@
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { config } from '../config';
-import { OVERLEAF_ENDPOINT, base64UrlEncode } from '../logic/overleaf';
+import { OVERLEAF_ENDPOINT, nativeOverleafUrl } from '../logic/overleaf';
 
 /**
  * Opens a LaTeX snippet as a new Overleaf project.
  *
- * Web: posts a form straight to Overleaf in a new tab.
+ * Web: posts a form in this tab so popup blockers cannot swallow the export.
  * Android/iOS: native apps cannot post a form, so we open our own hosted
  * page (public/overleaf.html) with the snippet in the URL fragment. The
- * fragment never reaches any server; the page posts it to Overleaf.
+ * fragment is not sent to the host; the helper posts only when tapped.
  */
 export async function openInOverleaf(tex: string): Promise<void> {
   if (Platform.OS === 'web') {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = OVERLEAF_ENDPOINT;
-    form.target = '_blank';
+    form.target = '_self';
+    form.acceptCharset = 'UTF-8';
+    form.rel = 'noreferrer';
     const add = (name: string, value: string) => {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -32,6 +34,5 @@ export async function openInOverleaf(tex: string): Promise<void> {
     form.remove();
     return;
   }
-  const base = config.webAppUrl.replace(/\/+$/, '');
-  await WebBrowser.openBrowserAsync(`${base}/overleaf.html#${base64UrlEncode(tex)}`);
+  await WebBrowser.openBrowserAsync(nativeOverleafUrl(config.webAppUrl, tex));
 }

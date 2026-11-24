@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { LibraryEntry, LibraryStatus, MatrixRow } from '../types';
 import { useAppState } from '../state/AppState';
 import { useAuth } from '../hooks/useAuth';
-import { useNav } from '../navigation/types';
+import { TabParamList, useNav } from '../navigation/types';
 import { cleanText, formatAuthors } from '../logic/cardView';
 import { EMPTY_MATRIX, MATRIX_COLUMNS, shortCitation, toBibTeX, toMarkdown, toMatrixCSV, toRIS } from '../logic/exporters';
 import { buildSurveyTex } from '../logic/overleaf';
@@ -27,9 +28,8 @@ function filledCount(e: LibraryEntry): number {
   return m ? Object.values(m).filter(Boolean).length : 0;
 }
 
-export function LibraryScreen() {
+export function LibraryScreen({ navigation: tabs, route }: BottomTabScreenProps<TabParamList, 'Library'>) {
   const nav = useNav();
-  const tabs = useNavigation<any>();
   const toast = useToast();
   const { user } = useAuth();
   const { state, updateEntry, noteExport, setSurveyTitle } = useAppState();
@@ -46,6 +46,14 @@ export function LibraryScreen() {
     for (const e of state.library) c[e.status]++;
     return c;
   }, [state.library]);
+
+  useFocusEffect(useCallback(() => {
+    if (!route.params?.openSurveyExport) return;
+    setTab('survey');
+    setSearch('');
+    setExportOpen(counts.survey > 0);
+    tabs.setParams({ openSurveyExport: false });
+  }, [counts.survey, route.params?.openSurveyExport, tabs]));
 
   const entries = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -79,6 +87,7 @@ export function LibraryScreen() {
 
   const stamp = new Date().toISOString().slice(0, 10);
   const papers = entries.map((e) => e.paper);
+  const surveyTex = () => buildSurveyTex(entries, { title: state.surveyTitle, author: user?.displayName || undefined });
   const tabLabel = TABS.find((t) => t.key === tab)!.label;
 
   return (
@@ -143,10 +152,15 @@ export function LibraryScreen() {
             onPress={() => run('md', () => shareTextFile(`reopsy-${tab}-${stamp}.md`, 'text/markdown', toMarkdown(entries, tabLabel)), 'Markdown exported.')} />
           <Button kind="secondary" icon="copy" label="Copy citations" loading={busy === 'copy'}
             onPress={() => run('copy', () => Clipboard.setStringAsync(papers.map(shortCitation).join('\n')).then(() => undefined), 'Citations copied.')} />
-          <Button icon="edit-3" label="Open as a survey in Overleaf" loading={busy === 'overleaf'}
-            onPress={() =>
-              run('overleaf', () => openInOverleaf(buildSurveyTex(entries, { title: state.surveyTitle, author: user?.displayName || undefined })), 'Opening Overleaf…')
-            } />
+          <View style={{ gap: space.s, marginTop: space.s }}>
+            <T v="small" tone="muted">
+              Opening in Overleaf sends this export, including any library notes and matrix entries, to Overleaf.
+            </T>
+            <Button icon="edit-3" label="Open in Overleaf" loading={busy === 'overleaf'} disabled={entries.length === 0 || busy !== null}
+              onPress={() => run('overleaf', () => openInOverleaf(surveyTex()), 'Overleaf hand-off opened.')} />
+            <Button kind="secondary" icon="download" label="Download LaTeX (.tex)" loading={busy === 'tex'} disabled={entries.length === 0 || busy !== null}
+              onPress={() => run('tex', () => shareTextFile('main.tex', 'application/x-tex', surveyTex()), 'LaTeX file exported.')} />
+          </View>
           {state.zotero ? (
             <Button icon="upload-cloud" label={`Send to Zotero (${state.zotero.username || 'connected'})`} loading={busy === 'zotero'}
               onPress={() =>

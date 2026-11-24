@@ -55,7 +55,7 @@ export const config = {
     },
   ] as TopicConfig[],
 
-  /** Hosted web build; serves /overleaf.html for the Android "Open in Overleaf" hand-off. */
+  /** Hosted web build; serves /overleaf.html for the native "Open in Overleaf" hand-off. */
   webAppUrl: env('EXPO_PUBLIC_WEB_APP_URL') || 'https://reopsy-frontend.onrender.com',
   legalBaseUrl: env('EXPO_PUBLIC_LEGAL_BASE_URL') || 'https://example.com/legal/',
   /** Grievance officer contact (IT Rules 2021, Rule 3(2)). Set before launch. */

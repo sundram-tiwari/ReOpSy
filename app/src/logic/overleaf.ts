@@ -122,3 +122,21 @@ export function base64UrlEncode(text: string): string {
   }
   return out;
 }
+
+// Conservative product limit for handing a URL off to an OS browser, not an
+// Overleaf upload limit. The file-export option handles bigger surveys.
+export const MAX_OVERLEAF_FRAGMENT = 32_768;
+
+export function nativeOverleafUrl(webAppUrl: string, tex: string): string {
+  // The React Native URL polyfill has read-only pathname/hash. The app's
+  // trusted hosting origin uses a plain HTTPS domain and optional base path.
+  const base = webAppUrl.trim().split(/[?#]/, 1)[0].replace(/\/+$/, '');
+  if (!/^https:\/\/[a-z0-9.-]+(?::[0-9]{1,5})?(?:\/[^\\\s]*)?$/i.test(base)) {
+    throw new Error('The Overleaf hand-off requires an HTTPS app URL. Export the LaTeX file instead.');
+  }
+  const payload = base64UrlEncode(tex);
+  if (payload.length > MAX_OVERLEAF_FRAGMENT) {
+    throw new Error('This survey is too large for the browser hand-off. Choose Download LaTeX instead.');
+  }
+  return `${base}/overleaf.html#${payload}`;
+}
