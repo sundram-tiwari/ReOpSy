@@ -196,12 +196,19 @@ export function TodayScreen() {
             );
           }}
         />
-        <View style={styles.pagerControls}>
-          <IconButton icon="chevron-up" label="Previous unread paper" onPress={() => goTo(index - 1)} tone={index > 0 ? 'accent' : 'faint'} />
-          <T v="caption" tone="muted" numberOfLines={1} style={styles.position}>
-            {`Unread ${index + 1} of ${unread.length} · Swipe to browse`}
-          </T>
-          <IconButton icon="chevron-down" label="Next unread paper" onPress={() => goTo(index + 1)} tone={index + 1 < unread.length ? 'accent' : 'faint'} />
+        <View
+          style={styles.pagePosition}
+          accessible
+          accessibilityLabel={`Unread paper ${index + 1} of ${unread.length}`}
+          accessibilityRole={Platform.OS === 'web' ? undefined : 'adjustable'}
+          accessibilityValue={{ min: 1, max: unread.length, now: index + 1 }}
+          accessibilityActions={[{ name: 'increment', label: 'Next paper' }, { name: 'decrement', label: 'Previous paper' }]}
+          onAccessibilityAction={({ nativeEvent }) => {
+            if (nativeEvent.actionName === 'increment') goTo(index + 1);
+            if (nativeEvent.actionName === 'decrement') goTo(index - 1);
+          }}
+        >
+          <T v="caption" tone="muted" numberOfLines={1}>{`${index + 1} / ${unread.length}`}</T>
         </View>
         <TriageBar onChoose={decide} />
       </View>
@@ -237,6 +244,5 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.m },
   feed: { flex: 1, minHeight: 0, width: '100%', maxWidth: 500, alignSelf: 'center', overflow: 'hidden' },
   feedHeader: { paddingHorizontal: space.l },
-  pagerControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.s },
-  position: { flex: 1, minWidth: 0, textAlign: 'center' },
+  pagePosition: { minHeight: 20, alignItems: 'center', justifyContent: 'center' },
 });

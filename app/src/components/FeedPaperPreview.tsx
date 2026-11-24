@@ -3,12 +3,13 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { topicLabel } from '../config';
 import { toCardView } from '../logic/cardView';
+import { fitPreviewText } from '../logic/previewText';
 import { Paper } from '../types';
 import { T } from '../ui/kit';
 import { radius, space, useTheme } from '../ui/theme';
 
 type Icon = React.ComponentProps<typeof Feather>['name'];
-type Action = { label: string; text?: string; icon: Icon; run: () => void; primary?: boolean };
+type Action = { label: string; icon: Icon; run: () => void; primary?: boolean };
 
 export function FeedPaperPreview({
   paper, serendipity, height, isCurrent, onDetails, onOpen, onDiscuss, onShare, onReport,
@@ -25,7 +26,7 @@ export function FeedPaperPreview({
 }) {
   const { c } = useTheme();
   const { fontScale } = useWindowDimensions();
-  const [excerptHeight, setExcerptHeight] = useState(0);
+  const [excerptBox, setExcerptBox] = useState({ height: 0, width: 0 });
   const small = height / Math.max(1, fontScale) < 415;
   const tiny = height / Math.max(1, fontScale) < 275;
   const v = toCardView(paper, { serendipity });
@@ -33,12 +34,15 @@ export function FeedPaperPreview({
     ? v.parts.result ? ['Key finding', v.parts.result] : ['Research question', v.parts.problem || v.parts.approach || v.parts.limits]
     : [v.summaryIsPartial ? 'Abstract excerpt' : 'At a glance', v.summary];
   const lineHeight = small ? 20 : 24;
-  const excerptLines = Math.min(small ? 5 : 7, Math.floor((excerptHeight + 0.5) / (lineHeight * Math.max(fontScale, 1))));
+  const scale = Math.max(fontScale, 1);
+  const excerptLines = Math.min(tiny ? 2 : small ? 5 : 7, Math.floor((excerptBox.height + 0.5) / (lineHeight * scale)));
+  const excerptText = fitPreviewText(excerpt ?? '', excerptBox.width, excerptLines, (small ? 14 : 16) * scale);
   const actions: Action[] = [
-    { label: 'Read full card', text: 'Details', icon: 'file-text', run: onDetails, primary: true },
-    { label: 'Open paper', text: 'Open', icon: 'external-link', run: onOpen },
-    { label: 'Discuss', text: 'Discuss', icon: 'message-circle', run: onDiscuss },
+    { label: 'Read full card', icon: 'file-text', run: onDetails, primary: true },
+    { label: 'Open paper', icon: 'external-link', run: onOpen },
+    { label: 'Discuss', icon: 'message-circle', run: onDiscuss },
     { label: 'Share', icon: 'share-2', run: onShare },
+    ...(v.aiWritten ? [{ label: 'Report summary', icon: 'flag' as const, run: onReport }] : []),
   ];
 
   return (
@@ -56,31 +60,19 @@ export function FeedPaperPreview({
             {v.authorsLine}{v.metaLine ? ` · ${v.metaLine}` : ''}
           </T>
         )}
-        {!tiny && excerpt ? (
+        {excerpt ? (
           <View style={[styles.finding, small && styles.smallFinding]}>
-            <T v="label" tone="muted" numberOfLines={1}>{excerptLabel}</T>
-            <View style={styles.excerpt} onLayout={(e) => setExcerptHeight((h) => {
-              const next = e.nativeEvent.layout.height;
-              return Math.abs(next - h) > 0.5 ? next : h;
-            })}>
-              {excerptLines > 0 ? <T v={small ? 'small' : 'body'} numberOfLines={excerptLines}>{excerpt}</T> : null}
+            {!tiny && excerptLabel !== 'At a glance' && <T v="label" tone="muted" numberOfLines={1}>{excerptLabel}</T>}
+            <View testID="feed-excerpt" style={styles.excerpt} onLayout={(e) => {
+              const { height: measuredHeight, width: measuredWidth } = e.nativeEvent.layout;
+              setExcerptBox((last) => Math.abs(last.height - measuredHeight) <= 0.5 && Math.abs(last.width - measuredWidth) <= 0.5
+                ? last : { height: measuredHeight, width: measuredWidth });
+            }}>
+              {!!excerptText && <T v={small ? 'small' : 'body'} numberOfLines={excerptLines}>{excerptText}</T>}
             </View>
           </View>
         ) : <View style={styles.spacer} />}
-        {v.aiWritten && !tiny ? (
-          <View style={styles.disclosure}>
-            <T v="caption" tone="muted" numberOfLines={1} style={styles.topic}>AI-written · check before citing</T>
-            <Pressable
-              onPress={onReport}
-              disabled={!isCurrent}
-              accessibilityRole="button"
-              accessibilityLabel="Report summary"
-              style={({ pressed }) => [styles.report, pressed && styles.pressed]}
-            >
-              <T v="caption" tone="muted" numberOfLines={1} style={styles.reportLabel}>Report</T>
-            </Pressable>
-          </View>
-        ) : null}
+        {v.aiWritten && !tiny && <T v="caption" tone="muted" numberOfLines={1} style={styles.disclosure}>AI summary · check before citing</T>}
         <View style={[styles.actions, { borderTopColor: c.rule }]}>
           {actions.map((a) => (
             <Pressable
@@ -91,17 +83,11 @@ export function FeedPaperPreview({
               accessibilityLabel={a.label}
               style={({ pressed }) => [
                 styles.action,
-                !tiny && a.text ? styles.labeledAction : styles.iconAction,
                 a.primary && { backgroundColor: c.accentSoft },
                 pressed && { backgroundColor: c.surfaceAlt },
               ]}
             >
-              <Feather name={a.icon} color={a.primary ? c.accent : c.muted} size={16} />
-              {!tiny && a.text ? (
-                <T v="caption" tone={a.primary ? 'accent' : 'muted'} numberOfLines={1} style={styles.actionLabel}>
-                  {a.text}
-                </T>
-              ) : null}
+              <Feather name={a.icon} color={a.primary ? c.accent : c.muted} size={19} />
             </Pressable>
           ))}
         </View>
@@ -117,18 +103,12 @@ const styles = StyleSheet.create({
   smallCard: { paddingHorizontal: space.m, paddingTop: space.s },
   topicRow: { flexDirection: 'row', alignItems: 'center', gap: space.s, marginBottom: space.xs },
   topic: { flex: 1, minWidth: 0 },
-  headline: { marginBottom: space.xs },
-  finding: { flex: 1, minHeight: 0, gap: space.xs, marginTop: space.l, overflow: 'hidden' },
+  headline: { marginBottom: space.xs, flexShrink: 1 },
+  finding: { flex: 1, minHeight: 0, gap: space.xs, marginTop: space.m },
   smallFinding: { marginTop: space.s },
-  excerpt: { flex: 1, minHeight: 0, overflow: 'hidden' },
-  disclosure: { flexDirection: 'row', alignItems: 'center', gap: space.s },
-  report: { minHeight: 36, paddingHorizontal: space.xs, justifyContent: 'center' },
-  reportLabel: { textDecorationLine: 'underline' },
-  pressed: { opacity: 0.6 },
+  excerpt: { flex: 1, minHeight: 0 },
+  disclosure: { paddingTop: space.xs, paddingBottom: space.xs },
   actions: { flexDirection: 'row', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth },
-  action: { flexDirection: 'row', minHeight: 44, alignItems: 'center', justifyContent: 'center', gap: space.xs, borderRadius: radius.s },
-  labeledAction: { flex: 1, minWidth: 0 },
-  iconAction: { flexGrow: 0.75, minWidth: 44 },
-  actionLabel: { flexShrink: 1, fontWeight: '600' },
+  action: { flex: 1, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.s },
   spacer: { flex: 1, minHeight: 0 },
 });

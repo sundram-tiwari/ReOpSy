@@ -49,9 +49,7 @@ function Tabs() {
         tabBarInactiveTintColor: c.muted,
         title: TAB_ITEMS[route.name].name,
         tabBarAccessibilityLabel: TAB_ITEMS[route.name].name,
-        tabBarLabel: route.name === 'Circles' ? TAB_ITEMS.Circles.name : () => null,
-        tabBarLabelPosition: 'below-icon',
-        tabBarLabelStyle: styles.tabLabel,
+        tabBarShowLabel: false,
         tabBarItemStyle: styles.tabItem,
         tabBarStyle: [
           { backgroundColor: c.surface, borderTopColor: c.rule },
@@ -115,6 +113,5 @@ export const RootNavigator = () => {
 
 const styles = StyleSheet.create({
   tabItem: { minHeight: 48 },
-  tabLabel: { fontSize: 10, fontWeight: '600' },
   tabIcon: { width: 38, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
 });

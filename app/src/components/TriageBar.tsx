@@ -1,7 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { T } from '../ui/kit';
 import { space, useTheme } from '../ui/theme';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
@@ -10,8 +9,8 @@ export type TriageChoice = 'not_relevant' | 'skip' | 'save' | 'survey';
 
 const ACTIONS: { key: TriageChoice; label: string; accessibleName?: string; icon: FeatherName; hint: string }[] = [
   { key: 'not_relevant', label: 'Not for me', icon: 'x', hint: 'Hide this paper and tune your feed' },
-  { key: 'skip', label: 'Skip', icon: 'chevron-right', hint: 'Move on without saving' },
-  { key: 'survey', label: 'Review', accessibleName: 'Add to literature review', icon: 'plus-square', hint: 'Store this paper in your survey list' },
+  { key: 'skip', label: 'Skip', icon: 'skip-forward', hint: 'Move on without saving' },
+  { key: 'survey', label: 'Review', accessibleName: 'Add to literature review', icon: 'book-open', hint: 'Store this paper in your survey list' },
   { key: 'save', label: 'Save', icon: 'bookmark', hint: 'Save to your library and recall it later' },
 ];
 
@@ -34,14 +33,12 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
             accessibilityRole="button"
             accessibilityLabel={a.accessibleName || a.label}
             accessibilityHint={a.hint}
-            style={({ pressed }) => [styles.btn, pressed && { opacity: 0.6 }]}
+            style={({ pressed }) => [styles.btn, pressed && { backgroundColor: c.surfaceAlt, opacity: 0.75 }]}
           >
             <View style={[styles.icon, primary && { backgroundColor: c.accentSoft }]}>
-              <Feather name={a.icon} size={18} color={primary ? c.accent : c.muted} />
+              <Feather name={a.icon} size={20} color={primary ? c.accent : c.muted} />
             </View>
-            <T v="caption" numberOfLines={1} tone={primary ? 'accent' : 'muted'} style={{ fontWeight: '600', marginTop: 2 }}>
-              {a.label}
-            </T>
+
           </Pressable>
         );
       })}
@@ -51,6 +48,6 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs, paddingHorizontal: space.s },
-  btn: { flex: 1, alignItems: 'center', minHeight: 48, justifyContent: 'center' },
+  btn: { flex: 1, alignItems: 'center', minHeight: 48, borderRadius: 12, justifyContent: 'center' },
   icon: { width: 36, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
 });
