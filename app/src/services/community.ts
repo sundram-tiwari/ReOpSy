@@ -15,6 +15,7 @@ import {
   limit,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -154,7 +155,7 @@ export interface ProfileInput {
  * Creates the profile (claiming the handle) or updates it. The handle is
  * fixed after creation so links and mentions stay stable.
  */
-export async function saveProfile(uid: string, input: ProfileInput, isNew: boolean): Promise<void> {
+export async function saveProfile(uid: string, input: ProfileInput, isNew: boolean): Promise<'created' | 'updated' | 'existing'> {
   const fs = store();
   const fields = {
     name: input.name.trim().slice(0, LIMITS.name),
@@ -165,22 +166,32 @@ export async function saveProfile(uid: string, input: ProfileInput, isNew: boole
     orcid: input.orcid,
     updatedAt: serverTimestamp(),
   };
+  const profileRef = doc(fs, 'profiles', uid);
   if (!isNew) {
-    await updateDoc(doc(fs, 'profiles', uid), fields);
-    return;
+    await updateDoc(profileRef, fields);
+    return 'updated';
   }
   const handleRef = doc(fs, 'handles', input.handle);
-  if ((await getDoc(handleRef)).exists()) throw new CommunityError('That handle is taken. Try another.');
-  const batch = writeBatch(fs);
-  batch.set(handleRef, { uid, createdAt: serverTimestamp() });
-  batch.set(doc(fs, 'profiles', uid), {
-    ...fields,
-    uid,
-    handle: input.handle,
-    acceptedTermsAt: serverTimestamp(),
-    createdAt: serverTimestamp(),
+  return runTransaction(fs, async (transaction) => {
+    // A stale or failed load can show Create profile for an existing account.
+    // Never overwrite an existing profile or its fixed handle in that case.
+    if ((await transaction.get(profileRef)).exists()) return 'existing';
+    const handle = await transaction.get(handleRef);
+    if (handle.exists()) {
+      if (handle.data().uid !== uid) throw new CommunityError('That handle is taken. Try another.');
+      // Recover an existing reservation for the same account without editing it.
+    } else {
+      transaction.set(handleRef, { uid, createdAt: serverTimestamp() });
+    }
+    transaction.set(profileRef, {
+      ...fields,
+      uid,
+      handle: input.handle,
+      acceptedTermsAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    });
+    return 'created';
   });
-  await batch.commit();
 }
 
 export async function searchPeople(prefix: string): Promise<Profile[]> {

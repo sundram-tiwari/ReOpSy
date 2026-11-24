@@ -25,7 +25,7 @@ export function YouScreen() {
   const { c } = useTheme();
   const toast = useToast();
   const { user, isAdmin, signOut, deleteAuthAccount } = useAuth();
-  const { profile } = useCommunity();
+  const { profile, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
   const app = useAppState();
   const { state, today } = app;
 
@@ -70,6 +70,13 @@ export function YouScreen() {
           <View style={{ flexDirection: 'row', gap: space.s }}>
             <Button kind="secondary" label="View profile" onPress={() => nav.navigate('Profile', { uid: profile.uid })} style={{ flex: 1 }} />
             <Button kind="secondary" label="Edit" icon="edit-2" onPress={() => nav.navigate('EditProfile')} style={{ flex: 1 }} />
+          </View>
+        ) : profileLoading ? (
+          <View accessibilityLiveRegion="polite"><T tone="muted">Checking your profile…</T></View>
+        ) : profileLoadFailed ? (
+          <View style={{ gap: space.s }} accessibilityLiveRegion="polite">
+            <T tone="muted">Could not load your profile. We won’t create a second one.</T>
+            <Button kind="secondary" label="Retry loading profile" onPress={() => refreshProfile()} />
           </View>
         ) : (
           <Button label="Create your researcher profile" onPress={() => nav.navigate('EditProfile')} />

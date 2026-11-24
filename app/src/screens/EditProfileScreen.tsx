@@ -7,6 +7,7 @@ import { useAppState } from '../state/AppState';
 import { useCommunity } from '../state/Community';
 import { CommunityError, saveProfile } from '../services/community';
 import { config } from '../config';
+import { profileSaveMessage } from '../logic/profileSave';
 import { LIMITS, ROLES, normalizeOrcid, suggestHandle, validateHandle } from '../logic/social';
 import { Button, Chip, IconButton, Screen, SectionTitle, T, TextField } from '../ui/kit';
 import { space, useTheme } from '../ui/theme';
@@ -42,12 +43,13 @@ export function EditProfileScreen() {
     setBusy(true);
     setError(null);
     try {
-      await saveProfile(user.uid, { name, handle, role, affiliation, bio, interests, orcid: orcidNorm || '' }, isNew);
+      const result = await saveProfile(user.uid, { name, handle, role, affiliation, bio, interests, orcid: orcidNorm || '' }, isNew);
       await refreshProfile();
-      toast(isNew ? 'Profile created. Welcome to the community.' : 'Profile saved.');
+      toast(result === 'created' ? 'Profile created. Welcome to the community.'
+        : result === 'existing' ? 'Your profile already exists. Open it to make edits.' : 'Profile saved.');
       nav.goBack();
     } catch (err) {
-      setError(err instanceof CommunityError ? err.message : 'Could not save. Check your connection and try again.');
+      setError(err instanceof CommunityError ? err.message : profileSaveMessage(err));
     } finally {
       setBusy(false);
     }
@@ -110,7 +112,7 @@ export function EditProfileScreen() {
         <Button kind="ghost" label="Read the community guidelines" onPress={() => nav.navigate('Guidelines')} />
       ) : null}
 
-      {error ? <T tone="bad" style={{ marginTop: space.m }}>{error}</T> : null}
+      {error ? <View accessibilityLiveRegion="polite" style={{ marginTop: space.m }}><T tone="bad">{error}</T></View> : null}
       <Button label={isNew ? 'Create profile' : 'Save'} onPress={save} loading={busy} disabled={!canSave} style={{ marginTop: space.l }} />
       <T v="small" tone="faint" style={{ marginTop: space.m }}>
         Your profile, posts and recommendations are visible to signed-in members. Your library stays private.
