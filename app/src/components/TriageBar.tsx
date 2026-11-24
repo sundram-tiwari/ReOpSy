@@ -26,7 +26,7 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
       ]}
     >
       {ACTIONS.map((a) => {
-        const primary = a.key === 'save' || a.key === 'survey';
+        const primary = a.key === 'save';
         return (
           <Pressable
             key={a.key}
@@ -36,10 +36,10 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
             accessibilityHint={a.hint}
             style={({ pressed }) => [styles.btn, pressed && { opacity: 0.6 }]}
           >
-            <View style={[styles.icon, { backgroundColor: primary ? c.accentSoft : c.surfaceAlt }]}>
-              <Feather name={a.icon} size={20} color={primary ? c.accent : c.muted} />
+            <View style={[styles.icon, primary && { backgroundColor: c.accentSoft }]}>
+              <Feather name={a.icon} size={18} color={primary ? c.accent : c.muted} />
             </View>
-            <T v="caption" numberOfLines={1} tone={primary ? 'accent' : 'muted'} style={{ fontWeight: '600', marginTop: 4 }}>
+            <T v="caption" numberOfLines={1} tone={primary ? 'accent' : 'muted'} style={{ fontWeight: '600', marginTop: 2 }}>
               {a.label}
             </T>
           </Pressable>
@@ -51,6 +51,6 @@ export function TriageBar({ onChoose }: { onChoose: (choice: TriageChoice) => vo
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs, paddingHorizontal: space.s },
-  btn: { flex: 1, alignItems: 'center', minHeight: 56, justifyContent: 'center' },
-  icon: { width: 44, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  btn: { flex: 1, alignItems: 'center', minHeight: 48, justifyContent: 'center' },
+  icon: { width: 36, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
 });

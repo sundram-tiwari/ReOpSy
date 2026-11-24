@@ -3,6 +3,8 @@ export interface Paper {
   originalTitle: string;
   catchyTitle: string;
   summary: string;
+  summaryBasis?: 'ai-selected-source-excerpt' | 'source-excerpt' | 'metadata';
+  excerptLicense?: string | null;
   authors: string[];
   source: string;
   year: number | null;

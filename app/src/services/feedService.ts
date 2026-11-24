@@ -1,9 +1,10 @@
 import { db, isFirebaseConfigured } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Paper } from '../types';
+import { validFeedTimestamp } from '../logic/dailyBrief';
 
 export interface LiveFeedData {
-  generatedAt: string;
+  generatedAt: string | null;
   topics: Record<string, Paper[]>;
 }
 
@@ -42,7 +43,7 @@ export async function fetchLiveFeed(): Promise<LiveFeedData | null> {
       if (Array.isArray(papers)) {
         // Filter out any malformed entries
         const validPapers = (papers as any[]).filter(
-          (p) => p && typeof p === 'object' && typeof p.id === 'string' && typeof p.originalTitle === 'string'
+          (p) => p && typeof p === 'object' && typeof p.id === 'string' && typeof p.originalTitle === 'string' && typeof p.url === 'string' && /^https?:\/\//i.test(p.url) && p.source !== 'system'
         ) as Paper[];
         if (validPapers.length > 0) {
           topics[slug] = validPapers;
@@ -60,7 +61,7 @@ export async function fetchLiveFeed(): Promise<LiveFeedData | null> {
     );
 
     return {
-      generatedAt: data.generatedAt || new Date().toISOString(),
+      generatedAt: validFeedTimestamp(data.generatedAt),
       topics,
     };
   } catch (err: any) {

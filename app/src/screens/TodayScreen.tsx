@@ -13,6 +13,7 @@ import { shortCitation } from '../logic/exporters';
 import { FeedAnchor, feedIndex } from '../logic/feedPager';
 import { NotRelevantReason } from '../types';
 import { useNav } from '../navigation/types';
+import { DailyBriefSheet } from '../components/DailyBriefSheet';
 import { FeedPager } from '../components/FeedPager';
 import { FeedPaperPreview } from '../components/FeedPaperPreview';
 import { PaperCardView } from '../components/PaperCardView';
@@ -33,11 +34,12 @@ export function TodayScreen() {
   const tabs = useNavigation<any>();
   const toast = useToast();
   const focused = useIsFocused();
-  const { deck, state, today, triagePaper, undoLastTriage } = useAppState();
+  const { deck, state, today, feed, liveFeed, triagePaper, undoLastTriage } = useAppState();
   const [anchor, setAnchor] = useState<(FeedAnchor & { day: string }) | undefined>();
   const [reasonFor, setReasonFor] = useState<string | null>(null);
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
+  const [briefOpen, setBriefOpen] = useState(false);
 
   const progress = deckProgress(deck, state.triage, today);
   const unread = useMemo(
@@ -86,6 +88,7 @@ export function TodayScreen() {
           {formatDay(today)}
         </T>
       </View>
+      <IconButton icon="file-text" label="Open research brief" onPress={() => setBriefOpen(true)} />
       {streak > 0 ? (
         <Chip label={`${streak}-day streak`} icon="zap" tone="accent" onPress={() => tabs.navigate('You')} />
       ) : null}
@@ -97,14 +100,28 @@ export function TodayScreen() {
     </View>
   );
 
+  const researchBrief = (
+    <DailyBriefSheet
+      visible={briefOpen}
+      today={today}
+      topics={feed}
+      followed={state.followedTopics}
+      isLive={!!liveFeed}
+      generatedAt={liveFeed?.generatedAt ?? null}
+      onClose={() => setBriefOpen(false)}
+      onSource={(url) => WebBrowser.openBrowserAsync(url).catch(() => toast('Could not open that link.'))}
+    />
+  );
+
   if (deck.length === 0) {
     return (
       <Screen>
         {header}
+        {researchBrief}
         <EmptyState
           icon="inbox"
-          title="Nothing new for your topics today"
-          body="Every paper here passed a quality check, so some days are quiet. Add a topic to widen your deck."
+          title="No unread papers for your topics"
+          body="Try another topic to widen your deck, or open the research brief to check feed freshness."
           action={<Button label="Choose topics" icon="list" onPress={() => nav.navigate('Topics')} />}
         />
       </Screen>
@@ -116,7 +133,8 @@ export function TodayScreen() {
     return (
       <Screen>
         {header}
-        <EmptyState icon="check-circle" title="You're caught up" body="That's today's deck. New papers arrive tomorrow." />
+        {researchBrief}
+        <EmptyState icon="check-circle" title="You're caught up" body="That's today's deck. Check the research brief for the latest papers available." />
         <Card>
           <T v="label" tone="muted" style={{ marginBottom: space.s }}>
             Today
@@ -152,7 +170,7 @@ export function TodayScreen() {
         <FeedPager
           index={index}
           paperIds={paperIds}
-          active={focused && ![reasonFor, reportFor, detailsFor].includes(paper.id)}
+          active={focused && !briefOpen && ![reasonFor, reportFor, detailsFor].includes(paper.id)}
           onChange={goTo}
           render={(page, height, isCurrent) => {
             const card = unread[page];
@@ -188,6 +206,7 @@ export function TodayScreen() {
         <TriageBar onChoose={decide} />
       </View>
 
+      {researchBrief}
       <Sheet visible={reasonFor === paper.id} title="Why is this not for you?" onClose={() => setReasonFor(null)}>
         <T tone="muted" style={{ marginBottom: space.m }}>
           Your answer tunes future decks. It is stored on your device and in your private sync.

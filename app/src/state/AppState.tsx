@@ -20,7 +20,7 @@ import { prepareFeed } from '../logic/feed';
 import { topicTerms } from '../config';
 import { useAuth } from '../hooks/useAuth';
 import { db, isFirebaseConfigured } from '../services/firebase';
-import { fetchLiveFeed } from '../services/feedService';
+import { fetchLiveFeed, LiveFeedData } from '../services/feedService';
 import { ThemePrefContext } from '../ui/theme';
 import dailyFeedJson from '../data/dailyFeed.json';
 import v2SamplesJson from '../data/v2Samples.json';
@@ -39,6 +39,7 @@ export interface AppStateContext {
   today: string;
   state: StoredStateV3;
   feed: Record<string, Paper[]>;
+  liveFeed: LiveFeedData | null;
   deck: DeckCard[];
   findPaper: (id: string) => Paper | undefined;
   libraryEntry: (id: string) => LibraryEntry | undefined;
@@ -79,7 +80,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoaded, setIsLoaded] = useState(false);
   const [state, setState] = useState<StoredStateV3>(defaultState);
   const [today, setToday] = useState(dayKey());
-  const [liveFeed, setLiveFeed] = useState<Record<string, Paper[]> | null>(null);
+  const [liveFeed, setLiveFeed] = useState<LiveFeedData | null>(null);
   const undoRef = useRef<UndoSnapshot | null>(null);
   const hydratedUid = useRef<string | null>(null);
   const hydrating = useRef(false);
@@ -114,11 +115,27 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // 2. Live feed from Firestore when configured; bundled feed otherwise.
   useEffect(() => {
     let alive = true;
-    fetchLiveFeed()
-      .then((live) => alive && live && setLiveFeed(live.topics))
-      .catch(() => {});
+    let inFlight = false;
+    let lastAttempt = 0;
+    const refresh = () => {
+      if (!alive || inFlight || Date.now() - lastAttempt < 60_000) return;
+      inFlight = true;
+      lastAttempt = Date.now();
+      fetchLiveFeed()
+        .then((live) => {
+          if (!alive || !live) return;
+          setLiveFeed((current) =>
+            current?.generatedAt && (!live.generatedAt || live.generatedAt < current.generatedAt) ? current : live,
+          );
+        })
+        .catch(() => {})
+        .finally(() => { inFlight = false; });
+    };
+    refresh();
+    const sub = RNAppState.addEventListener('change', (s) => { if (s === 'active') refresh(); });
     return () => {
       alive = false;
+      sub.remove();
     };
   }, []);
 
@@ -164,7 +181,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [state, isLoaded, user]);
 
   const feed = useMemo(
-    () => prepareFeed(liveFeed || staticFeed, curatedFeed, topicTerms(), new Date().getFullYear()),
+    () => prepareFeed(liveFeed?.topics || staticFeed, curatedFeed, topicTerms(), new Date().getFullYear()),
     [liveFeed],
   );
 
@@ -281,6 +298,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       today,
       state,
       feed,
+      liveFeed,
       deck,
       findPaper: (id) => paperIndex.get(id),
       libraryEntry: (id) => state.library.find((e) => e.paper.id === id),
@@ -312,7 +330,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setState(defaultState());
       },
     }),
-    [isLoaded, today, state, feed, deck, paperIndex, triagePaper, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
+    [isLoaded, today, state, feed, liveFeed, deck, paperIndex, triagePaper, undoLastTriage, setLibraryStatus, updateEntry, gradeRecall, finishRecallSession, update],
   );
 
   if (!isLoaded) return null;
