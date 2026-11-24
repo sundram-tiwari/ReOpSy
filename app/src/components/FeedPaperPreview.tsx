@@ -92,6 +92,7 @@ export function FeedPaperPreview({
               style={({ pressed }) => [
                 styles.action,
                 !tiny && a.text ? styles.labeledAction : styles.iconAction,
+                a.primary && { backgroundColor: c.accentSoft },
                 pressed && { backgroundColor: c.surfaceAlt },
               ]}
             >

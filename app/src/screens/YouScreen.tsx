@@ -13,7 +13,7 @@ import { milestones, weekRhythm } from '../logic/progress';
 import { effectiveStreak, streakSummary } from '../logic/streak';
 import { fromDayKey } from '../logic/date';
 import { config } from '../config';
-import { Avatar, Button, Card, Chip, ListRow, Screen, SectionTitle, Segmented, Sheet, T, TextField } from '../ui/kit';
+import { Avatar, Button, Card, Chip, IconButton, ListRow, Screen, SectionTitle, Segmented, Sheet, T, TextField } from '../ui/kit';
 import { space, useTheme } from '../ui/theme';
 import { useToast } from '../ui/Toast';
 
@@ -28,6 +28,7 @@ export function YouScreen() {
   const app = useAppState();
   const { state, today } = app;
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [zoteroOpen, setZoteroOpen] = useState(false);
   const [zoteroKey, setZoteroKey] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -61,6 +62,7 @@ export function YouScreen() {
             {profile ? `@${profile.handle}${profile.role ? ` · ${profile.role}` : ''}` : user ? user.email || '' : 'Reading offline, no account'}
           </T>
         </View>
+        <IconButton icon="settings" label="Open reading settings" onPress={() => setSettingsOpen(true)} />
       </View>
       {user ? (
         profile ? (
@@ -110,28 +112,30 @@ export function YouScreen() {
         ))}
       </View>
 
-      <SectionTitle>Reading</SectionTitle>
-      <ListRow icon="list" title="Topics" subtitle={`${state.followedTopics.length} followed`} onPress={() => nav.navigate('Topics')} />
-      <View style={{ paddingVertical: space.m }}>
-        <T v="small" tone="muted" style={{ marginBottom: space.s }}>Cards per day</T>
-        <Segmented
-          options={config.dailyGoals.map((g) => ({ key: String(g), label: `${g}` }))}
-          value={String(state.dailyGoal)}
-          onChange={(g) => app.setDailyGoal(Number(g))}
-        />
-      </View>
-      <View style={{ paddingVertical: space.m }}>
-        <T v="small" tone="muted" style={{ marginBottom: space.s }}>Appearance</T>
-        <Segmented
-          options={[
-            { key: 'system', label: 'System' },
-            { key: 'light', label: 'Light' },
-            { key: 'dark', label: 'Dark' },
-          ]}
-          value={state.themePref}
-          onChange={app.setThemePref}
-        />
-      </View>
+      <Sheet visible={settingsOpen} title="Reading settings" onClose={() => setSettingsOpen(false)}>
+        <ListRow icon="list" title="Topics" subtitle={`${state.followedTopics.length} followed`} onPress={() => { setSettingsOpen(false); nav.navigate('Topics'); }} />
+        <View style={{ paddingVertical: space.m }}>
+          <T v="small" tone="muted" style={{ marginBottom: space.s }}>Cards per day</T>
+          <Segmented
+            options={config.dailyGoals.map((g) => ({ key: String(g), label: `${g}` }))}
+            value={String(state.dailyGoal)}
+            onChange={(g) => app.setDailyGoal(Number(g))}
+          />
+        </View>
+        <View style={{ paddingVertical: space.m }}>
+          <T v="small" tone="muted" style={{ marginBottom: space.s }}>Appearance</T>
+          <Segmented
+            options={[
+              { key: 'system', label: 'System' },
+              { key: 'light', label: 'Light' },
+              { key: 'dark', label: 'Dark' },
+            ]}
+            value={state.themePref}
+            onChange={app.setThemePref}
+          />
+        </View>
+
+      </Sheet>
 
       <SectionTitle>Connected tools</SectionTitle>
       <ListRow
