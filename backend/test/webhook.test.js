@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('http');
-const { createServer, authenticateRequest, extractToken, DEFAULT_SECRET } = require('../../server');
+const { createServer, authenticateRequest, extractToken, DEFAULT_SECRET } = require('../server');
 
 // Helper to make local HTTP requests to a test server
 function makeRequest(server, options, bodyData = null) {

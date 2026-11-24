@@ -47,7 +47,10 @@ cd backend && npm test    # ingest pipeline
 cd app     && npm test    # pure logic, strict TypeScript
 ```
 
-Both suites are dependency-free (`node --test`) and run in a couple of seconds.
+Both suites are dependency-free (`node --test`) and run in a couple of seconds. The nightly
+workflow runs only the ingest suite. To run the separate webhook integration
+tests, use Node.js 22 or later and run `npm ci && npm run test:webhook` in
+`backend/`.
 
 ## Design decisions that matter
 
