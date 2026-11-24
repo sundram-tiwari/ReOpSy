@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Share, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -42,13 +42,39 @@ const STATUS: { key: LibraryStatus | 'none'; label: string }[] = [
 
 let postStamps: number[] = [];
 
+type DiscussionError = 'access' | 'connection' | 'other';
+
+function discussionError(error: unknown): DiscussionError {
+  switch ((error as { code?: string } | null)?.code) {
+    case 'permission-denied':
+    case 'unauthenticated':
+      return 'access';
+    case 'unavailable':
+    case 'deadline-exceeded':
+    case 'cancelled':
+      return 'connection';
+    default:
+      return 'other';
+  }
+}
+
 export function PaperScreen() {
+  const { paperId } = useRoute<RouteProp<RootStackParamList, 'Paper'>>().params;
+  const { user } = useAuth();
+
+  // Do not carry cached comments, drafts, or personal reaction state across
+  // a change of paper or authenticated account.
+  return <PaperContent key={JSON.stringify([paperId, user?.uid])} />;
+}
+
+function PaperContent() {
   const nav = useNav();
   const route = useRoute<RouteProp<RootStackParamList, 'Paper'>>();
   const { paperId, ref } = route.params;
   const { findPaper, libraryEntry, setLibraryStatus, state, blockUser, notePost } = useAppState();
-  const { user } = useAuth();
-  const { enabled } = useCommunity();
+  const { user, loading: authLoading } = useAuth();
+  const { enabled, me, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
+  const canPost = !!user && me?.uid === user.uid;
   const toast = useToast();
   const { c: colors } = useTheme();
   const contributor = useContributor((s) => nav.navigate(s));
@@ -74,12 +100,17 @@ export function PaperScreen() {
 
   const entry = libraryEntry(paperId);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [helpful, setHelpfulSet] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(false);
+  const [helpful, setHelpfulSet] = useState<Set<string> | null>(null);
+  const [helpfulFailed, setHelpfulFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedComments, setHasLoadedComments] = useState(false);
+  const [loadError, setLoadError] = useState<DiscussionError | null>(null);
+  const commentRequest = useRef(0);
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [posting, setPosting] = useState(false);
-  const [recommended, setRecommended] = useState(false);
+  const [recommended, setRecommended] = useState<boolean | null>(null);
+  const [recommendationFailed, setRecommendationFailed] = useState(false);
   const [recOpen, setRecOpen] = useState(false);
   const [recNote, setRecNote] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
@@ -88,28 +119,60 @@ export function PaperScreen() {
   const [reportTarget, setReportTarget] = useState<ReportTargetInfo | null>(null);
   const [summaryReportOpen, setSummaryReportOpen] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!enabled || !user) return;
+  const uid = user?.uid;
+  const loadDiscussion = useCallback(async () => {
+    if (!enabled || !uid) return;
+    const request = ++commentRequest.current;
     setLoading(true);
+    setLoadError(null);
     try {
-      const [list, mine, rec] = await Promise.all([
-        listComments(paperId),
-        myHelpful(paperId, user.uid),
-        hasRecommended(user.uid, paperId),
-      ]);
+      const list = await listComments(paperId);
+      if (request !== commentRequest.current) return;
       setComments(list);
-      setHelpfulSet(mine);
-      setRecommended(rec);
-    } catch {
-      toast('Could not load the discussion. Check your connection.');
+      setHasLoadedComments(true);
+    } catch (error) {
+      if (request === commentRequest.current) {
+        const failure = discussionError(error);
+        if (failure === 'access') {
+          setComments([]);
+          setHasLoadedComments(false);
+        }
+        setLoadError(failure);
+      }
     } finally {
-      setLoading(false);
+      if (request === commentRequest.current) setLoading(false);
     }
-  }, [enabled, user, paperId, toast]);
+  }, [enabled, uid, paperId]);
+
+  const loadHelpful = useCallback(async () => {
+    if (!enabled || !uid) return;
+    setHelpfulSet(null);
+    setHelpfulFailed(false);
+    try {
+      setHelpfulSet(await myHelpful(paperId, uid));
+    } catch {
+      setHelpfulFailed(true);
+    }
+  }, [enabled, uid, paperId]);
+
+  const loadRecommendation = useCallback(async () => {
+    if (!enabled || !uid) return;
+    setRecommendationFailed(false);
+    try {
+      setRecommended(await hasRecommended(uid, paperId));
+    } catch {
+      setRecommendationFailed(true);
+    }
+  }, [enabled, uid, paperId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    void loadDiscussion();
+    void loadHelpful();
+    void loadRecommendation();
+    return () => {
+      ++commentRequest.current;
+    };
+  }, [loadDiscussion, loadHelpful, loadRecommendation]);
 
   const visible = useMemo(() => comments.filter((c) => !state.blockedUids.includes(c.uid)), [comments, state.blockedUids]);
   const threads = useMemo(() => {
@@ -126,6 +189,7 @@ export function PaperScreen() {
   }
 
   const post = async () => {
+    if (!canPost) return;
     const me = contributor();
     if (!me) return;
     const clean = cleanPostText(text, LIMITS.comment);
@@ -142,9 +206,17 @@ export function PaperScreen() {
       setText('');
       setReplyTo(null);
       notePost();
-      await load();
-    } catch {
-      toast('Could not post. Check your connection and try again.');
+      await loadDiscussion();
+    } catch (error) {
+      const failure = discussionError(error);
+      if (failure === 'access') {
+        toast('Your comment was not posted. Check that you still have a researcher profile and try again.');
+        void refreshProfile();
+      } else if (failure === 'connection') {
+        toast('Could not post. Check your connection and try again.');
+      } else {
+        toast('Could not post your comment. Try again.');
+      }
     } finally {
       setPosting(false);
     }
@@ -153,6 +225,7 @@ export function PaperScreen() {
   const toggleHelpful = async (c: Comment) => {
     const me = contributor();
     if (!me) return;
+    if (!helpful) return;
     const on = !helpful.has(c.id);
     setHelpfulSet((s) => {
       const n = new Set(s);
@@ -165,7 +238,8 @@ export function PaperScreen() {
       await setHelpful(me.uid, paper.id, c.id, on);
     } catch {
       toast('Could not save that. Try again.');
-      load();
+      void loadDiscussion();
+      void loadHelpful();
     }
   };
 
@@ -181,11 +255,15 @@ export function PaperScreen() {
 
   const toggleRecommend = async () => {
     const me = contributor();
-    if (!me) return;
+    if (!me || recommended === null) return;
     if (recommended) {
-      await unrecommend(me.uid, paper.id).catch(() => {});
-      setRecommended(false);
-      toast('Removed from your recommendations.');
+      try {
+        await unrecommend(me.uid, paper.id);
+        setRecommended(false);
+        toast('Removed from your recommendations.');
+      } catch {
+        toast('Could not remove that recommendation. Try again.');
+      }
     } else {
       setRecOpen(true);
     }
@@ -204,7 +282,7 @@ export function PaperScreen() {
 
   const renderComment = (c: Comment, isReply: boolean) => {
     const mine = user?.uid === c.uid;
-    const markedHelpful = helpful.has(c.id);
+    const markedHelpful = !!helpful?.has(c.id);
     return (
       <View key={c.id} style={{ flexDirection: 'row', gap: space.m, marginTop: space.m, marginLeft: isReply ? 44 : 0 }}>
         <Pressable onPress={() => nav.navigate('Profile', { uid: c.uid })} accessibilityRole="button" accessibilityLabel={`Open ${c.name}'s profile`}>
@@ -221,13 +299,14 @@ export function PaperScreen() {
           <T selectable style={{ marginTop: 2 }}>
             {c.text}
           </T>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.l, marginTop: space.xs }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.l, marginTop: space.xs }}>
             <Pressable
               onPress={() => toggleHelpful(c)}
+              disabled={!helpful}
               accessibilityRole="button"
               accessibilityLabel={markedHelpful ? 'Remove helpful reaction' : 'Mark comment helpful'}
               accessibilityHint={c.helpfulCount ? `${c.helpfulCount} helpful reactions` : undefined}
-              accessibilityState={{ selected: markedHelpful }}
+              accessibilityState={{ selected: markedHelpful, disabled: !helpful }}
               style={{ minHeight: 44, flexDirection: 'row', gap: space.xs, alignItems: 'center' }}
             >
               <Feather name="thumbs-up" size={15} color={markedHelpful ? colors.accent : colors.muted} />
@@ -236,7 +315,11 @@ export function PaperScreen() {
               </T>
             </Pressable>
             {!isReply ? (
-              <Pressable onPress={() => setReplyTo(c)} accessibilityRole="button" hitSlop={8}>
+              <Pressable onPress={() => {
+                if (canPost) setReplyTo(c);
+                else if (profileLoadFailed) void refreshProfile();
+                else if (!profileLoading) contributor();
+              }} accessibilityRole="button" hitSlop={8}>
                 <T v="caption" tone="muted" style={{ fontWeight: '600' }}>
                   Reply
                 </T>
@@ -308,9 +391,9 @@ export function PaperScreen() {
         <Button
           kind={recommended ? 'primary' : 'secondary'}
           icon="award"
-          label={recommended ? 'Recommended' : 'Recommend to followers'}
-          onPress={toggleRecommend}
-          disabled={!enabled}
+          label={recommendationFailed ? 'Retry recommendation status' : recommended ? 'Recommended' : 'Recommend to followers'}
+          onPress={recommendationFailed ? loadRecommendation : toggleRecommend}
+          disabled={!enabled || (!!user && recommended === null && !recommendationFailed)}
         />
         <Button kind="secondary" icon="users" label="Share to a circle" onPress={openShare} disabled={!enabled} />
       </View>
@@ -323,54 +406,89 @@ export function PaperScreen() {
         <T tone="muted" style={{ marginTop: space.s }}>
           Discussions need an internet-connected build.
         </T>
+      ) : authLoading ? (
+        <T tone="muted" style={{ marginTop: space.m }}>Checking sign-in…</T>
       ) : !user ? (
-        <View style={{ marginTop: space.m }}>
+        <View style={{ marginTop: space.m, alignItems: 'flex-start' }}>
           <T tone="muted">Sign in to read and join the discussion on this paper.</T>
           <Button label="Sign in" style={{ marginTop: space.m }} onPress={() => nav.navigate('SignIn')} />
         </View>
       ) : (
         <View>
-          {loading ? (
-            <T tone="muted" style={{ marginTop: space.m }}>
-              Loading…
-            </T>
+          {loadError ? (
+            <View style={{ marginTop: space.m, alignItems: 'flex-start', gap: space.s }} accessibilityLiveRegion="polite">
+              <T tone="muted">
+                {loadError === 'access'
+                  ? 'Discussion access was denied. Sign out and back in, then try again.'
+                  : loadError === 'connection'
+                    ? 'Could not reach the discussion service. Check your connection and try again.'
+                    : 'Could not load comments right now. Try again.'}
+              </T>
+              <Button kind="secondary" label="Retry discussion" icon="refresh-cw" onPress={loadDiscussion} />
+            </View>
+          ) : loading ? (
+            <View style={{ marginTop: space.m }} accessibilityLiveRegion="polite">
+              <T tone="muted">{hasLoadedComments ? 'Refreshing comments…' : 'Loading comments…'}</T>
+            </View>
           ) : threads.length === 0 ? (
             <T tone="muted" style={{ marginTop: space.m }}>
               No comments yet. Ask a question about the method, or note a limitation others should know.
             </T>
-          ) : (
-            threads.map((t) => (
-              <View key={t.top.id}>
-                {renderComment(t.top, false)}
-                {t.replies.map((r) => renderComment(r, true))}
-              </View>
-            ))
-          )}
+          ) : null}
+          {threads.map((t) => (
+            <View key={t.top.id}>
+              {renderComment(t.top, false)}
+              {t.replies.map((r) => renderComment(r, true))}
+            </View>
+          ))}
+          {helpfulFailed && threads.length > 0 ? (
+            <View style={{ marginTop: space.m, alignItems: 'flex-start' }}>
+              <Button kind="secondary" label="Retry helpful reactions" icon="refresh-cw" onPress={loadHelpful} />
+            </View>
+          ) : null}
 
-          <View style={{ marginTop: space.xl }}>
-            {replyTo ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: space.s }}>
-                <T v="small" tone="muted" style={{ flex: 1 }}>
-                  Replying to {replyTo.name}
+          {canPost ? (
+            <View style={{ marginTop: space.xl }}>
+              {replyTo ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: space.s }}>
+                  <T v="small" tone="muted" style={{ flex: 1 }}>
+                    Replying to {replyTo.name}
+                  </T>
+                  <IconButton icon="x" label="Cancel reply" size={18} onPress={() => setReplyTo(null)} />
+                </View>
+              ) : null}
+              <TextField
+                label={replyTo ? 'Your reply' : 'Add to the discussion'}
+                value={text}
+                onChangeText={setText}
+                placeholder="Be specific: cite sections, numbers, or other papers."
+                multiline
+                maxLength={LIMITS.comment}
+              />
+              <Button label="Post" icon="send" onPress={post} loading={posting} disabled={!text.trim()} />
+              <Pressable onPress={() => nav.navigate('Guidelines')} accessibilityRole="link" style={{ marginTop: space.s }}>
+                <T v="caption" tone="muted" style={{ textAlign: 'center' }}>
+                  Posts follow the community guidelines.
                 </T>
-                <IconButton icon="x" label="Cancel reply" size={18} onPress={() => setReplyTo(null)} />
-              </View>
-            ) : null}
-            <TextField
-              label={replyTo ? 'Your reply' : 'Add to the discussion'}
-              value={text}
-              onChangeText={setText}
-              placeholder="Be specific: cite sections, numbers, or other papers."
-              multiline
-              maxLength={LIMITS.comment}
-            />
-            <Button label="Post" icon="send" onPress={post} loading={posting} disabled={!text.trim()} />
-            <Pressable onPress={() => nav.navigate('Guidelines')} accessibilityRole="link" style={{ marginTop: space.s }}>
-              <T v="caption" tone="muted" style={{ textAlign: 'center' }}>
-                Posts follow the community guidelines.
-              </T>
-            </Pressable>
-          </View>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ marginTop: space.xl, alignItems: 'flex-start', gap: space.s }}>
+              {profileLoading ? (
+                <T tone="muted">Checking your researcher profile…</T>
+              ) : profileLoadFailed ? (
+                <>
+                  <T tone="muted">Could not check your researcher profile. Try again before posting.</T>
+                  <Button kind="secondary" label="Retry profile check" icon="refresh-cw" onPress={refreshProfile} />
+                </>
+              ) : (
+                <>
+                  <T tone="muted">You can read comments while signed in. Create a researcher profile to post or reply.</T>
+                  <Button label="Create researcher profile" icon="user-plus" onPress={() => nav.navigate('EditProfile')} />
+                </>
+              )}
+            </View>
+          )}
         </View>
       )}
 

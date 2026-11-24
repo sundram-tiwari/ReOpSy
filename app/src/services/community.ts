@@ -11,6 +11,7 @@ import {
   getCountFromServer,
   getDoc,
   getDocs,
+  getDocsFromServer,
   increment,
   limit,
   orderBy,
@@ -320,7 +321,8 @@ function commentFrom(id: string, d: Record<string, any>): Comment {
 }
 
 export async function listComments(paperId: string): Promise<Comment[]> {
-  const snap = await getDocs(
+  // Do not present a missing offline cache as a successfully empty discussion.
+  const snap = await getDocsFromServer(
     query(collection(store(), 'papers', paperKey(paperId), 'comments'), orderBy('createdAt', 'asc'), limit(200)),
   );
   return snap.docs.map((d) => commentFrom(d.id, d.data()));
