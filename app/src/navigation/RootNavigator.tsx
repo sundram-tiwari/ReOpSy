@@ -1,4 +1,5 @@
 import React from 'react';
+import { useWindowDimensions } from 'react-native';
 import { DarkTheme, DefaultTheme, NavigationContainer, Theme as NavTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -39,13 +40,17 @@ const TAB_ICONS: Record<keyof TabParamList, FeatherName> = {
 function Tabs() {
   const { c } = useTheme();
   const { unread } = useCommunity();
+  const { width } = useWindowDimensions();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: c.accent,
         tabBarInactiveTintColor: c.muted,
-        tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.rule },
+        tabBarStyle: [
+          { backgroundColor: c.surface, borderTopColor: c.rule },
+          route.name === 'Today' && width > 500 ? { width: 500, alignSelf: 'center' } : undefined,
+        ],
         tabBarIcon: ({ color, size }) => <Feather name={TAB_ICONS[route.name]} size={size} color={color} />,
       })}
     >

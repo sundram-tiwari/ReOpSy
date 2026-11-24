@@ -1,20 +1,24 @@
-import { useMemo, useState } from 'react';
-import { Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Platform, Share, StyleSheet, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useAppState } from '../state/AppState';
 import { deckProgress, todaySummary } from '../logic/triage';
 import { dueItems } from '../logic/recall';
 import { effectiveStreak } from '../logic/streak';
 import { formatDay } from '../logic/date';
 import { shortCitation } from '../logic/exporters';
+import { FeedAnchor, feedIndex } from '../logic/feedPager';
 import { NotRelevantReason } from '../types';
 import { useNav } from '../navigation/types';
+import { FeedPager } from '../components/FeedPager';
+import { FeedPaperPreview } from '../components/FeedPaperPreview';
 import { PaperCardView } from '../components/PaperCardView';
 import { TriageBar, TriageChoice } from '../components/TriageBar';
 import { ReportSummarySheet } from '../components/ReportSheets';
-import { Button, Card, Chip, EmptyState, ProgressRing, Screen, Sheet, T } from '../ui/kit';
+import { Button, Card, Chip, EmptyState, IconButton, ProgressRing, Screen, Sheet, T } from '../ui/kit';
 import { space } from '../ui/theme';
 import { useToast } from '../ui/Toast';
 
@@ -28,30 +32,48 @@ export function TodayScreen() {
   const nav = useNav();
   const tabs = useNavigation<any>();
   const toast = useToast();
+  const focused = useIsFocused();
   const { deck, state, today, triagePaper, undoLastTriage } = useAppState();
-  const [reasonOpen, setReasonOpen] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
+  const [anchor, setAnchor] = useState<(FeedAnchor & { day: string }) | undefined>();
+  const [reasonFor, setReasonFor] = useState<string | null>(null);
+  const [reportFor, setReportFor] = useState<string | null>(null);
+  const [detailsFor, setDetailsFor] = useState<string | null>(null);
 
   const progress = deckProgress(deck, state.triage, today);
-  const current = progress.nextIndex >= 0 ? deck[progress.nextIndex] : null;
+  const unread = useMemo(
+    () => deck.map((card, deckIndex) => ({ ...card, deckIndex, paperId: card.paper.id }))
+      .filter((card) => state.triage[card.paperId]?.day !== today),
+    [deck, state.triage, today],
+  );
+  const index = feedIndex(unread, anchor?.day === today ? anchor : undefined);
+  const current = index >= 0 ? unread[index] : null;
+  const paperIds = useMemo(() => unread.map((card) => card.paperId), [unread]);
+  const goTo = useCallback((page: number) => {
+    const next = unread[page];
+    if (next) setAnchor({ day: today, paperId: next.paperId, deckIndex: next.deckIndex });
+  }, [today, unread]);
   const streak = effectiveStreak(state.streak, today);
   const recallDue = useMemo(() => dueItems(state.recallQueue, today).length, [state.recallQueue, today]);
 
   const decide = (choice: TriageChoice, reason?: NotRelevantReason) => {
     if (!current) return;
     if (choice === 'not_relevant' && !reason) {
-      setReasonOpen(true);
+      setReasonFor(current.paperId);
       return;
     }
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     const action = choice === 'skip' ? 'seen' : choice === 'save' ? 'saved' : choice === 'survey' ? 'survey' : 'not_relevant';
+    goTo(index);
     triagePaper(current.paper, action, reason);
     const msg =
       action === 'saved' ? 'Saved. You will get a recall question tomorrow.'
       : action === 'survey' ? 'Added to your survey.'
       : action === 'not_relevant' ? 'Hidden. Your feed will lean away from this.'
       : 'Skipped.';
-    toast(msg, { label: 'Undo', onPress: undoLastTriage });
+    toast(msg, { label: 'Undo', onPress: () => {
+      goTo(index);
+      undoLastTriage();
+    } });
   };
 
   const header = (
@@ -125,23 +147,48 @@ export function TodayScreen() {
   const paper = current.paper;
   return (
     <Screen scroll={false} padded={false}>
-      <View style={{ paddingHorizontal: space.l }}>{header}</View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space.l, paddingBottom: space.xl }}>
-        <PaperCardView paper={paper} serendipity={current.serendipity} onReportSummary={() => setReportOpen(true)} />
-        <View style={styles.links}>
-          <Button kind="ghost" icon="external-link" label="Open paper" onPress={() => WebBrowser.openBrowserAsync(paper.url)} />
-          <Button kind="ghost" icon="message-circle" label="Discuss" onPress={() => nav.navigate('Paper', { paperId: paper.id })} />
-          <Button
-            kind="ghost"
-            icon="share-2"
-            label="Share"
-            onPress={() => Share.share({ message: `${shortCitation(paper)}\n${paper.url}` }).catch(() => {})}
-          />
+      <View style={styles.feed}>
+        <View style={styles.feedHeader}>{header}</View>
+        <FeedPager
+          index={index}
+          paperIds={paperIds}
+          active={focused && ![reasonFor, reportFor, detailsFor].includes(paper.id)}
+          onChange={goTo}
+          render={(page, height, isCurrent) => {
+            const card = unread[page];
+            return (
+              <FeedPaperPreview
+                paper={card.paper}
+                serendipity={card.serendipity}
+                height={height}
+                isCurrent={isCurrent}
+                onDetails={() => setDetailsFor(card.paperId)}
+                onOpen={() => WebBrowser.openBrowserAsync(card.paper.url)}
+                onDiscuss={() => nav.navigate('Paper', { paperId: card.paperId })}
+                onShare={() => {
+                  const message = `${shortCitation(card.paper)}\n${card.paper.url}`;
+                  if (Platform.OS === 'web') {
+                    Clipboard.setStringAsync(message).then((copied) => toast(copied ? 'Citation and link copied.' : 'Could not copy the citation.')).catch(() => toast('Could not copy the citation.'));
+                  } else {
+                    Share.share({ message }).catch(() => {});
+                  }
+                }}
+                onReport={() => setReportFor(card.paperId)}
+              />
+            );
+          }}
+        />
+        <View style={styles.pagerControls}>
+          <IconButton icon="chevron-up" label="Previous unread paper" onPress={() => goTo(index - 1)} tone={index > 0 ? 'accent' : 'faint'} />
+          <T v="caption" tone="muted" numberOfLines={1} style={styles.position}>
+            {`Unread ${index + 1} of ${unread.length} · Swipe to browse`}
+          </T>
+          <IconButton icon="chevron-down" label="Next unread paper" onPress={() => goTo(index + 1)} tone={index + 1 < unread.length ? 'accent' : 'faint'} />
         </View>
-      </ScrollView>
-      <TriageBar onChoose={(c) => decide(c)} />
+        <TriageBar onChoose={decide} />
+      </View>
 
-      <Sheet visible={reasonOpen} title="Why is this not for you?" onClose={() => setReasonOpen(false)}>
+      <Sheet visible={reasonFor === paper.id} title="Why is this not for you?" onClose={() => setReasonFor(null)}>
         <T tone="muted" style={{ marginBottom: space.m }}>
           Your answer tunes future decks. It is stored on your device and in your private sync.
         </T>
@@ -152,19 +199,25 @@ export function TodayScreen() {
               kind="secondary"
               label={r.label}
               onPress={() => {
-                setReasonOpen(false);
+                setReasonFor(null);
                 decide('not_relevant', r.key);
               }}
             />
           ))}
         </View>
       </Sheet>
-      <ReportSummarySheet paperId={paper.id} visible={reportOpen} onClose={() => setReportOpen(false)} />
+      <Sheet visible={detailsFor === paper.id} title="Paper details" onClose={() => setDetailsFor(null)}>
+        <PaperCardView paper={paper} serendipity={current.serendipity} />
+      </Sheet>
+      <ReportSummarySheet paperId={paper.id} visible={reportFor === paper.id} onClose={() => setReportFor(null)} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.m },
-  links: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: space.s },
+  feed: { flex: 1, minHeight: 0, width: '100%', maxWidth: 500, alignSelf: 'center', overflow: 'hidden' },
+  feedHeader: { paddingHorizontal: space.l },
+  pagerControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.s },
+  position: { flex: 1, minWidth: 0, textAlign: 'center' },
 });
