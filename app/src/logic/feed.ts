@@ -17,6 +17,7 @@ const SELF_DEPOSIT = /\b(zenodo|figshare|researchgate|ssrn preprint server)\b/i;
 export function qualityGate(paper: Paper, currentYear: number, requiredTerms?: RegExp): GateReason | null {
   if (paper.year && paper.year > currentYear) return 'future_date';
   const summary = (paper.summary || '').trim();
+  if (paper.summaryBasis === 'metadata' && /^https?:\/\//i.test(paper.url)) return null;
   if (PLACEHOLDER.test(summary)) return 'placeholder_abstract';
   if (!paper.summaryParts && summary.split(/\s+/).filter(Boolean).length < 12) return 'too_short';
   if (paper.venue && SELF_DEPOSIT.test(paper.venue)) return 'self_deposit';
@@ -38,10 +39,10 @@ export function prepareFeed(
   for (const papers of Object.values(curated)) for (const p of papers) curatedById.set(p.id, p);
 
   const topics = new Set([...Object.keys(base), ...Object.keys(curated)].filter((t) => t !== 'global'));
-  const placed = new Set<string>();
   const out: Record<string, Paper[]> = {};
 
   for (const topic of [...topics].sort()) {
+    const placed = new Set<string>();
     const terms = topicTerms[topic] ? new RegExp(topicTerms[topic], 'i') : undefined;
     const list: Paper[] = [];
     const candidates = [...(curated[topic] || []), ...(base[topic] || []).map((p) => curatedById.get(p.id) || p)];

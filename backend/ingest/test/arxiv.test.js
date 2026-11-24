@@ -72,7 +72,7 @@ test('a CC-BY submission may show its abstract; an undeclared one may not', () =
   assert.ok(open.abstract);
   assert.equal(closed.license_ok, false);
   assert.equal(closed.abstract, null, 'undeclared licence must mean summary only');
-  assert.ok(closed.summary.length > 0);
+  assert.match(closed.summary, /Open the cited paper/);
 });
 
 test('XML entities are decoded in titles', () => {
@@ -94,6 +94,8 @@ test('categoriesToTopics ignores categories we do not ship', () => {
 test('licenseFromEntry only opens for the CC family', () => {
   assert.equal(licenseFromEntry('<arxiv:license>http://creativecommons.org/licenses/by-sa/4.0/</arxiv:license>').licenseOk, true);
   assert.equal(licenseFromEntry('<arxiv:license>http://arxiv.org/licenses/nonexclusive-distrib/1.0/</arxiv:license>').licenseOk, false);
+  assert.equal(licenseFromEntry('<arxiv:license>https://creativecommons.org/licenses/by-nc/4.0/</arxiv:license>').licenseOk, false);
+  assert.equal(licenseFromEntry('<arxiv:license>https://creativecommons.org/licenses/by-nd/4.0/</arxiv:license>').licenseOk, false);
   assert.equal(licenseFromEntry('<entry></entry>').licenseOk, false);
 });
 
@@ -118,4 +120,8 @@ test('fetchTopic parses a stubbed feed offline', async () => {
   const fetchImpl = async () => ({ ok: true, text: async () => FEED });
   const rows = await fetchTopic({ topic: 'ai-mental-health', fetchImpl });
   assert.equal(rows.length, 2);
+});
+
+test('management is not silently routed to an unrelated arXiv category', () => {
+  assert.throws(() => buildUrl({ topic: 'management-organizations' }), /No arXiv query/);
 });

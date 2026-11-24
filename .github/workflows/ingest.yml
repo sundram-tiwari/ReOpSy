@@ -54,7 +54,9 @@ jobs:
       - name: Ingest dry run (no database writes)
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         working-directory: backend
-        run: node ingest/ingest.js --topics ai-mental-health --limit 2 --days 30 --dry
+        run: |
+          node ingest/ingest.js --topics ai-mental-health --limit 2 --days 30 --dry
+          node ingest/ingest.js --topics management-organizations --source openalex --limit 2 --days 30 --dry
 
       - name: Ingest
         if: github.event_name != 'pull_request'
@@ -63,12 +65,40 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
+          INGEST_TOPICS: ${{ inputs.topics || secrets.INGEST_TOPICS || 'all' }}
+          INGEST_LIMIT: ${{ inputs.limit || secrets.INGEST_LIMIT || '40' }}
+          INGEST_DRY: ${{ inputs.dry == true }}
+          PUBLISH_FEED: ${{ vars.REOPSY_PUBLISH_FIRESTORE_FEED }}
+          AI_SUMMARY_REQUEST_LIMIT: ${{ vars.AI_SUMMARY_REQUEST_LIMIT }}
+          GEMINI_SUMMARY_MODEL: ${{ vars.GEMINI_SUMMARY_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          XAI_SUMMARY_MODEL: ${{ vars.XAI_SUMMARY_MODEL }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          ALLOW_XAI_SUMMARY: ${{ vars.ALLOW_XAI_SUMMARY }}
         run: |
-          node ingest/ingest.js \
-            --topics "${{ github.event.inputs.topics || secrets.INGEST_TOPICS || 'all' }}" \
-            --limit "${{ github.event.inputs.limit || secrets.INGEST_LIMIT || '40' }}" \
-            --days 30 \
-            ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
+          args=(--topics "$INGEST_TOPICS" --limit "$INGEST_LIMIT" --days 30)
+          if [[ "$INGEST_DRY" == "true" ]]; then
+            args+=(--dry)
+          elif [[ "$PUBLISH_FEED" == "true" && "$INGEST_TOPICS" == "all" ]]; then
+            args+=(--feed-out "$RUNNER_TEMP/reopsy-feed.json")
+          fi
+          node ingest/ingest.js "${args[@]}"
+
+      - uses: actions/setup-node@v4
+        if: github.event_name != 'pull_request' && vars.REOPSY_PUBLISH_FIRESTORE_FEED == 'true' && inputs.dry != true
+        with:
+          node-version: '24'
+
+      - name: Publish validated Firestore feed
+        if: github.event_name != 'pull_request' && vars.REOPSY_PUBLISH_FIRESTORE_FEED == 'true' && inputs.dry != true
+        working-directory: backend
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [[ -f "$RUNNER_TEMP/reopsy-feed.json" ]]; then
+            npm ci --no-audit --no-fund
+            node scripts/publish-feed.cjs "$RUNNER_TEMP/reopsy-feed.json"
+          fi
 
   # A silent failure is the failure mode that actually bites: the job stops
   # working, the data goes stale, and nobody notices for a month. This opens an

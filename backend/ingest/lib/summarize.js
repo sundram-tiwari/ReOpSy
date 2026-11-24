@@ -95,7 +95,7 @@ function summarize(abstract, title = '', maxWords = MAX_WORDS) {
  * out of the metadata we do have. Never returns an empty string, because a
  * card with no text at all looks like a bug to the user.
  */
-function summarizeFromMetadata({ title, authors = [], year, venue }) {
+function summarizeFromMetadata({ title, authors = [], year, venue, abstractWithheld = false }) {
   const bits = [];
   if (title) bits.push(normalizeWhitespace(title).replace(/\.$/, '') + '.');
   if (authors.length) {
@@ -104,7 +104,9 @@ function summarizeFromMetadata({ title, authors = [], year, venue }) {
   if (venue && year) bits.push(`${venue}, ${year}.`);
   else if (venue) bits.push(`${venue}.`);
   else if (year) bits.push(`${year}.`);
-  bits.push('No abstract was published for this record — open the paper to read it in full.');
+  bits.push(abstractWithheld
+    ? 'Open the cited paper for its abstract and findings.'
+    : 'No abstract was published for this record — open the paper to read it in full.');
   return truncateWords(bits.join(' '), MAX_WORDS);
 }
 

@@ -432,8 +432,8 @@ async function fetchAndSummarize(options = {}) {
       errors.push(`OpenAlex failed for topic ${topic}: ${e.message}`);
     }
 
-    // 2. Fetch arXiv
-    try {
+    // 2. Fetch arXiv only for topics with a relevant arXiv query.
+    if (TOPICS[topic]?.arxivQuery) try {
       console.log(`  Fetching arXiv for ${topic}...`);
       const arxivPapers = await arxiv.fetchTopic({ topic, limit: limitPerSource });
       collected.push(...arxivPapers);
