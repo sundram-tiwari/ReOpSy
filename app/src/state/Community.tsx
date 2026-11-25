@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { isFirebaseConfigured } from '../services/firebase';
-import { Author, Profile, getProfile, hasUnread, listFollowing } from '../services/community';
+import { Author, Profile, getOwnProfile, hasUnread, listFollowing } from '../services/community';
 
 interface CommunityContext {
   /** False in builds without Firebase: community screens explain and stay read-only. */
@@ -23,33 +23,41 @@ const Ctx = createContext<CommunityContext | null>(null);
 export function CommunityProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const enabled = isFirebaseConfigured();
-  const [loadedProfile, setProfile] = useState<Profile | null>(null);
-  const [profileCheck, setProfileCheck] = useState<{ uid: string; failed: boolean } | null>(null);
-  const profileRequest = useRef(0);
-  const profile = user?.uid === loadedProfile?.uid ? loadedProfile : null;
-  const profileLoading = Boolean(user && profileCheck?.uid !== user.uid);
-  const profileLoadFailed = Boolean(user && profileCheck?.uid === user.uid && profileCheck.failed);
+  const uid = user?.uid;
+  const [profileCheck, setProfileCheck] = useState<{ uid: string; profile: Profile | null; failed: boolean } | null>(null);
+  const pending = useRef<{ uid: string; request: symbol; work: Promise<void> } | null>(null);
+  const ownCheck = profileCheck?.uid === uid ? profileCheck : null;
+  const profile = ownCheck?.profile ?? null;
+  const profileLoading = Boolean(uid && !ownCheck);
+  const profileLoadFailed = Boolean(uid && ownCheck?.failed);
   const [following, setFollowing] = useState<Set<string>>(new Set());
   const [unread, setUnread] = useState(false);
 
-  const refreshProfile = useCallback(async () => {
-    const id = ++profileRequest.current;
-    if (!enabled || !user) {
-      setProfile(null);
+  const refreshProfile = useCallback((): Promise<void> => {
+    if (!uid) {
+      pending.current = null;
       setProfileCheck(null);
-      return;
+      return Promise.resolve();
     }
-    setProfileCheck(null);
-    try {
-      const current = await getProfile(user.uid);
-      if (id !== profileRequest.current) return;
-      setProfile(current);
-      setProfileCheck({ uid: user.uid, failed: false });
-    } catch {
-      if (id !== profileRequest.current) return;
-      setProfileCheck({ uid: user.uid, failed: true });
-    }
-  }, [enabled, user]);
+    if (pending.current?.uid === uid) return pending.current.work;
+    // Keep a known existing profile during refresh, but never offer creation from stale absence.
+    setProfileCheck((current) => current?.uid === uid && current.profile ? current : null);
+    const request = Symbol();
+    const work = (async () => {
+      try {
+        const current = await getOwnProfile(uid);
+        if (pending.current?.request === request) setProfileCheck({ uid, profile: current, failed: false });
+      } catch {
+        if (pending.current?.request === request) {
+          setProfileCheck((prior) => ({ uid, profile: prior?.uid === uid ? prior.profile : null, failed: true }));
+        }
+      } finally {
+        if (pending.current?.request === request) pending.current = null;
+      }
+    })();
+    pending.current = { uid, request, work };
+    return work;
+  }, [uid]);
 
   const refreshFollowing = useCallback(async () => {
     if (!enabled || !user) return setFollowing(new Set());
