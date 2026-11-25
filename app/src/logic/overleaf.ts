@@ -15,6 +15,7 @@ export const OVERLEAF_ENDPOINT = 'https://www.overleaf.com/docs';
 export interface SurveyOptions {
   title: string;
   author?: string;
+  workingMaterial: boolean;
 }
 
 function cell(s: string): string {
@@ -25,7 +26,8 @@ export function buildSurveyTex(entries: LibraryEntry[], opts: SurveyOptions): st
   const papers = entries.map((e) => e.paper);
   const keys = citationKeys(papers);
   const bib = toBibTeX(papers);
-  const withMatrix = entries.filter((e) => {
+  const workingEntries = opts.workingMaterial ? entries : [];
+  const withMatrix = workingEntries.filter((e) => {
     const m = e.matrix || e.paper.matrixRow;
     return m && Object.values(m).some(Boolean);
   });
@@ -55,7 +57,7 @@ export function buildSurveyTex(entries: LibraryEntry[], opts: SurveyOptions): st
       ].join('\n')
     : '% Add matrix rows in ReOpSy (Library > Survey) to generate a comparison table here.';
 
-  const notes = entries
+  const notes = workingEntries
     .filter((e) => e.note)
     .map((e) => `% ${keys.get(e.paper.id)}: ${cleanText(e.note || '').replace(/\n/g, ' ')}`)
     .join('\n');
@@ -70,7 +72,7 @@ export function buildSurveyTex(entries: LibraryEntry[], opts: SurveyOptions): st
     '\\usepackage[hidelinks]{hyperref}',
     '\\usepackage[numbers]{natbib}',
     `\\title{${escapeLatex(opts.title)}}`,
-    `\\author{${escapeLatex(opts.author || 'Your Name')}}`,
+    `\\author{${escapeLatex(opts.author?.trim() || '')}}`,
     '\\date{\\today}',
     '\\begin{document}',
     '\\maketitle',

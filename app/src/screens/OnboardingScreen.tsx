@@ -39,7 +39,7 @@ export function OnboardingScreen() {
       {step === 1 && (
         <View style={{ gap: space.l, marginTop: space.m }}>
           <T v="title" accessibilityRole="header">How many cards a day?</T>
-          <T tone="muted">Small is sustainable. You can change this any time in You.</T>
+          <T tone="muted">You can change this any time in Profile → Settings.</T>
           <Segmented
             options={config.dailyGoals.map((g) => ({ key: String(g), label: `${g} cards` }))}
             value={String(state.dailyGoal)}

@@ -8,6 +8,7 @@ import { useAppState } from '../state/AppState';
 import { deckProgress, todaySummary } from '../logic/triage';
 import { dueItems } from '../logic/recall';
 import { effectiveStreak } from '../logic/streak';
+import { FEED_LABELS, feedStatus } from '../logic/dailyBrief';
 import { formatDay } from '../logic/date';
 import { shortCitation } from '../logic/exporters';
 import { FeedAnchor, feedIndex } from '../logic/feedPager';
@@ -90,14 +91,15 @@ ${card.paper.url}`;
     } });
   };
 
+  const originLabel = FEED_LABELS[feedStatus(liveFeed ? 'live' : 'sample', liveFeed?.generatedAt ?? null, today)].short;
   const header = (
     <View style={styles.header}>
       <View style={{ flex: 1 }}>
         <T v="title" accessibilityRole="header">
           Today
         </T>
-        <T v="small" tone="muted">
-          {formatDay(today)}
+        <T v="small" tone="muted" numberOfLines={1}>
+          {originLabel} · {formatDay(today)}
         </T>
       </View>
       <IconButton icon="file-text" label="Open research brief" onPress={() => setBriefOpen(true)} />
@@ -220,20 +222,6 @@ ${card.paper.url}`;
             );
           }}
         />
-        <View
-          style={styles.pagePosition}
-          accessible
-          accessibilityLabel={`Unread paper ${index + 1} of ${unread.length}`}
-          accessibilityRole={Platform.OS === 'web' ? undefined : 'adjustable'}
-          accessibilityValue={{ min: 1, max: unread.length, now: index + 1 }}
-          accessibilityActions={[{ name: 'increment', label: 'Next paper' }, { name: 'decrement', label: 'Previous paper' }]}
-          onAccessibilityAction={({ nativeEvent }) => {
-            if (nativeEvent.actionName === 'increment') goTo(index + 1);
-            if (nativeEvent.actionName === 'decrement') goTo(index - 1);
-          }}
-        >
-          <T v="caption" tone="muted" numberOfLines={1}>{`${index + 1} / ${unread.length}`}</T>
-        </View>
         <TriageBar onChoose={(choice) => decide(current, choice)} />
       </View>}
 
@@ -268,5 +256,4 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.m },
   feed: { flex: 1, minHeight: 0, width: '100%', maxWidth: 500, alignSelf: 'center', overflow: 'hidden' },
   feedHeader: { paddingHorizontal: space.l },
-  pagePosition: { minHeight: 20, alignItems: 'center', justifyContent: 'center' },
 });

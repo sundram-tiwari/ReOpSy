@@ -107,7 +107,7 @@ test('Overleaf survey embeds the bibliography and base64url is UTF-8 safe', () =
     addedOn: '2026-10-03',
     matrix: { task: 'T', method: 'M', data: 'D', metric: 'Acc', result: '90%', limitation: 'L' },
   }];
-  const tex = buildSurveyTex(entries, { title: 'My survey' });
+  const tex = buildSurveyTex(entries, { title: 'My survey', workingMaterial: true });
   assert.match(tex, /\\begin\{filecontents\*\}\[overwrite\]\{references\.bib\}/);
   assert.match(tex, /90\\%/);
   assert.equal(base64UrlEncode('hi'), 'aGk');

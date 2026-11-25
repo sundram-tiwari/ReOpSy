@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { buildDailyBrief, feedStatus, validFeedTimestamp } from '../dailyBrief';
+import { FEED_LABELS, buildDailyBrief, feedStatus, validFeedTimestamp } from '../dailyBrief';
 import { Paper } from '../../types';
 
 const paper = (id: string, published?: string, extra: Partial<Paper> = {}): Paper => ({
@@ -41,4 +41,14 @@ test('bibliographic records appear without turning metadata into a finding', () 
   const r = buildDailyBrief({ management: [paper('doi-only', '2026-11-25', { summaryBasis: 'metadata' })] }, ['management'], '2026-11-25');
   assert.equal(r.today, 1);
   assert.equal(r.entries[0].finding, '');
+});
+
+test('header and brief distinguish an example deck, source refresh, earlier data, and unknown dates', () => {
+  const labels = Object.values(FEED_LABELS);
+  assert.equal(new Set(labels.map(label => label.short)).size, 4);
+  assert.match(FEED_LABELS.sample.short, /sample/i);
+  assert.match(FEED_LABELS.updated.short, /feed/i);
+  assert.match(FEED_LABELS.earlier.short, /earlier/i);
+  assert.match(FEED_LABELS.unknown.short, /unverified/i);
+  assert.ok(labels.every(label => !/new papers|papers today/i.test(label.short)));
 });

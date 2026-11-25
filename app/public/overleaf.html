@@ -53,7 +53,7 @@
       for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       var tex = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
       snippet.value = encodeURIComponent(tex);
-      msg.textContent = 'This sends your survey, including any notes and matrix entries, to Overleaf. Sign in there if asked.';
+      msg.textContent = 'This sends your survey source to Overleaf, including any notes or matrix in this export. Sign in there if asked.';
       send.disabled = false;
       form.hidden = false;
     } catch {

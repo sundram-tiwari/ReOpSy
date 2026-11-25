@@ -20,6 +20,14 @@ export function feedStatus(origin: FeedOrigin, generatedAt: string | null, today
   return feedDay === today ? 'updated' : 'earlier';
 }
 
+/** The deck date is not a publication date. Keep the header and brief in agreement. */
+export const FEED_LABELS = {
+  sample: { short: 'Sample feed', detail: 'Sample feed · not a live update' },
+  updated: { short: 'Feed updated', detail: 'Live feed updated today' },
+  earlier: { short: 'Earlier feed', detail: 'Live feed from an earlier update' },
+  unknown: { short: 'Update unverified', detail: 'Last live update not verified' },
+} as const;
+
 function publicationDay(value: Paper['published']): string | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}(T|$)/.test(value)) return null;
   const key = value.slice(0, 10);
