@@ -1,0 +1,686 @@
+<title>ReOpSy Replan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+/* Layout: research dossier. Sticky contents rail on wide screens, single reading column on phones; tables scroll in their own boxes. */
+:root {
+  --paper: #F3F4F0;
+  --surface: #FFFFFF;
+  --ink: #1A2128;
+  --muted: #56616B;
+  --rule: #D7DBD3;
+  --accent: #0E5D6C;
+  --hl-bg: #F1E05A;
+  --hl-fg: #1A2128;
+  --chip: #E7EAE2;
+  --good: #2C6A44;
+  --warn: #8A5200;
+  --bad: #A3271F;
+  --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: 2.125rem;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111417; --surface: #181C20; --ink: #E4E7E1; --muted: #9DA6AE; --rule: #2C3238;
+    --accent: #79C7D5; --hl-bg: #514A17; --hl-fg: #F7F1C9; --chip: #232A30;
+    --good: #82CBA0; --warn: #E4AA55; --bad: #F2948A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111417; --surface: #181C20; --ink: #E4E7E1; --muted: #9DA6AE; --rule: #2C3238;
+  --accent: #79C7D5; --hl-bg: #514A17; --hl-fg: #F7F1C9; --chip: #232A30;
+  --good: #82CBA0; --warn: #E4AA55; --bad: #F2948A; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.6;
+}
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+mark { background: var(--hl-bg); color: var(--hl-fg); padding: 0 0.15em; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); font-family: var(--font-body); font-weight: 600; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.4rem; }
+
+.shell {
+  max-width: 1180px; margin: 0 auto;
+  padding-inline: 16px; padding-block: 32px 64px;
+  display: grid; gap: 32px;
+}
+@media (min-width: 1040px) {
+  .shell { grid-template-columns: 210px minmax(0, 1fr); column-gap: 56px; padding-inline: 32px; }
+  .masthead { grid-column: 1 / -1; }
+}
+.eyebrow {
+  font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* Masthead */
+.masthead { display: grid; gap: 18px; max-width: 860px; }
+.lede { font-size: var(--step-1); line-height: 1.55; max-width: 68ch; }
+.verdict {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 18px 20px; display: grid; gap: 10px; max-width: 760px;
+}
+.verdict h2 { font-size: var(--step-1); font-family: var(--font-body); }
+
+/* Contents */
+.toc { font-size: 0.9rem; }
+.toc details { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 10px 14px; }
+.toc summary { cursor: pointer; font-weight: 600; }
+.toc ol { list-style: none; padding: 0; margin-top: 10px; gap: 6px; }
+.toc a { color: var(--ink); text-decoration: none; display: grid; grid-template-columns: 2.2em 1fr; }
+.toc a span { font-family: var(--font-mono); color: var(--muted); font-size: 0.85em; }
+.toc a:hover { color: var(--accent); }
+@media (min-width: 1040px) {
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+  .toc details { background: transparent; border: 0; padding: 0; }
+  .toc summary { list-style: none; font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .toc summary::-webkit-details-marker { display: none; }
+}
+
+/* Main column */
+main { display: grid; gap: 56px; min-width: 0; }
+section { display: grid; gap: 16px; min-width: 0; scroll-margin-top: 24px; }
+section > p, section > ul, section > ol { max-width: 70ch; }
+.sec-head { display: grid; gap: 4px; border-top: 1px solid var(--rule); padding-top: 18px; }
+.note { color: var(--muted); font-size: 0.92rem; max-width: 70ch; }
+
+/* Stat row: the feed audit is the headline finding */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; display: grid; gap: 6px; align-content: start; }
+.stat b { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; }
+.stat b small { font-size: 0.55em; color: var(--muted); }
+.stat span { font-size: 0.9rem; color: var(--muted); }
+
+/* Tables */
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 500; white-space: nowrap; background: var(--surface); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; }
+.wide { min-width: 860px; }
+.mid { min-width: 680px; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Pills */
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--ink); white-space: nowrap; }
+.pill.h { color: var(--bad); }
+.pill.m { color: var(--warn); }
+.pill.l { color: var(--good); }
+.pill.keep { color: var(--good); }
+.pill.reshape { color: var(--warn); }
+.pill.drop { color: var(--bad); }
+
+/* Before / after cards */
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.phone { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.phone .tag { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.phone h4 { margin: 0; font-family: var(--font-display); font-size: 1.25rem; line-height: 1.25; font-weight: 600; text-wrap: balance; }
+.phone .orig { font-size: 0.85rem; color: var(--muted); }
+.phone .parts { display: grid; gap: 8px; margin: 0; }
+.phone .parts div { display: grid; grid-template-columns: 5.6em 1fr; gap: 8px; font-size: 0.92rem; }
+.phone .parts dt { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-top: 3px; }
+.phone .parts dd { margin: 0; }
+.phone .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.phone .why { font-size: 0.85rem; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 10px; }
+.phone .ai { font-size: 0.78rem; color: var(--muted); font-family: var(--font-mono); }
+.phone.before .bad { color: var(--bad); font-size: 0.85rem; }
+
+/* Two-column lists */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.box { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.box h3 { font-size: 1rem; }
+.box.never h3 { color: var(--bad); }
+.roadmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+
+pre.mermaid { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; overflow-x: auto; margin: 0; }
+.sources { columns: 1; font-size: 0.85rem; }
+.sources h3 { font-size: 0.95rem; margin-top: 8px; }
+.sources ul { gap: 4px; }
+.sources a { word-break: break-word; }
+footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--rule); padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="shell">
+
+<header class="masthead">
+  <p class="eyebrow">ReOpSy · research and replan · 3 October 2026</p>
+  <h1>From a paper feed to a literature-review habit</h1>
+  <p class="lede">ReOpSy already has a working Expo app, Google sign-in and a nightly pipeline. The research says the idea is right but the build is aimed at the wrong target. Researchers don't need another scroll of papers. They need a short daily deck they can trust, a way to remember what they saved, and a literature review that builds itself while they read.</p>
+  <div class="verdict">
+    <h2>The short version</h2>
+    <ul>
+      <li><strong>Fix feed quality first.</strong> In the feed the app ships today, 17 of 47 cards match their topic, and none has a working AI summary.</li>
+      <li><strong>Change the loop</strong> from an endless feed to <mark>Triage → Recall → Synthesize</mark>: a finite daily deck, three recall questions, and a literature matrix you can export. No competitor offers that loop as a daily mobile habit.</li>
+      <li><strong>Rebuild the backend for ₹0:</strong> GitHub Actions writes static JSON to Cloudflare Pages. Render, SQLite and the Supabase leftovers go.</li>
+      <li><strong>Keep</strong> the flashcard format, Expo app, Google sign-in, streak logic and BibTeX export.</li>
+      <li><strong>Spend:</strong> ₹2,200 once for the Play account. Everything else fits inside free tiers with room to grow.</li>
+    </ul>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <details open>
+    <summary>Contents</summary>
+    <ol>
+      <li><a href="#audit"><span>01</span>Where the app stands</a></li>
+      <li><a href="#competitors"><span>02</span>Competitor comparison</a></li>
+      <li><a href="#complaints"><span>03</span>Negative review analysis</a></li>
+      <li><a href="#lessons"><span>04</span>Lessons and design rules</a></li>
+      <li><a href="#engagement"><span>05</span>Ethical engagement</a></li>
+      <li><a href="#roadmap"><span>06</span>Feature set and roadmap</a></li>
+      <li><a href="#apis"><span>07</span>Free APIs and tiers</a></li>
+      <li><a href="#architecture"><span>08</span>Technical architecture</a></li>
+      <li><a href="#mvp"><span>09</span>MVP build plan</a></li>
+      <li><a href="#risks"><span>10</span>Risks and mitigation</a></li>
+      <li><a href="#money"><span>11</span>Monetization</a></li>
+      <li><a href="#budget"><span>12</span>Budget</a></li>
+      <li><a href="#handoff"><span>13</span>Work split across tools</a></li>
+      <li><a href="#limits"><span>14</span>Limits of this research</a></li>
+      <li><a href="#sources"><span>15</span>Sources</a></li>
+    </ol>
+  </details>
+</nav>
+
+<main>
+
+<!-- 01 -->
+<section id="audit">
+  <div class="sec-head"><p class="eyebrow">01 · Audit of the current build</p><h2>Where the app stands today</h2></div>
+  <p>I read the repository at commit <code>0801249</code> and measured the feed the app bundles today (<code>app/src/data/dailyFeed.json</code>, generated 22 August 2026, 47 cards across 5 topics).</p>
+  <div class="stats">
+    <div class="stat"><b>47<small>/47</small></b><span>"Catchy titles" identical to the original title. The LLM step is failing silently.</span></div>
+    <div class="stat"><b>32<small>/47</small></b><span>Summaries are abstracts cut off mid-sentence and ending in "…".</span></div>
+    <div class="stat"><b>17<small>/47</small></b><span>Cards that mention their own topic's keywords at all.</span></div>
+  </div>
+  <p class="note">The keyword check is rough. It marked one useful paper as off-topic (an MRI study that uses autism cohorts), and v2 would show that paper with a "why you're seeing this" note. The other misses are real: an exoplanet thesis appears under both AI in Mental Health and Autism.</p>
+  <h3>Root causes</h3>
+  <ul>
+    <li><strong>Topic filters.</strong> "AI in Mental Health" and "Autism Diagnosis" use the same OpenAlex filter, <code>concepts.id:C119857082</code> (Machine learning). OpenAlex Concepts are deprecated and frozen, so new works are no longer tagged with them. The replacement is Topics, a 4-level hierarchy of about 4,500 topics.</li>
+    <li><strong>No quality gates.</strong> The shipped feed includes a thesis whose "abstract" is an embargo notice (dated 2027) and a self-published Zenodo record with fringe physics claims (dated 2029). The future-date filter from a recent commit doesn't catch OpenAlex records.</li>
+    <li><strong>Four places that hold the feed:</strong> SQLite on Render's ephemeral disk, a Firestore <code>feeds/latest</code> doc, an unused Supabase schema, and a JSON file bundled into the app.</li>
+    <li><strong>User-supplied LLM keys.</strong> Custom topics ask users to paste their own Gemini/Mistral/Grok keys, which are stored on the device and called from the client.</li>
+    <li><strong>Privacy declaration drift.</strong> The launch guide says to answer "no data collected" on Play's Data Safety form. Google sign-in plus Firestore sync is data collection, so that answer is now wrong.</li>
+    <li><strong>Repo weight.</strong> More than 50 agent work folders, compiled test output and 15 SQLite test databases are tracked in git.</li>
+  </ul>
+  <h3>Same paper, before and after</h3>
+  <div class="compare">
+    <article class="phone before" aria-label="Current card">
+      <p class="tag">Today · AI in Mental Health</p>
+      <h4>PatientAct: Theory-Grounded Mental Health Client Simulation</h4>
+      <p>However, current simulators produce overly cooperative clients that disclose too readily, accept therapeutic reframes without resistance, and resolve core issues within a single session. We present PatientAct, a framework for…</p>
+      <p class="bad">Starts mid-argument, ends mid-sentence, gives no result and no limits, and the title is unchanged.</p>
+    </article>
+    <article class="phone" aria-label="Version 2 card">
+      <p class="tag">v2 · AI in Mental Health · <span class="mono">arXiv:2608.12750</span></p>
+      <h4>Theory-grounded client simulator beats baselines on resistance realism</h4>
+      <p class="orig">PatientAct: Theory-Grounded Mental Health Client Simulation</p>
+      <dl class="parts">
+        <div><dt>Problem</dt><dd>LLM-simulated counseling clients are too cooperative: they disclose readily and resolve core issues in one session.</dd></div>
+        <div><dt>Approach</dt><dd>Profiles follow the 5Ps case formulation; memories unlock at trust thresholds, and emotion is modeled before each reply.</dd></div>
+        <div><dt>Result</dt><dd>Across 40 clinical situations, profiles were diverse and clinically plausible, outperforming baselines on resistance quality and behavioral realism.</dd></div>
+        <div><dt>Limits</dt><dd>Simulation study; the abstract reports no trial with trainee counselors.</dd></div>
+      </dl>
+      <div class="chips"><span class="pill">EMNLP 2026 Findings</span><span class="pill">Open PDF</span><span class="pill">Code + data</span></div>
+      <p class="why">Why you're seeing this: matches AI in Mental Health (counseling, LLM simulation).</p>
+      <p class="ai">AI-written summary · check the abstract · Report</p>
+    </article>
+  </div>
+  <p class="note">The v2 card was written from the paper's abstract as sample data for design. Eight such cards are in <code>docs/replan/data/sample-cards.json</code>.</p>
+</section>
+
+<!-- 02 -->
+<section id="competitors">
+  <div class="sec-head"><p class="eyebrow">02 · Market</p><h2>Competitor comparison</h2></div>
+  <p>User counts are the vendors' own claims unless a paper reports them.</p>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Product</th><th>What it is</th><th>Personalization</th><th>Price</th><th>Researchers complain about</th><th>Gap for ReOpSy</th></tr></thead>
+      <tbody>
+        <tr><td>R Discovery (Cactus)</td><td>Mobile-first paper feed; audio and translation in Prime. Claims 2.4M+ users and a 4.6+ store rating.</td><td>Learns from feedback; keyword feeds</td><td>Free, no ads; Prime about $3/month</td><td>Weak accuracy on specialised topics, too many notifications, paywalled full text, missing year/type filters, liked articles not saving</td><td>Precision, honest summaries, recall, synthesis</td></tr>
+        <tr><td>Researcher</td><td>Journal, keyword and author feeds with Zotero/Mendeley sync and Unpaywall. Claims 250k+ scientists.</td><td>Feeds you configure</td><td>Free</td><td>Few public reviews found</td><td>Raw abstracts only, no learning loop</td></tr>
+        <tr><td>Scholar Inbox (Tübingen)</td><td>Web plus email digests from arXiv, bio/med/chemRxiv. 23k users, 35% active in 30 days (paper).</td><td>Thumbs up/down train a per-user classifier on GTE-Large embeddings; "Scholar Maps" for cold start</td><td>Free, grant-funded</td><td>Users want separate models for separate interests; preprint-centric</td><td>Mobile habit, synthesis; proves explicit ratings work</td></tr>
+        <tr><td>Semantic Scholar feeds</td><td>Research feeds built from library folders; TLDRs</td><td>Positive folders plus "not relevant" votes</td><td>Free</td><td>Mixing topics in one folder blurs the signal; needs about 5 positive and 3 negative ratings to work well</td><td>Topic separation from day one</td></tr>
+        <tr><td>Google Scholar alerts</td><td>Email alerts for queries, authors, citations</td><td>None</td><td>Free</td><td>No dedupe across alerts, broad terms flood the inbox, daily only, long queries silently truncated</td><td>Dedupe, ranking, summaries</td></tr>
+        <tr><td>Hugging Face Papers</td><td>Community-upvoted daily and trending AI papers; took over after Papers with Code shut down (July 2025)</td><td>None (trending)</td><td>Free, open API</td><td>AI/ML only</td><td>Use as a "trending" signal, not a rival</td></tr>
+        <tr><td>alphaXiv</td><td>arXiv reader with line comments, AI blog overviews and Ask-AI</td><td>Follow authors</td><td>Free</td><td>Reading layer for arXiv only</td><td>Link out to it from cards</td></tr>
+        <tr><td>ResearchRabbit, Litmaps, Connected Papers</td><td>Citation-graph exploration from seed papers</td><td>Seed papers</td><td>ResearchRabbit moved to freemium in 2025 (free cap: 50 seed articles, 1 project)</td><td>Paywall shift; reviewers cite stale graph data</td><td>Daily habit; graph view later</td></tr>
+        <tr><td>Elicit, Consensus, SciSpace</td><td>AI search, Q&amp;A, extraction</td><td>Query-driven</td><td>Credits and tiers</td><td>Credits burn fast, auto-renewal without notice, steep for small teams, semantic search misses studies</td><td>Flat pricing; summaries precomputed and free</td></tr>
+        <tr><td>Swipe clones (ArxivTok, PapersTok, NerdTok, PaperDeck)</td><td>TikTok-style vertical scroll over arXiv</td><td>Category picks</td><td>Free, hobby projects</td><td>Little public feedback</td><td>Show demand for the format, but have no quality or learning loop</td></tr>
+        <tr><td>Inshorts, Blinkist, Headway (format analogs)</td><td>60-word news cards; book summaries</td><td>Categories</td><td>Subscriptions</td><td>Blinkist: auto-renewal called "predatory" in reviews</td><td>Borrow the format, not the billing</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>Your idea, feature by feature</h3>
+  <div class="table-scroll">
+    <table class="mid">
+      <thead><tr><th>From your brief</th><th>Who already does it</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>Card with strong heading, ~60-word summary, source link, save</td><td>R Discovery, swipe clones, Researcher (raw abstracts)</td><td><span class="pill keep">keep</span> Make the heading state the finding and split the summary into Problem / Approach / Result / Limits so it can be checked.</td></tr>
+        <tr><td>Streaks, daily goals</td><td>Common in learning apps, weak in research apps</td><td><span class="pill keep">keep</span> Use forgiving streaks with earned freezes. Reward output (papers added to a survey), not minutes.</td></tr>
+        <tr><td>Tabs for multiple topics</td><td>R Discovery multi-feed (Prime), Researcher feeds</td><td><span class="pill reshape">reshape</span> One daily deck mixes your topics by default, with topic filters. Separate tabs split the habit into five unfinished feeds.</td></tr>
+        <tr><td>Swipe navigation</td><td>All the clones</td><td><span class="pill reshape">reshape</span> Swipe to decide (not relevant / save), not to scroll forever. Every gesture gets a button.</td></tr>
+        <tr><td>Add or remove topics (ML, DL, security, healthcare)</td><td>Everyone</td><td><span class="pill reshape">reshape</span> A catalog built on OpenAlex Topics, with a 5-paper preview before subscribing. Free-text custom topics come later.</td></tr>
+        <tr><td>Daily literature survey, not passive scrolling</td><td>Nobody on mobile</td><td><span class="pill keep">this is the product</span> Add recall questions and a literature matrix that exports.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 03 -->
+<section id="complaints">
+  <div class="sec-head"><p class="eyebrow">03 · What users hate</p><h2>Negative review analysis</h2></div>
+  <p>Complaints from review sites, Trustpilot, studies and the press, grouped into 12 themes. Signal strength reflects how many independent sources report the theme and how severe it is.</p>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Theme</th><th>Evidence</th><th>Signal</th></tr></thead>
+      <tbody>
+        <tr><td>1. Irrelevant, noisy recommendations</td><td>R Discovery reviewers say results are "not very accurate" for specialised topics and call some content irrelevant. Google Scholar alerts flood users on broad terms and don't dedupe. Semantic Scholar warns that mixed folders give weaker suggestions. Vision researchers describe hundreds of automated recommendations a day as impossible to keep up with. ReOpSy's own feed: 17 of 47 on-topic.</td><td><span class="pill h">high</span></td></tr>
+        <tr><td>2. Notification and email spam</td><td>R Discovery: "excessive notifications". ResearchGate: a dormant default account sent 297 invitations to 38 people in 16 months (2014 study), which led to boycotts. Academia.edu: aggressive "mentions" emails with hard-to-find unsubscribe.</td><td><span class="pill h">high</span></td></tr>
+        <tr><td>3. Paywalls, no full text</td><td>4 of 13 R Discovery Capterra reviews mention paywalled or inaccessible papers. Researcher users value its Unpaywall integration.</td><td><span class="pill h">high</span></td></tr>
+        <tr><td>4. Subscription traps and refunds</td><td>Academia.edu scores 1.1/5 on Trustpilot (873 reviews): auto-renewals at higher prices, $1 trials that convert to $80–$299, refused refunds, confusing cancellation. SciSpace reviewers report annual renewals charged without notice. Blinkist reviewers call auto-renewal "predatory".</td><td><span class="pill h">high</span></td></tr>
+        <tr><td>5. Metered AI credits</td><td>SciSpace: agents "consume a lot of credits" on simple searches. Elicit: pricing is steep for small teams, and workflow caps limit heavy users.</td><td><span class="pill m">medium</span></td></tr>
+        <tr><td>6. Inaccurate AI summaries, fake citations</td><td>A scite reviewer found DOIs that pointed to unrelated articles. Peters and Chin-Yee (2025) compared 4,900 LLM summaries with their sources: several models overgeneralized in 26–73% of cases, LLM summaries were about 5× more likely than human ones to overgeneralize, and newer models did worse.</td><td><span class="pill h">high</span></td></tr>
+        <tr><td>7. Weak search and filters</td><td>R Discovery reviewers report no year or publication-type filters, and results in the thousands that are hard to narrow.</td><td><span class="pill m">medium</span></td></tr>
+        <tr><td>8. Broken save, sync, data loss</td><td>An R Discovery reviewer says liked articles disappear after reopening the app. ReOpSy's own history includes clearing local state on sign-out.</td><td><span class="pill m">medium</span></td></tr>
+        <tr><td>9. Stale data and shutdowns</td><td>Papers with Code shut down on 24 July 2025; 9,327 leaderboards were no longer served. Reviewers say ResearchRabbit's graph relied on Microsoft Academic Graph, which stopped updating in 2021. ResearchRabbit capped its free tier in 2025.</td><td><span class="pill m">medium</span></td></tr>
+        <tr><td>10. Streak pressure</td><td>Silverman and Barasch (2023): a broken streak durably lowers later engagement. Analyses of gamification discussions describe anxiety and loss of intrinsic enjoyment.</td><td><span class="pill m">medium</span></td></tr>
+        <tr><td>11. Addictive-design backlash</td><td>On 10 July 2026 the European Commission preliminarily found Instagram and Facebook's infinite scroll, autoplay, push notifications and engagement-tuned recommenders in breach of the DSA. It asked for these to be off by default and for screen-time breaks.</td><td><span class="pill m">regulatory</span></td></tr>
+        <tr><td>12. Slow or inaccessible UI</td><td>Little direct evidence in the sources reviewed. Treated as a standards rule (WCAG 2.2 AA, 200% text). arXiv abstracts contain raw LaTeX such as <code>${\approx}5\%$</code>, which must be rendered or stripped.</td><td><span class="pill l">low evidence</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 04 -->
+<section id="lessons">
+  <div class="sec-head"><p class="eyebrow">04 · From complaint to rule</p><h2>Lessons learned and the rules ReOpSy adopts</h2></div>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Theme</th><th>Lesson</th><th>Rule or feature in v2</th></tr></thead>
+      <tbody>
+        <tr><td>1. Noise</td><td>Volume reads as spam. Relevance must be visible and correctable.</td><td>Topic preview before subscribing. "Why you're seeing this" on every card. "Not relevant" with a reason retrains the ranking. A precision gate of 0.8 or better on a hand-labelled gold set before a topic ships.</td></tr>
+        <tr><td>2. Spam</td><td>Every unwanted ping erodes trust in the next one.</td><td>At most one local reminder a day, at a time the user picks. Opt-in after the first finished deck. Auto-pause after 3 ignored days. No invites, no fake social pings.</td></tr>
+        <tr><td>3. Paywalls</td><td>Discovering a paper you can't read is a broken promise.</td><td>"Open PDF" or "Paywalled" chip before the tap; Unpaywall best open location; an open-access-only filter.</td></tr>
+        <tr><td>4. Billing traps</td><td>One billing scandal outweighs years of goodwill.</td><td>Reading is free forever. Play Billing only. Renewal reminder 7 days ahead. 2-tap cancel. No trial that converts silently.</td></tr>
+        <tr><td>5. Credits</td><td>Metered anxiety kills exploration.</td><td>Summaries are precomputed once per paper and free to read. Pro is a flat price.</td></tr>
+        <tr><td>6. Wrong summaries</td><td>LLMs overgeneralize by default, and fake links destroy credibility.</td><td>Structured summary with a mandatory Limits field. Every number checked against the abstract. Hype words blocked. Links built only from source IDs. "AI-written" label, a one-tap report, and the abstract one tap away.</td></tr>
+        <tr><td>7. Filters</td><td>Researchers think in year, venue and type.</td><td>Library filters: topic, year, preprint or peer-reviewed, open PDF, has code.</td></tr>
+        <tr><td>8. Data loss</td><td>The library is the user's work. Losing it ends the relationship.</td><td>Local-first storage; sync only ever merges; export any time.</td></tr>
+        <tr><td>9. Shutdowns</td><td>Single-source products die with their source.</td><td>Several CC0-first sources behind one adapter interface, and a static cache. The pipeline is open source.</td></tr>
+        <tr><td>10. Streak pressure</td><td>Loss framing works until it backfires.</td><td>Earned freezes, a weekly rhythm view, neutral copy after a missed day, milestones for output.</td></tr>
+        <tr><td>11. Addictive design</td><td>Regulators now name infinite scroll and engagement-tuned feeds.</td><td>A finite deck with a "caught up" end, no autoplay, and ranking for relevance rather than time-on-app.</td></tr>
+        <tr><td>12. Accessibility</td><td>Dense science on small screens excludes people fast.</td><td>WCAG 2.2 AA in both themes, 200% text support, a button for every gesture, rendered or stripped LaTeX.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 05 -->
+<section id="engagement">
+  <div class="sec-head"><p class="eyebrow">05 · Habit without harm</p><h2>Engagement mechanics that are fair and useful</h2></div>
+  <p>The test for each mechanic: would a user who understood exactly how it works still choose it? The ones below pass. The ones on the right don't.</p>
+  <div class="cols">
+    <div class="box">
+      <h3>Use</h3>
+      <ol>
+        <li><strong>Finite deck with a "caught up" end.</strong> This is the opposite of infinite scroll, whose inventor has publicly apologised for it and which the EU now targets.</li>
+        <li><strong>A goal the user chooses</strong> (5, 10 or 15 cards). Autonomy keeps motivation intrinsic.</li>
+        <li><strong>Spaced recall</strong>: three questions a day from saved cards, at widening intervals. Meta-analyses show spaced retrieval practice beats massed review for durable learning. Reading turns into knowing.</li>
+        <li><strong>Progress toward a real artifact.</strong> "Survey: 14 of 40 papers" and "first export" are milestones. Rewards tied to output avoid the drop-off seen when points replace purpose.</li>
+        <li><strong>Visible learning from feedback.</strong> "Your feed adjusted from 12 ratings." Scholar Inbox shows that explicit ratings with active learning work.</li>
+        <li><strong>Forgiving streaks</strong>: one freeze per 7 active days, at most 2 banked, with the weekly rhythm as the main view.</li>
+        <li><strong>One labelled serendipity card</strong> per deck from an adjacent topic, which pushes back on filter bubbles.</li>
+        <li><strong>Implementation intention.</strong> The user names when they read ("after morning tea, 08:30"), and that time is the only reminder.</li>
+        <li><strong>Opt-in social</strong> (later): lab journal-club decks and share images that carry the citation.</li>
+      </ol>
+    </div>
+    <div class="box never">
+      <h3>Never</h3>
+      <ul>
+        <li>Infinite scroll or autoplay into more content</li>
+        <li>Pull-to-refresh "slot machine" rewards</li>
+        <li>Red badge counts and countdown timers</li>
+        <li>Streak-loss push notifications or guilt copy</li>
+        <li>Leaderboards by default</li>
+        <li>Like counts with no community behind them (the current <code>likes</code> field)</li>
+        <li>Paywall interrupts mid-deck</li>
+        <li>Trials that auto-convert without a reminder</li>
+        <li>Ranking for time-on-app</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 06 -->
+<section id="roadmap">
+  <div class="sec-head"><p class="eyebrow">06 · What to build</p><h2>Feature set and roadmap</h2></div>
+  <p>Core loop: <mark>Triage</mark> a finite daily deck → <mark>Recall</mark> what you saved → <mark>Synthesize</mark> it into a literature matrix that exports to BibTeX, RIS and CSV.</p>
+  <div class="roadmap">
+    <div class="box">
+      <h3>Now: MVP (about 7 weeks)</h3>
+      <ul>
+        <li>Today deck sized by your goal; "caught up" end</li>
+        <li>Card v2: finding headline, 4-part summary, key numbers, chips, why-shown, AI label</li>
+        <li>Reading ladder: card → abstract → open PDF → note</li>
+        <li>Triage: Not relevant (with reason), Save, Read later, Add to survey</li>
+        <li>Topic catalog with a 5-paper preview</li>
+        <li>Library with filters; matrix; BibTeX/RIS/CSV export</li>
+        <li>Recall: 3 a day, Leitner intervals</li>
+        <li>Weekly rhythm, forgiving streak, output milestones</li>
+        <li>One local reminder; report-summary sheet; offline deck</li>
+        <li>Android plus web PWA (covers iOS)</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Next: v1.x</h3>
+      <ul>
+        <li>Custom topics: a phrase plus seed papers, resolved by a Worker with a preview</li>
+        <li>Per-user ranking from on-device embeddings of your saves</li>
+        <li>Weekly "your field this week" digest</li>
+        <li>Zotero export and sync</li>
+        <li>Auto-filled matrix columns (task, method, dataset, metric)</li>
+        <li>Share-card images with citation</li>
+        <li>Lab and journal-club decks</li>
+        <li>On-device text-to-speech briefings</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Later: v2</h3>
+      <ul>
+        <li>"Around this paper": citation neighbourhood from OpenAlex and OpenCitations</li>
+        <li>Gap finder across your matrix</li>
+        <li>Survey outline drafted only from your library, citing only those papers</li>
+        <li>Conference mode (OpenReview)</li>
+        <li>Hindi and other summary languages</li>
+        <li>Institutional and library plans; native iOS once revenue covers the Apple fee</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Kill list</h3>
+  <div class="table-scroll">
+    <table class="mid">
+      <thead><tr><th>Remove</th><th>Replace with</th></tr></thead>
+      <tbody>
+        <tr><td>Render web service, webhook, node-cron</td><td>Nightly GitHub Actions job publishing static JSON</td></tr>
+        <tr><td>SQLite on Render, Supabase schema, Firestore feed doc</td><td>CDN shards; Firestore kept only for optional user sync</td></tr>
+        <tr><td>User-pasted LLM keys and client-side LLM calls</td><td>Server-side custom topics (v1.x)</td></tr>
+        <tr><td>"Catchy title" rewriting</td><td>Validated finding headline plus the original title</td></tr>
+        <tr><td>Semantic Scholar TLDR by title search</td><td>Own structured summary; S2 licence avoided in commercial builds</td></tr>
+        <tr><td>1,875-line admin CRUD screen</td><td><code>curation/overrides.json</code> edited by pull request, plus a read-only status page</td></tr>
+        <tr><td>Hardcoded 5 topics; <code>likes</code></td><td>Topic catalog; no fake social proof</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 07 -->
+<section id="apis">
+  <div class="sec-head"><p class="eyebrow">07 · Data and compute for ₹0</p><h2>Free APIs and free tiers</h2></div>
+  <p>Checked in October 2026. Limits change often (OpenAlex and Gemini both changed in the last year), so the monthly watch prompt in the pack re-checks them.</p>
+  <h3>Papers, metadata, abstracts, citations, PDFs, authors</h3>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>API</th><th>Gives</th><th>Access and limits</th><th>Licence</th><th>Use in ReOpSy</th></tr></thead>
+      <tbody>
+        <tr><td>arXiv API</td><td>Preprint metadata and abstracts</td><td>No key. At most 1 request every 3 s, one connection.</td><td>Metadata CC0; PDFs link-only</td><td>Primary source for CS, physics, quant, EESS</td></tr>
+        <tr><td>OpenAlex</td><td>480M works, Topics, authors, institutions, citations, OA status, abstracts, semantic search (beta), 60M OA PDFs</td><td>Free API key required since Feb 2026. $1/day free buys unlimited single-record lookups, 10,000 list calls, 1,000 searches or 100 PDF downloads.</td><td>CC0; full snapshot free on S3</td><td>Candidates by Topic, retraction flag, authors, citation graph</td></tr>
+        <tr><td>Crossref REST</td><td>DOI metadata, references, funders, retractions and corrections (Retraction Watch data since Jan 2025)</td><td>No key; add <code>mailto</code>. From 1 Dec 2025 the polite pool allows 10 req/s for single records and 3 req/s for lists.</td><td>Metadata open; abstracts may belong to publishers</td><td>Retraction check, DOI metadata</td></tr>
+        <tr><td>Retraction Watch dataset</td><td>All known retractions</td><td>Daily CSV through Crossref's git repo</td><td>Open</td><td>Offline retraction list</td></tr>
+        <tr><td>Unpaywall</td><td>Best open-access copy per DOI</td><td>Email parameter; 100,000 calls/day</td><td>Free</td><td>"Open PDF" chip and link</td></tr>
+        <tr><td>Europe PMC REST</td><td>Life-science literature, PubMed abstracts, preprints, OA full text</td><td>No key</td><td>Varies by article</td><td>Mental health and autism topics</td></tr>
+        <tr><td>PubMed E-utilities</td><td>PubMed records</td><td>3 req/s without key, 10 with a free key</td><td>NLM terms</td><td>Biomedical fallback</td></tr>
+        <tr><td>bioRxiv / medRxiv API</td><td>Preprints by date range</td><td>No key</td><td>Licence per preprint</td><td>Biology and medicine preprints</td></tr>
+        <tr><td>CORE</td><td>130M+ OA papers with full text</td><td>Free key</td><td>Free for non-commercial academic use</td><td>Full text later, free tier only</td></tr>
+        <tr><td>Semantic Scholar</td><td>TLDRs, SPECTER2 embeddings, recommendations, citations</td><td>Free key at 1 req/s; 100 req per 5 min without one</td><td>Restrictive: attribution required, no redistribution, terminable at will; underlying data partly CC BY-NC</td><td>Prototyping only. Don't store its data in a paid build.</td></tr>
+        <tr><td>Hugging Face Papers</td><td>Daily and trending AI papers with upvotes</td><td>Open endpoint <code>/api/daily_papers</code></td><td>Hub terms</td><td>"Trending in AI" signal</td></tr>
+        <tr><td>Also useful</td><td>OpenCitations (citation links), ORCID (authors), ROR (institutions), DBLP (CS bibliography), DOAJ (OA journal check), OpenReview (reviews), Zotero Web API (export)</td><td>Free; check limits at build time</td><td>Mostly CC0 or open</td><td>Later phases</td></tr>
+        <tr><td>Papers with Code</td><td>Shut down 24 July 2025</td><td>Archive only</td><td>None</td><td>Don't build on it</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>Summarization, compute and hosting</h3>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Service</th><th>Free allowance</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>Groq</td><td>Llama 3.3 70B: 30 req/min, 1,000/day. Llama 3.1 8B: 14,400/day. No card.</td><td>First LLM in the chain</td></tr>
+        <tr><td>Gemini API</td><td>Flash and Flash-Lite at roughly 5–15 req/min, up to about 1,000/day, set per project. Quotas were cut sharply in Dec 2025 and Pro left the free tier in 2026.</td><td>Second in the chain</td></tr>
+        <tr><td>OpenRouter <code>:free</code> models</td><td>20 req/min; 50/day, or 1,000/day after a one-time $10 credit purchase</td><td>Third in the chain</td></tr>
+        <tr><td>Local embeddings in GitHub Actions</td><td>Free CPU minutes (unlimited on public repos)</td><td>Relevance ranking with no API</td></tr>
+        <tr><td>Cloudflare Workers AI</td><td>10,000 neurons/day</td><td>Custom-topic embedding (v1.x)</td></tr>
+        <tr><td>Cloudflare Pages, Workers, D1, R2</td><td>Workers 100,000 req/day; D1 5 GB; R2 10 GB with no egress fees; Pages 500 builds/month</td><td>Feed CDN, report endpoint</td></tr>
+        <tr><td>Firebase Spark</td><td>Firestore 1 GiB, 50,000 reads and 20,000 writes per day. Cloud Storage needs the paid plan since Feb 2026.</td><td>Optional sign-in and user sync</td></tr>
+        <tr><td>Expo EAS Free</td><td>15 Android + 15 iOS builds/month; over-the-air updates to 1,000 monthly users</td><td>Builds and hot fixes</td></tr>
+        <tr><td>Supabase Free (not used)</td><td>500 MB; pauses after 7 idle days</td><td>Avoid; the pause breaks a daily app</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 08 -->
+<section id="architecture">
+  <div class="sec-head"><p class="eyebrow">08 · How it fits together</p><h2>Technical architecture</h2></div>
+  <p>The core idea: <mark>summarize each paper once, publish static files, and let every user read the same CDN.</mark> Cost then grows with the number of papers, not the number of users. No server needs to stay awake.</p>
+<pre class="mermaid">
+flowchart LR
+  subgraph GH["GitHub Actions - nightly - free"]
+    A["Fetch: arXiv, OpenAlex, Europe PMC, bioRxiv"] --> B["Normalize + dedupe"]
+    B --> C["Quality gates: abstract, date, retraction, source type"]
+    C --> D["Rank: local embeddings + topic seed papers"]
+    D --> E["Summarize: LLM JSON + validators, else extractive"]
+    E --> F["Enrich: Unpaywall, code links, key numbers"]
+  end
+  F --> G[("Cloudflare Pages: static JSON")]
+  G --> H["Expo app: Android + PWA"]
+  H <--> I[("expo-sqlite: local-first library")]
+  H -. optional sync .-> J[("Firebase Auth + Firestore user doc")]
+  H -- report summary --> K["Cloudflare Worker + D1"]
+  K -- 2+ reports --> L["GitHub issue + overrides.json"]
+  L --> F
+</pre>
+  <p class="note">In words: a nightly GitHub Actions job fetches candidates, applies quality gates, ranks them with local embeddings, summarizes the winners and writes static JSON to Cloudflare Pages. The app reads those files, stores the library on the device and optionally syncs it through Firebase. Summary reports go to a Worker, which opens an issue and feeds corrections back into the next run.</p>
+  <h3>Will it stay free? Daily volumes against the limits</h3>
+  <div class="table-scroll">
+    <table class="mid">
+      <thead><tr><th>Resource</th><th>MVP (5–10 topics)</th><th>Scale (100 topics)</th><th>Free limit</th></tr></thead>
+      <tbody>
+        <tr><td>LLM summaries</td><td class="num">≤ 100/day</td><td class="num">≈ 1,000/day</td><td>Groq 1,000 + Gemini ≈ 1,000 + OpenRouter</td></tr>
+        <tr><td>OpenAlex list calls</td><td class="num">≤ 50/day</td><td class="num">≈ 500/day</td><td class="num">10,000/day</td></tr>
+        <tr><td>arXiv requests</td><td class="num">≈ 20/night</td><td class="num">≈ 200/night</td><td>1 per 3 s (10 min ≈ 200)</td></tr>
+        <tr><td>Embeddings</td><td class="num">≈ 2,000</td><td class="num">≈ 20,000</td><td>CPU minutes in Actions</td></tr>
+        <tr><td>Feed reads</td><td colspan="2">Static CDN files, so any number of users</td><td>Pages: no read quota</td></tr>
+        <tr><td>Firestore (sync users)</td><td colspan="2">About 1 read per app open</td><td class="num">50,000 reads/day</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Full contracts (card schema, topic catalog, local tables) are in <code>docs/replan/PRODUCT-SPEC.md</code>.</p>
+</section>
+
+<!-- 09 -->
+<section id="mvp">
+  <div class="sec-head"><p class="eyebrow">09 · Sequence</p><h2>MVP build plan</h2></div>
+  <p>About 7 weeks part-time for one developer working with an AI coding agent, then the 14-day closed test that Play requires of new personal accounts.</p>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Week</th><th>Build phases</th><th>You</th><th>Exit check</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>P0 repo hygiene and safety tag; P1 feed audit and gold-set tools</td><td>Label 20+ papers per topic; pick 5–10 seed papers per topic; create a free OpenAlex key</td><td>Baseline audit reproduced (47 / 32 / 17)</td></tr>
+        <tr><td class="num">2</td><td>P2 topic catalog on OpenAlex Topics; P3 source adapters and quality gates</td><td>Choose topic IDs from the resolver's list</td><td>All 3 "before" failures rejected by the gates</td></tr>
+        <tr><td class="num">3</td><td>P4 embedding ranking; P5 summarizer with validators</td><td>Review 30 summaries side by side with their abstracts</td><td>Precision@10 ≥ 0.8 per topic; validator pass ≥ 95%</td></tr>
+        <tr><td class="num">4</td><td>P6 static publishing and nightly job; retire Render and SQLite; P7 local-first data layer</td><td>Create Cloudflare account and API token</td><td>Feed live on the CDN; airplane-mode deck works</td></tr>
+        <tr><td class="num">5</td><td>P8 Today deck, card v2, caught-up screen, reading ladder (from the design handoff)</td><td>Use it daily; note friction</td><td>Screens pass light, dark and 200% text checks</td></tr>
+        <tr><td class="num">6</td><td>P9 library, matrix, exports, recall, rhythm, reminder</td><td>Import exports into Zotero and Sheets</td><td>Exports open cleanly</td></tr>
+        <tr><td class="num">7</td><td>P10 report Worker, accessibility, account deletion, legal; P11 builds</td><td>Pay the $25 Play fee early (ID checks can take days); recruit 15 testers</td><td>Compliance checklist ticked</td></tr>
+        <tr><td class="num">8–9</td><td>Hot fixes over the air during the 14-day test</td><td>Keep 12+ testers opted in</td><td>Apply for production access</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="risks">
+  <div class="sec-head"><p class="eyebrow">10 · What could go wrong</p><h2>Risks and mitigation</h2></div>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Risk</th><th>Likelihood / impact</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>Feed stays off-topic</td><td><span class="pill h">high / high</span></td><td>Gold set, embeddings, required-term gate, precision gate in CI, "not relevant" feedback</td></tr>
+        <tr><td>Summaries misstate findings</td><td><span class="pill h">high / high</span></td><td>Structured prompt, mandatory limits, number check, extractive fallback, label, report button, abstract one tap away</td></tr>
+        <tr><td>Health topics read as advice</td><td><span class="pill m">medium / high</span></td><td>"Not medical advice" notice, no clinical recommendations in summaries, Play health declaration</td></tr>
+        <tr><td>Free tiers shrink</td><td><span class="pill h">high / medium</span></td><td>Three-provider chain, summarize once and cache forever, usage logged nightly, monthly watch</td></tr>
+        <tr><td>A source changes terms or shuts down</td><td><span class="pill m">medium / high</span></td><td>CC0-first sources, adapters behind one interface, OpenAlex snapshot as a last resort</td></tr>
+        <tr><td>Licensing</td><td><span class="pill m">medium / high</span></td><td>Show abstracts only from CC0 or CC-BY sources, link out otherwise, never host PDFs, credit sources, no S2 data in paid builds</td></tr>
+        <tr><td>Play review: data safety, AI content, testing rule</td><td><span class="pill h">high / medium</span></td><td>Honest declaration (sign-in collects data), in-app and web account deletion, AI report path, 12 testers for 14 days</td></tr>
+        <tr><td>DPDP Act duties from 13 May 2027</td><td><span class="pill m">medium / medium</span></td><td>Local-first, minimal fields, notice and consent, deletion, grievance contact, breach plan</td></tr>
+        <tr><td>Gamification backfires</td><td><span class="pill m">medium / medium</span></td><td>Forgiving rules; track reminder opt-outs and streak-break churn</td></tr>
+        <tr><td>Filter bubble</td><td><span class="pill l">medium / low</span></td><td>Serendipity card, quarterly topic-breadth review</td></tr>
+        <tr><td>Predatory or crank content</td><td><span class="pill m">medium / medium</span></td><td>Source-type gates, venue checks (DOAJ later), report threshold</td></tr>
+        <tr><td>Solo-developer scope creep</td><td><span class="pill h">high / high</span></td><td>Kill list, phase gates with acceptance checks, ship the MVP before any "Next" item</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="money">
+  <div class="sec-head"><p class="eyebrow">11 · Sustainability</p><h2>Monetization ideas</h2></div>
+  <p>The goal is to cover costs and fund the next feature without repeating the billing complaints in section 03. R Discovery Prime sets the market anchor at about $3 a month.</p>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Tier</th><th>Price idea</th><th>Includes</th></tr></thead>
+      <tbody>
+        <tr><td>Free, forever</td><td>₹0, no ads</td><td>Daily deck, up to 5 catalog topics, recall, library, matrix, BibTeX/CSV export, offline</td></tr>
+        <tr><td>Pro</td><td>₹99/month or ₹799/year (≈ $2.49 abroad)</td><td>Unlimited and custom topics, an on-demand card for any DOI or arXiv ID, Zotero sync, multi-device sync, weekly digest, auto-filled matrix, longer history</td></tr>
+        <tr><td>Lab</td><td>≈ ₹1,999/year per lab (up to 15 people)</td><td>Shared journal-club decks, shared matrix, lab topic packs</td></tr>
+        <tr><td>Institution</td><td>Quote</td><td>Library-wide access, single sign-on, usage reports</td></tr>
+        <tr><td>Other</td><td>Optional</td><td>GitHub Sponsors or Buy Me a Coffee; research-software grants for the open pipeline</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul>
+    <li><strong>Rules:</strong> no ads, no data sales, no sponsored ranking. If sponsors ever appear, they are labelled and kept apart from the feed.</li>
+    <li><strong>Before charging, re-check commercial terms</strong> for Unpaywall, CORE and Semantic Scholar. Some sources describe these as free for non-commercial use only. The MVP pipeline avoids them where possible.</li>
+    <li><strong>A realistic picture:</strong> 10,000 monthly users with 2% on Pro at ₹799 a year is about ₹1.6 lakh a year before store fees. That's enough to sustain the app and pay for the Apple account, not a startup on its own. Labs and institutions are the bigger lever.</li>
+  </ul>
+</section>
+
+<!-- 12 -->
+<section id="budget">
+  <div class="sec-head"><p class="eyebrow">12 · Spend</p><h2>Budget</h2></div>
+  <div class="table-scroll">
+    <table class="mid">
+      <thead><tr><th>Item</th><th>Cost</th><th>Needed?</th></tr></thead>
+      <tbody>
+        <tr><td>Google Play developer account</td><td class="num">$25 once (≈ ₹2,200)</td><td>Yes</td></tr>
+        <tr><td>Domain (e.g. .in or .dev, at cost via Cloudflare)</td><td class="num">≈ ₹800–1,000/yr</td><td>Optional; the free pages.dev address works</td></tr>
+        <tr><td>Copyright registration (from the old plan)</td><td class="num">₹500</td><td>Optional</td></tr>
+        <tr><td>Apple developer account</td><td class="num">$99/yr</td><td>Not now; the PWA covers iOS</td></tr>
+        <tr><td>GitHub Actions, Cloudflare, Firebase Spark, Expo EAS, OpenAlex key, LLM free tiers</td><td class="num">₹0</td><td>Yes</td></tr>
+        <tr><td><strong>Total</strong></td><td class="num"><strong>₹2,200–3,700</strong></td><td>Inside the ₹2–5k limit</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 13 -->
+<section id="handoff">
+  <div class="sec-head"><p class="eyebrow">13 · Who builds what</p><h2>Work split across tools</h2></div>
+  <p>The prompts and data are in the repo under <code>docs/replan/</code>. Attach <code>PRODUCT-SPEC.md</code> to every prompt.</p>
+  <div class="table-scroll">
+    <table class="wide">
+      <thead><tr><th>Who</th><th>Does</th><th>Gets</th><th>Hands back</th></tr></thead>
+      <tbody>
+        <tr><td>Design tool</td><td>Design system (two directions, one chosen), 10 core screens with real content, engineering handoff</td><td><code>design-brief.md</code>, <code>data/sample-cards.json</code></td><td><code>tokens.json</code>, <code>components.md</code>, screen inventory, copy deck</td></tr>
+        <tr><td>Coding agent</td><td>Phases P0–P11: hygiene, audit, catalog, sources, ranking, summarizer, publishing, data layer, UI, library and recall, compliance, release. Plus a review-mining task.</td><td><code>build-playbook.md</code> and the design handoff</td><td>Branches with green tests and acceptance evidence</td></tr>
+        <tr><td>AI assistant</td><td>Gold-set labelling help, seed papers, store copy, legal refresh, tester recruiting, monthly policy and competitor watch</td><td><code>assistant-tasks.md</code></td><td>Drafts for you to approve</td></tr>
+        <tr><td>You</td><td>Accounts and keys, final gold-set labels, seed papers, every merge, tester follow-up</td><td>All of the above</td><td>Decisions</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 14 -->
+<section id="limits">
+  <div class="sec-head"><p class="eyebrow">14 · Read with care</p><h2>Limits of this research</h2></div>
+  <ul>
+    <li>Play Store and App Store review pages couldn't be retrieved from the research environment. Review evidence comes from Capterra (13 R Discovery reviews), Trustpilot, G2, aggregators, studies and the press. Samples are small, and Trustpilot skews toward billing complaints. The playbook includes a script to mine about 500 store reviews per app on your machine.</li>
+    <li>User counts for competitors are vendor claims, except Scholar Inbox's, which come from its paper.</li>
+    <li>Free-tier numbers were checked in October 2026, and several come from third-party trackers rather than official pages. Re-check them before relying on any single number.</li>
+    <li>The feed audit's keyword check is a heuristic. The gold set in Phase 1 replaces it with human labels.</li>
+    <li>This is product research, not legal advice. Have the privacy policy and terms reviewed before charging money.</li>
+  </ul>
+</section>
+
+<!-- 15 -->
+<section id="sources">
+  <div class="sec-head"><p class="eyebrow">15 · References</p><h2>Sources</h2></div>
+  <div class="sources">
+    <h3>Competitors and products</h3>
+    <ul>
+      <li><a href="https://arxiv.org/html/2504.08385v2">Scholar Inbox: Personalized Paper Recommendations for Scientists (arXiv 2504.08385)</a></li>
+      <li><a href="https://uni-tuebingen.de/en/research/core-research/cluster-of-excellence-machine-learning/home/home-newsfullview/article/daily-paper-recommendations-for-researcher-with-the-scholar-inbox-platform-latest-post-on-our-blog">University of Tübingen: Scholar Inbox announcement</a></li>
+      <li><a href="https://www.capterra.com/p/238354/R-Discovery/reviews/">Capterra: R Discovery reviews</a> · <a href="https://www.capterra.com.au/reviews/1020712/r-discovery">Capterra AU: R Discovery</a> · <a href="https://www.g2.com/products/r-discovery/reviews">G2: R Discovery</a></li>
+      <li><a href="https://www.educatorstechnology.com/2026/09/r-discovery-review.html">Educators Technology: R Discovery review (2026)</a></li>
+      <li><a href="https://www.capterra.com/p/178200/Researcher/">Capterra: Researcher</a></li>
+      <li><a href="https://www.semanticscholar.org/faq/research-feeds-signaling">Semantic Scholar FAQ: research feed signalling</a></li>
+      <li><a href="https://emptysqua.re/blog/taming-google-scholar-alerts/">Taming Google Scholar alerts</a></li>
+      <li><a href="https://www.codesota.com/papers-with-code/shutdown">Papers with Code shutdown record</a></li>
+      <li><a href="https://www.toolcenter.ai/en/articles/alphaxiv-review-2026">alphaXiv review 2026</a></li>
+      <li><a href="https://www.researchrabbit.ai/releases/welcome-to-the-new-researchrabbit">ResearchRabbit: new release with Litmaps</a> · <a href="https://www.costbench.com/software/ai-research-tools/research-rabbit-free/hidden-costs/">Costbench: ResearchRabbit free plan</a></li>
+      <li><a href="https://github.com/Miguel07Alm/arxivtok">ArxivTok</a> · <a href="https://medium.com/@xinfitok/paperstok-arxiv-papers-with-a-tiktok-like-ux-72e2dc5b156d">PapersTok</a> · <a href="https://github.com/sidxh/nerd-tok">NerdTok</a> · <a href="https://github.com/khuynh22/paper-deck">PaperDeck</a></li>
+      <li><a href="https://paperguide.ai/blog/ai-tools-for-finding-research-papers/">Paperguide: AI tools for finding papers (2026)</a></li>
+    </ul>
+    <h3>Complaints and evidence</h3>
+    <ul>
+      <li><a href="https://www.trustpilot.com/review/academia.edu?page=4">Trustpilot: Academia.edu</a> · <a href="https://ca.trustpilot.com/review/scispace.com">Trustpilot: SciSpace</a> · <a href="https://nl.trustpilot.com/review/scite.ai">Trustpilot: scite</a> · <a href="https://www.trustpilot.com/review/blinkist.com?page=3">Trustpilot: Blinkist</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/ResearchGate">Wikipedia: ResearchGate (invitation emails, 2014 AIS study)</a></li>
+      <li><a href="https://www.rfp.wiki/vendors/elicit">Elicit reviews summary</a></li>
+      <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12042776/">Peters &amp; Chin-Yee (2025), Generalization bias in LLM summarization of scientific research</a></li>
+      <li><a href="https://thedecisionlab.com/insights/consumer-insights/streak-creep-the-perils-of-too-much-gamification">The Decision Lab: Streak creep</a></li>
+      <li><a href="https://www.scl.org/european-commission-finds-instagram-and-facebooks-addictive-design-breaches-dsa/">SCL: Commission finds Instagram and Facebook's addictive design breaches the DSA</a></li>
+      <li><a href="https://www.thenationalnews.com/arts-culture/the-impact-of-doomscrolling-on-mental-health-technology-shapes-user-behaviour-1.1113134">The National: infinite scroll and its inventor's apology</a></li>
+      <li><a href="https://escholarship.org/uc/item/61p4p686">eScholarship: spaced retrieval practice research</a></li>
+    </ul>
+    <h3>APIs and licences</h3>
+    <ul>
+      <li><a href="https://blog.openalex.org/openalex-api-new-features-and-usage-based-pricing/">OpenAlex: new features and usage-based pricing (Feb 2026)</a> · <a href="https://help.openalex.org/access/pricing/">OpenAlex pricing</a> · <a href="https://help.openalex.org/api/deprecations/">OpenAlex deprecations (Concepts → Topics)</a></li>
+      <li><a href="https://info.arxiv.org/help/api/tou.html">arXiv API terms of use</a></li>
+      <li><a href="https://www.semanticscholar.org/product/api/license">Semantic Scholar API licence</a></li>
+      <li><a href="https://crossref.org/blog/announcing-changes-to-rest-api-rate-limits/">Crossref: REST API rate-limit changes</a> · <a href="https://crossref.org/documentation/retrieve-metadata/retraction-watch/">Crossref: Retraction Watch data</a></li>
+      <li><a href="https://docs.ropensci.org/roadoi/">roadoi (Unpaywall client): limits</a> · <a href="https://core.ac.uk/services/api">CORE API</a> · <a href="https://github.com/ropensci/europepmc">Europe PMC REST client</a> · <a href="https://huggingface.co/papers">Hugging Face Papers</a></li>
+    </ul>
+    <h3>Free tiers and platform policy</h3>
+    <ul>
+      <li><a href="https://www.aifreeapi.com/en/posts/gemini-api-free-tier-rate-limits">Gemini API free-tier limits</a> · <a href="https://questloops.com/blog/how-to-use-google-gemini-for-free-in-2026-api-limits-explained">Gemini free tier in 2026</a></li>
+      <li><a href="https://costbench.com/software/llm-api-providers/groq/free-plan/">Groq free plan</a> · <a href="https://openrouter.ai/blog/tutorials/free-llm-apis-compared/">OpenRouter: free LLM APIs compared</a> · <a href="https://developers.cloudflare.com/workers-ai/platform/pricing/">Cloudflare Workers AI pricing</a> · <a href="https://developers.cloudflare.com/workers/platform/limits">Cloudflare Workers limits</a></li>
+      <li><a href="https://www.verdent.ai/guides/devtools/firebase-pricing">Firebase pricing guide</a> · <a href="https://www.jetadmin.io/blog/supabase-pricing-2026-guide-to-plans-limits-and-real-world-costs/">Supabase pricing 2026</a> · <a href="https://expo.dev/pricing">Expo pricing</a></li>
+      <li><a href="https://www.testerscommunity.com/blog/google-play-closed-testing-requirements-2026">Google Play closed-testing requirement</a> · <a href="https://9to5google.com/2023/10/25/google-play-gen-ai-policy/">Google Play generative-AI reporting policy</a> · <a href="https://support.google.com/googleplay/android-developer/answer/13327111">Google Play account deletion requirement</a></li>
+      <li><a href="https://ssrana.in/articles/meity-notifies-final-digital-personal-data-protection-rules-2025/">DPDP Rules 2025 timeline</a> · <a href="https://www.hoganlovells.com/en/publications/india-introduces-mandatory-labelling-for-ai-and-3hour-takedown-for-illegal-content">India IT Rules 2026: AI labelling</a></li>
+    </ul>
+  </div>
+</section>
+
+<footer>Prepared from the ReOpSy repository (commit 0801249) and web research on 3 October 2026. Companion files: <code>docs/replan/</code>.</footer>
+
+</main>
+</div>
