@@ -1,3 +1,4 @@
+import { profileLoadMessage } from '../logic/profileLoad';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -34,7 +35,7 @@ export function CirclesScreen() {
   const toast = useToast();
   const { user } = useAuth();
   const { state } = useAppState();
-  const { enabled, me, profile, profileLoading, profileLoadFailed, refreshProfile, following, unread, refreshUnread, setFollowingLocal } = useCommunity();
+  const { enabled, me, profile, profileLoading, profileLoadError, refreshProfile, following, unread, refreshUnread, setFollowingLocal } = useCommunity();
   const [seg, setSeg] = useState<Seg>('circles');
 
   const [mine, setMine] = useState<Circle[] | null>(null);
@@ -133,9 +134,9 @@ export function CirclesScreen() {
         {header}
         <EmptyState
           icon="user-plus"
-          title={profileLoading ? 'Loading your profile…' : profileLoadFailed ? 'Could not load your profile' : 'Create your researcher profile'}
-          body={profileLoadFailed ? 'Check your connection and try again.' : 'Your display name, role and research interests help the right people find you.'}
-          action={profileLoading ? undefined : profileLoadFailed
+          title={profileLoading ? 'Loading your profile…' : profileLoadError ? 'Could not load your profile' : 'Create your researcher profile'}
+          body={profileLoadError ? profileLoadMessage(profileLoadError) : 'Your display name, role and research interests help the right people find you.'}
+          action={profileLoading ? undefined : profileLoadError
             ? <Button label="Retry loading profile" onPress={() => refreshProfile()} />
             : <Button label="Create profile" onPress={() => nav.navigate('EditProfile')} />}
         />

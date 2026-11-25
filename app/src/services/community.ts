@@ -8,6 +8,7 @@ import {
   collectionGroup,
   deleteDoc,
   doc,
+  documentId,
   getCountFromServer,
   getDoc,
   getDocFromServer,
@@ -20,6 +21,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  startAfter,
   updateDoc,
   where,
   writeBatch,
@@ -146,7 +148,9 @@ export async function getProfile(uid: string): Promise<Profile | null> {
 /** Only an authoritative absence can open the account creation form. */
 export async function getOwnProfile(uid: string): Promise<Profile | null> {
   const snap = await getDocFromServer(doc(store(), 'profiles', uid));
-  if (snap.metadata.hasPendingWrites) throw new CommunityError('Could not confirm your profile with the server.');
+  if (snap.metadata.hasPendingWrites) {
+    throw Object.assign(new Error('Could not confirm your profile with the server.'), { code: 'profile-pending-writes' });
+  }
   return snap.exists() ? profileFrom(snap.id, snap.data()) : null;
 }
 
@@ -622,63 +626,102 @@ export async function markInboxRead(uid: string, ids: string[]): Promise<void> {
   await batch.commit();
 }
 
-export async function hasUnread(uid: string): Promise<boolean> {
-  const snap = await getDocs(query(collection(store(), 'inbox', uid, 'items'), where('read', '==', false), limit(1)));
-  return !snap.empty;
+export async function hasUnread(uid: string, blockedUids: readonly string[] = []): Promise<boolean> {
+  const unread = query(collection(store(), 'inbox', uid, 'items'), where('read', '==', false));
+  if (blockedUids.length === 0) return !(await getDocs(query(unread, limit(1)))).empty;
+
+  // Hidden notifications must not keep a badge on an empty inbox. Search
+  // subsequent pages so blocked senders cannot also hide a real notification.
+  const blocked = new Set(blockedUids);
+  const pageSize = 50;
+  const ordered = query(unread, orderBy(documentId()));
+  let page = await getDocs(query(ordered, limit(pageSize)));
+  while (!page.empty) {
+    if (page.docs.some((entry) => !blocked.has(entry.data().fromUid))) return true;
+    if (page.size < pageSize) break;
+    page = await getDocs(query(ordered, startAfter(page.docs[page.docs.length - 1]), limit(pageSize)));
+  }
+  return false;
 }
 
 // -------------------------------------------------------- account deletion
 
+export class AccountDeletionPreflightError extends Error {}
+
+/** Resolve all dependent reads before deleting anything. In particular, a
+ * former circle member may own a post but no longer be allowed to list replies.
+ * Do not get partial answers from the offline cache for destructive actions. */
+async function deletionPlan(uid: string) {
+  const fs = store();
+  const own = (group: string) => getDocsFromServer(query(collectionGroup(fs, group), where('uid', '==', uid)));
+  const [comments, helpful, posts, replies, recs, following, followers, memberships, inbox] = await Promise.all([
+    own('comments'),
+    own('helpful'),
+    own('posts'),
+    own('replies'),
+    getDocsFromServer(query(collection(fs, 'recommendations'), where('uid', '==', uid))),
+    getDocsFromServer(query(collection(fs, 'follows'), where('follower', '==', uid))),
+    getDocsFromServer(query(collection(fs, 'follows'), where('followee', '==', uid))),
+    getDocsFromServer(query(collection(fs, 'circles'), where('memberUids', 'array-contains', uid))),
+    getDocsFromServer(collection(fs, 'inbox', uid, 'items')),
+  ]);
+
+  const circles = memberships.docs.map((entry) => circleFrom(entry.id, entry.data()));
+  const ownedCircles = circles.filter((circle) => circle.ownerUid === uid);
+  const ownedCirclePosts = await Promise.all(
+    ownedCircles.map((circle) => getDocsFromServer(collection(fs, 'circles', circle.id, 'posts'))),
+  );
+  const postsToRemove = new Map(posts.docs.map((post) => [post.ref.path, post.ref]));
+  ownedCirclePosts.forEach((list) => list.docs.forEach((post) => postsToRemove.set(post.ref.path, post.ref)));
+  const replyLists = await Promise.all(
+    [...postsToRemove.values()].map((post) => getDocsFromServer(collection(post, 'replies'))),
+  );
+  const repliesToRemove = new Map(replies.docs.map((reply) => [reply.ref.path, reply.ref as DocumentReference]));
+  replyLists.forEach((list) => list.docs.forEach((reply) => repliesToRemove.set(reply.ref.path, reply.ref)));
+
+  const marks = await Promise.all(helpful.docs.map(async (mark) => {
+    const paper = mark.ref.parent.parent;
+    const comment = paper ? doc(fs, paper.path, 'comments', mark.data().commentId as string) : null;
+    return { mark: mark.ref, counter: comment && (await getDocFromServer(comment)).exists() ? comment : null };
+  }));
+
+  return { circles, postsToRemove, repliesToRemove, comments, recs, following, followers, inbox, marks };
+}
+
 /**
  * Deletes everything the user created: comments, helpful marks, posts,
  * replies, follows, recommendations, owned circles, inbox, profile, handle
- * and synced library. Required by Play's account-deletion policy and the
- * DPDP Act's erasure right. Call before deleting the auth account.
+ * and synced library. Call before deleting the auth account.
  */
 export async function deleteMyData(uid: string, handle: string | null): Promise<void> {
   const fs = store();
-  const byUid = (group: string) => getDocs(query(collectionGroup(fs, group), where('uid', '==', uid)));
+  let plan: Awaited<ReturnType<typeof deletionPlan>>;
+  try {
+    plan = await deletionPlan(uid);
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code;
+    throw new AccountDeletionPreflightError(code === 'permission-denied'
+      ? 'Some of your data cannot be accessed for deletion. This can happen after leaving a private circle. No data was removed.'
+      : 'Could not check which data can be deleted. No data was removed. Try again when connected.');
+  }
 
-  const [comments, helpful, posts, replies, recs] = await Promise.all([
-    byUid('comments'),
-    byUid('helpful'),
-    byUid('posts'),
-    byUid('replies'),
-    getDocs(query(collection(fs, 'recommendations'), where('uid', '==', uid))),
-  ]);
   // Each helpful mark is removed together with its counter, as the rules require.
-  for (const mark of helpful.docs) {
-    const paperDoc = mark.ref.parent.parent;
-    const commentId = mark.data().commentId as string;
+  for (const { mark, counter } of plan.marks) {
     const batch = writeBatch(fs);
-    batch.delete(mark.ref);
-    if (paperDoc) {
-      const commentRef = doc(fs, paperDoc.path, 'comments', commentId);
-      if ((await getDoc(commentRef)).exists()) batch.update(commentRef, { helpfulCount: increment(-1) });
-    }
+    batch.delete(mark);
+    if (counter) batch.update(counter, { helpfulCount: increment(-1) });
     await batch.commit();
   }
-  await deleteAll([...comments.docs, ...replies.docs].map((d) => d.ref));
-  for (const p of posts.docs) {
-    const sub = await getDocs(collection(p.ref, 'replies'));
-    await deleteAll(sub.docs.map((r) => r.ref));
-  }
-  await deleteAll([...posts.docs, ...recs.docs].map((d) => d.ref));
+  await deleteAll([...plan.comments.docs.map((entry) => entry.ref), ...plan.repliesToRemove.values()]);
+  await deleteAll([...plan.postsToRemove.values(), ...plan.recs.docs.map((entry) => entry.ref)]);
+  await deleteAll([...plan.following.docs, ...plan.followers.docs].map((entry) => entry.ref));
 
-  const [following, followers] = await Promise.all([
-    getDocs(query(collection(fs, 'follows'), where('follower', '==', uid))),
-    getDocs(query(collection(fs, 'follows'), where('followee', '==', uid))),
-  ]);
-  await deleteAll([...following.docs, ...followers.docs].map((d) => d.ref));
-
-  const circles = await myCircles(uid);
-  for (const c of circles) {
-    if (c.ownerUid === uid) await deleteCircle(c.id);
-    else await leaveCircle(c.id, uid);
+  for (const circle of plan.circles) {
+    if (circle.ownerUid === uid) await deleteDoc(doc(fs, 'circles', circle.id));
+    else await leaveCircle(circle.id, uid);
   }
 
-  const inbox = await getDocs(collection(fs, 'inbox', uid, 'items'));
-  await deleteAll(inbox.docs.map((d) => d.ref));
+  await deleteAll(plan.inbox.docs.map((entry) => entry.ref));
 
   const batch = writeBatch(fs);
   if (handle) batch.delete(doc(fs, 'handles', handle));

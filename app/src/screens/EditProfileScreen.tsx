@@ -1,3 +1,4 @@
+import { profileLoadMessage } from '../logic/profileLoad';
 import { useState } from 'react';
 import type { User } from 'firebase/auth';
 import { Pressable, View } from 'react-native';
@@ -17,7 +18,7 @@ import { useToast } from '../ui/Toast';
 export function EditProfileScreen() {
   const nav = useNav();
   const { user, loading: authLoading } = useAuth();
-  const { profile, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
+  const { profile, profileLoading, profileLoadError, refreshProfile } = useCommunity();
   const back = <IconButton icon="arrow-left" label="Back" onPress={() => nav.goBack()} />;
   if (authLoading || profileLoading) {
     return <Screen title="Profile" left={back}><T tone="muted">Checking your profile…</T></Screen>;
@@ -25,10 +26,10 @@ export function EditProfileScreen() {
   if (!user) {
     return <Screen title="Profile" left={back}><Button label="Sign in" onPress={() => nav.navigate('SignIn')} /></Screen>;
   }
-  if (profileLoadFailed) {
+  if (profileLoadError) {
     return (
       <Screen title="Profile" left={back}>
-        <T tone="muted">Could not verify your profile. Your changes have not been submitted.</T>
+        <T tone="muted">{profileLoadMessage(profileLoadError)}</T>
         <Button label="Retry loading profile" onPress={() => refreshProfile()} style={{ marginTop: space.m }} />
       </Screen>
     );

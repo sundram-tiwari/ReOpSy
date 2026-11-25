@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultState, mergeStates, migrate, pruneTriage, withPaperLike } from '../appData';
+import { defaultState, mergeStates, migrate, pruneTriage, withPaperLike, withReadingPreference } from '../appData';
 import { Paper } from '../../types';
 
 const p = (id: string): Paper => ({
@@ -79,4 +79,51 @@ test('private Like merge keeps the latest change per paper without resurrecting 
   assert.equal(mergeStates(local, sameTime).paperLikes.a.liked, false);
   assert.equal(mergeStates(sameTime, local).paperLikes.a.liked, false);
   assert.equal(withPaperLike(local, 'a', true, 7).paperLikes.a.updatedAt, 12);
+});
+
+test('merging a freshly onboarded device preserves meaningful account reading settings', () => {
+  const local = { ...defaultState(), onboardingComplete: true };
+  const cloud = {
+    ...defaultState(), onboardingComplete: true, followedTopics: [],
+    themePref: 'dark' as const, surveyTitle: 'My survey',
+  };
+  const merged = mergeStates(local, cloud);
+  assert.deepEqual(merged.followedTopics, []);
+  assert.equal(merged.themePref, 'dark');
+  assert.equal(merged.surveyTitle, 'My survey');
+  assert.equal(merged.dailyGoal, local.dailyGoal);
+  assert.deepEqual(mergeStates(cloud, local).followedTopics, []);
+  assert.equal(mergeStates(cloud, local).surveyTitle, 'My survey');
+});
+
+test('an explicit default wins only its own field, and older edits do not clobber it', () => {
+  const fresh = defaultState();
+  const old = withReadingPreference(
+    withReadingPreference(
+      withReadingPreference(fresh, 'themePref', 'dark', 100),
+      'followedTopics', ['blockchain'], 200,
+    ),
+    'surveyTitle', 'Account survey', 300,
+  );
+  const local = withReadingPreference(fresh, 'themePref', 'system', 150);
+  const merged = mergeStates(local, old);
+  assert.equal(merged.themePref, 'system');
+  assert.deepEqual(merged.followedTopics, ['blockchain']);
+  assert.equal(merged.surveyTitle, 'Account survey');
+  assert.equal(mergeStates(old, merged).themePref, 'system');
+  const resetTopics = withReadingPreference(merged, 'followedTopics', fresh.followedTopics, 1);
+  assert.equal(resetTopics.readingPreferenceUpdatedAt.followedTopics, 201);
+  assert.deepEqual(mergeStates(resetTopics, old).followedTopics, fresh.followedTopics);
+  const resetName = withReadingPreference(resetTopics, 'surveyTitle', fresh.surveyTitle, 301);
+  assert.equal(mergeStates(resetName, old).surveyTitle, fresh.surveyTitle);
+});
+
+test('preference migration retains supported timestamps and distinguishes missing topics from none', () => {
+  const raw = { version: 3, followedTopics: [], readingPreferenceUpdatedAt: {
+    followedTopics: 99, themePref: 'bad', surveyTitle: -1, dailyGoal: 5,
+  }};
+  const migrated = migrate(raw, '2026-11-25');
+  assert.deepEqual(migrated.followedTopics, []);
+  assert.deepEqual(migrated.readingPreferenceUpdatedAt, { followedTopics: 99 });
+  assert.deepEqual(migrate({ version: 3 }, '2026-11-25').followedTopics, defaultState().followedTopics);
 });
