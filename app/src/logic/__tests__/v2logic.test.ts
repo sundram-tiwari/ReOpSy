@@ -74,6 +74,15 @@ test('a full goal is dealt when there is no topic left for serendipity', () => {
   assert.equal(deck.filter((d) => d.serendipity).length, 0);
 });
 
+test('a 15-card reading goal never pads a sparse deck with duplicates', () => {
+  const byTopic = { a: [paper('a'), paper('a')], b: [paper('a'), paper('b')], c: [paper('c')] };
+  const deck = buildDailyDeck({
+    papersByTopic: byTopic, followed: ['a', 'b'], triage: {}, goal: 15, day: '2026-10-03',
+  });
+  assert.equal(deck.length, 3);
+  assert.deepEqual(new Set(deck.map(({ paper }) => paper.id)), new Set(['a', 'b', 'c']));
+});
+
 test('recall follows Leitner intervals and caps daily questions', () => {
   const item = scheduleNew('p', '2026-10-03');
   assert.equal(item.dueOn, '2026-10-04');

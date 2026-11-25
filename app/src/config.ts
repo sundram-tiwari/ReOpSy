@@ -15,7 +15,7 @@ export interface TopicConfig {
 }
 
 export const config = {
-  deckSize: 10,
+  defaultDailyGoal: 15,
   dailyGoals: [5, 10, 15],
   topics: [
     {

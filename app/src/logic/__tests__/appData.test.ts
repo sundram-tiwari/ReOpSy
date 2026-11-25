@@ -37,9 +37,28 @@ test('v2 storage migrates without losing saved papers or streak', () => {
   assert.equal(JSON.stringify(s).includes('secret'), false);
 });
 
-test('garbage storage falls back to defaults', () => {
-  assert.equal(migrate('nope', '2026-10-03').dailyGoal, 10);
-  assert.equal(migrate({ version: 3, dailyGoal: 7 }, '2026-10-03').dailyGoal, 10);
+test('new, missing or malformed goals inherit the temporary 15-card default', () => {
+  assert.equal(defaultState().dailyGoal, 15);
+  for (const raw of ['nope', { version: 3 }, { version: 3, dailyGoal: 7 }, { version: 3, dailyGoal: 10, dailyGoalExplicit: false }]) {
+    const migrated = migrate(raw, '2026-10-03');
+    assert.equal(migrated.dailyGoal, 15);
+    assert.equal(migrated.dailyGoalExplicit, false);
+  }
+});
+
+test('previous 5/10/15 choices survive migration and merging with an inherited default', () => {
+  const fresh = { ...defaultState(), onboardingComplete: true };
+  for (const goal of [5, 10, 15]) {
+    const saved = migrate({ version: 3, onboardingComplete: true, dailyGoal: goal }, '2026-10-03');
+    assert.equal(saved.dailyGoal, goal);
+    assert.equal(saved.dailyGoalExplicit, true);
+    assert.equal(mergeStates(fresh, saved).dailyGoal, goal);
+    assert.equal(mergeStates(saved, fresh).dailyGoal, goal);
+    assert.equal(mergeStates(fresh, saved).dailyGoalExplicit, true);
+  }
+  const localChoice = { ...fresh, dailyGoal: 5, dailyGoalExplicit: true };
+  const cloudChoice = { ...fresh, dailyGoal: 10, dailyGoalExplicit: true };
+  assert.equal(mergeStates(localChoice, cloudChoice).dailyGoal, 5);
 });
 
 test('merge keeps everything collected on both devices', () => {
