@@ -1,3 +1,4 @@
+import { profileLoadMessage } from '../logic/profileLoad';
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View } from 'react-native';
@@ -8,7 +9,7 @@ import { ReadingStreak } from '../components/ReadingStreak';
 import { useAuth } from '../hooks/useAuth';
 import { useAppState } from '../state/AppState';
 import { useCommunity } from '../state/Community';
-import { deleteMyData } from '../services/community';
+import { AccountDeletionPreflightError, deleteMyData } from '../services/community';
 import { connectZotero, disconnectZotero } from '../platform/zoteroClient';
 import { secretsAreDeviceProtected } from '../platform/secrets';
 import { shareTextFile } from '../platform/files';
@@ -25,7 +26,7 @@ export function YouScreen() {
   const nav = useNav();
   const toast = useToast();
   const { user, loading: authLoading, isAdmin, signOut, deleteAuthAccount } = useAuth();
-  const { profile, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
+  const { profile, profileLoading, profileLoadError, refreshProfile } = useCommunity();
   useFocusEffect(useCallback(() => { void refreshProfile(); }, [refreshProfile]));
   const app = useAppState();
   const { state, today } = app;
@@ -36,6 +37,7 @@ export function YouScreen() {
   const [zoteroOpen, setZoteroOpen] = useState(false);
   const [zoteroKey, setZoteroKey] = useState('');
   const [confirmText, setConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const dots = useMemo(() => weekRhythm(state.triage, today, state.recallDays), [state.triage, today, state.recallDays]);
@@ -76,9 +78,9 @@ export function YouScreen() {
           </View>
         ) : profileLoading ? (
           <View accessibilityLiveRegion="polite"><T tone="muted">Checking your profile…</T></View>
-        ) : profileLoadFailed ? (
+        ) : profileLoadError ? (
           <View style={{ gap: space.s }} accessibilityLiveRegion="polite">
-            <T tone="muted">Could not load your profile. We won’t create a second one.</T>
+            <T tone="muted">{profileLoadMessage(profileLoadError)}</T>
             <Button kind="secondary" label="Retry loading profile" onPress={() => refreshProfile()} />
           </View>
         ) : (
@@ -87,6 +89,13 @@ export function YouScreen() {
       ) : (
         <Button label="Sign in to sync and join the community" onPress={() => nav.navigate('SignIn')} />
       )}
+
+      {profile && profileLoadError ? (
+        <View style={{ gap: space.s, marginTop: space.m }} accessibilityLiveRegion="polite">
+          <T v="small" tone="muted">{profileLoadMessage(profileLoadError)} Showing the last verified profile.</T>
+          <Button kind="secondary" label="Retry loading profile" onPress={() => refreshProfile()} style={{ alignSelf: 'flex-start' }} />
+        </View>
+      ) : null}
 
       <SectionTitle>This week</SectionTitle>
       <ReadingStreak
@@ -240,7 +249,7 @@ export function YouScreen() {
           <>
             <ListRow icon="arrow-left" title="Back to Settings" onPress={() => setSettingsPage('settings')} />
             {user ? (
-              <ListRow icon="trash-2" tone="bad" title="Delete account" onPress={() => { setConfirmText(''); setSettingsPage('delete'); }} />
+              <ListRow icon="trash-2" tone="bad" title="Delete account" onPress={() => { setConfirmText(''); setDeleteError(null); setSettingsPage('delete'); }} />
             ) : (
               <T tone="muted" style={{ marginTop: space.m }}>You’re not signed in.</T>
             )}
@@ -252,6 +261,11 @@ export function YouScreen() {
             </T>
             <T tone="muted" style={{ marginVertical: space.m }}>Download your data first if you want a copy. Type DELETE to confirm.</T>
             <TextField label="Confirmation" value={confirmText} onChangeText={setConfirmText} autoCapitalize="none" />
+            {deleteError ? (
+              <View accessibilityLiveRegion="polite" style={{ marginBottom: space.m }}>
+                <T tone="bad">{deleteError}</T>
+              </View>
+            ) : null}
             <Button
               kind="danger"
               label="Delete everything"
@@ -260,18 +274,21 @@ export function YouScreen() {
               onPress={async () => {
                 if (!user) return;
                 setBusy(true);
+                setDeleteError(null);
                 try {
                   await deleteMyData(user.uid, profile?.handle || null);
                   const err = await deleteAuthAccount();
                   if (err) {
-                    toast(err);
+                    setDeleteError(`Could not finish deleting your sign-in. Some app data may already have been removed. ${err}`);
                     return;
                   }
                   await app.resetLocalData();
                   setSettingsPage(null);
                   toast('Your account and data are deleted.');
-                } catch {
-                  toast('Deletion did not finish. Try again to remove what is left.');
+                } catch (error) {
+                  setDeleteError(error instanceof AccountDeletionPreflightError
+                    ? error.message
+                    : 'Deletion did not finish. Some data may already have been removed.');
                 } finally {
                   setBusy(false);
                 }

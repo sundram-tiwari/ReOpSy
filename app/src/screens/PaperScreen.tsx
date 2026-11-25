@@ -1,5 +1,6 @@
+import { profileLoadMessage } from '../logic/profileLoad';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, Share, View } from 'react-native';
+import { Platform, Pressable, Share, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as WebBrowser from 'expo-web-browser';
@@ -73,7 +74,7 @@ function PaperContent() {
   const { paperId, ref } = route.params;
   const { findPaper, libraryEntry, setLibraryStatus, state, blockUser, notePost } = useAppState();
   const { user, loading: authLoading } = useAuth();
-  const { enabled, me, profileLoading, profileLoadFailed, refreshProfile } = useCommunity();
+  const { enabled, me, profileLoading, profileLoadError, refreshProfile } = useCommunity();
   const canPost = !!user && me?.uid === user.uid;
   const toast = useToast();
   const { c: colors } = useTheme();
@@ -187,6 +188,31 @@ function PaperContent() {
       </Screen>
     );
   }
+
+  const sharePaper = async () => {
+    const message = `${shortCitation(paper)}
+${paper.url}`;
+    if (Platform.OS !== 'web' || typeof navigator.share === 'function') {
+      try {
+        await Share.share({ message });
+        return;
+      } catch (error) {
+        if ((error as { name?: string } | null)?.name === 'AbortError') return;
+        if (Platform.OS !== 'web') {
+          toast('Could not share this paper.');
+          return;
+        }
+        // Web Share may be unavailable or blocked by browser permissions.
+        // Fall back to the same citation-and-link clipboard action as Today.
+      }
+    }
+    try {
+      const copied = await Clipboard.setStringAsync(message);
+      toast(copied ? 'Citation and link copied.' : 'Could not copy the citation.');
+    } catch {
+      toast('Could not copy the citation.');
+    }
+  };
 
   const post = async () => {
     if (!canPost) return;
@@ -317,7 +343,7 @@ function PaperContent() {
             {!isReply ? (
               <Pressable onPress={() => {
                 if (canPost) setReplyTo(c);
-                else if (profileLoadFailed) void refreshProfile();
+                else if (profileLoadError) void refreshProfile();
                 else if (!profileLoading) contributor();
               }} accessibilityRole="button" hitSlop={8}>
                 <T v="caption" tone="muted" style={{ fontWeight: '600' }}>
@@ -371,7 +397,7 @@ function PaperContent() {
             toast('Citation copied.');
           }}
         />
-        <Button kind="secondary" icon="share-2" label="Share" onPress={() => Share.share({ message: `${shortCitation(paper)}\n${paper.url}` }).catch(() => {})} />
+        <Button kind="secondary" icon="share-2" label="Share" onPress={sharePaper} />
       </View>
 
       <SectionTitle>In your library</SectionTitle>
@@ -476,9 +502,9 @@ function PaperContent() {
             <View style={{ marginTop: space.xl, alignItems: 'flex-start', gap: space.s }}>
               {profileLoading ? (
                 <T tone="muted">Checking your researcher profile…</T>
-              ) : profileLoadFailed ? (
+              ) : profileLoadError ? (
                 <>
-                  <T tone="muted">Could not check your researcher profile. Try again before posting.</T>
+                  <T tone="muted">{profileLoadMessage(profileLoadError)}</T>
                   <Button kind="secondary" label="Retry profile check" icon="refresh-cw" onPress={refreshProfile} />
                 </>
               ) : (

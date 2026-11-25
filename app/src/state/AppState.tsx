@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { recordActivity } from '../logic/streak';
 import { dayKey } from '../logic/date';
-import { StoredStateV3, ThemePrefValue, defaultState, mergeStates, migrate, pruneTriage, withPaperLike } from '../logic/appData';
+import { StoredStateV3, ThemePrefValue, defaultState, mergeStates, migrate, pruneTriage, withPaperLike, withReadingPreference } from '../logic/appData';
 import { buildDailyDeck, DeckCard } from '../logic/triage';
 import { gradeItem, scheduleNew } from '../logic/recall';
 import { prepareFeed } from '../logic/feed';
@@ -315,17 +315,25 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       updateEntry,
       gradeRecall,
       finishRecallSession,
-      toggleTopic: (slug) =>
-        update((s) => ({
-          ...s,
-          followedTopics: s.followedTopics.includes(slug)
-            ? s.followedTopics.filter((t) => t !== slug)
-            : [...s.followedTopics, slug],
-        })),
+      toggleTopic: (slug) => {
+        const now = Date.now();
+        update((s) => withReadingPreference(
+          s,
+          'followedTopics',
+          s.followedTopics.includes(slug) ? s.followedTopics.filter((t) => t !== slug) : [...s.followedTopics, slug],
+          now,
+        ));
+      },
       setDailyGoal: (goal) => update((s) => ({ ...s, dailyGoal: goal })),
       completeOnboarding: () => update((s) => ({ ...s, onboardingComplete: true })),
-      setThemePref: (themePref) => update((s) => ({ ...s, themePref })),
-      setSurveyTitle: (surveyTitle) => update((s) => ({ ...s, surveyTitle })),
+      setThemePref: (themePref) => {
+        const now = Date.now();
+        update((s) => withReadingPreference(s, 'themePref', themePref, now));
+      },
+      setSurveyTitle: (surveyTitle) => {
+        const now = Date.now();
+        update((s) => withReadingPreference(s, 'surveyTitle', surveyTitle, now));
+      },
       blockUser: (uid) => update((s) => ({ ...s, blockedUids: [...new Set([...s.blockedUids, uid])] })),
       unblockUser: (uid) => update((s) => ({ ...s, blockedUids: s.blockedUids.filter((u) => u !== uid) })),
       markInboxSeen: () => update((s) => ({ ...s, lastInboxSeenAt: Date.now() })),

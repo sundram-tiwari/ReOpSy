@@ -8,6 +8,9 @@ import { daysBetween, isDayKey } from './date';
  */
 export type ThemePrefValue = 'system' | 'light' | 'dark';
 type PaperLike = { liked: boolean; updatedAt: number };
+const READING_PREFERENCE_KEYS = ['followedTopics', 'themePref', 'surveyTitle'] as const;
+type ReadingPreferenceKey = typeof READING_PREFERENCE_KEYS[number];
+type ReadingPreferenceUpdates = Partial<Record<ReadingPreferenceKey, number>>;
 
 export interface StoredStateV3 {
   version: 3;
@@ -26,6 +29,7 @@ export interface StoredStateV3 {
   exportsCount: number;
   postsCount: number;
   surveyTitle: string;
+  readingPreferenceUpdatedAt: ReadingPreferenceUpdates;
   lastInboxSeenAt: number;
   zotero: { userId: string; username: string } | null;
 }
@@ -37,6 +41,8 @@ export const DEFAULT_TOPICS = [
   'quantum-communication',
   'surveillance-anomaly-detection',
 ];
+
+const DEFAULT_SURVEY_TITLE = 'Literature survey';
 
 export function defaultState(): StoredStateV3 {
   return {
@@ -55,7 +61,8 @@ export function defaultState(): StoredStateV3 {
     blockedUids: [],
     exportsCount: 0,
     postsCount: 0,
-    surveyTitle: 'Literature survey',
+    surveyTitle: DEFAULT_SURVEY_TITLE,
+    readingPreferenceUpdatedAt: {},
     lastInboxSeenAt: 0,
     zotero: null,
   };
@@ -85,6 +92,66 @@ export function withPaperLike(state: StoredStateV3, id: string, liked: boolean, 
   };
 }
 
+function readReadingPreferenceUpdates(raw: unknown): ReadingPreferenceUpdates {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const value = raw as Record<string, unknown>;
+  return Object.fromEntries(READING_PREFERENCE_KEYS.flatMap((key) => {
+    const stamp = value[key];
+    return typeof stamp === 'number' && Number.isSafeInteger(stamp) && stamp > 0 ? [[key, stamp]] : [];
+  }));
+}
+
+/** Mark the field the person actually chose, including a choice of its default. */
+export function withReadingPreference<K extends ReadingPreferenceKey>(
+  state: StoredStateV3,
+  key: K,
+  value: StoredStateV3[K],
+  now: number,
+): StoredStateV3 {
+  const previous = state.readingPreferenceUpdatedAt[key] ?? 0;
+  const updatedAt = Math.max(Number.isSafeInteger(now) ? now : 0, previous + 1);
+  return {
+    ...state,
+    [key]: value,
+    readingPreferenceUpdatedAt: { ...state.readingPreferenceUpdatedAt, [key]: updatedAt },
+  };
+}
+
+function meaningfulLegacyPreference(state: StoredStateV3, key: ReadingPreferenceKey): boolean {
+  if (key === 'themePref') return state.themePref !== 'system';
+  if (key === 'surveyTitle') return state.surveyTitle !== DEFAULT_SURVEY_TITLE;
+  const followed = new Set(state.followedTopics);
+  return followed.size !== DEFAULT_TOPICS.length || DEFAULT_TOPICS.some((topic) => !followed.has(topic));
+}
+
+function mergeReadingPreferences(local: StoredStateV3, cloud: StoredStateV3) {
+  const pick = (key: ReadingPreferenceKey): StoredStateV3 => {
+    const localAt = local.readingPreferenceUpdatedAt[key] ?? 0;
+    const cloudAt = cloud.readingPreferenceUpdatedAt[key] ?? 0;
+    if (localAt || cloudAt) return localAt > cloudAt ? local : cloud;
+    // There is no trustworthy timing for older data. Preserve a meaningful
+    // selection over an untouched default; use the existing account on ties.
+    const localChanged = meaningfulLegacyPreference(local, key);
+    const cloudChanged = meaningfulLegacyPreference(cloud, key);
+    return localChanged && !cloudChanged ? local : cloud;
+  };
+
+  const followed = pick('followedTopics');
+  const theme = pick('themePref');
+  const survey = pick('surveyTitle');
+  const readingPreferenceUpdatedAt = readReadingPreferenceUpdates({
+    followedTopics: followed.readingPreferenceUpdatedAt.followedTopics,
+    themePref: theme.readingPreferenceUpdatedAt.themePref,
+    surveyTitle: survey.readingPreferenceUpdatedAt.surveyTitle,
+  });
+  return {
+    followedTopics: followed.followedTopics,
+    themePref: theme.themePref,
+    surveyTitle: survey.surveyTitle,
+    readingPreferenceUpdatedAt,
+  };
+}
+
 function isPaper(p: unknown): p is Paper {
   return Boolean(p && typeof p === 'object' && typeof (p as Paper).id === 'string' && typeof (p as Paper).originalTitle === 'string');
 }
@@ -98,7 +165,9 @@ export function migrate(raw: unknown, today: string): StoredStateV3 {
   if (r.version === 3) {
     return {
       ...base,
-      followedTopics: arr<string>(r.followedTopics).filter((t) => typeof t === 'string'),
+      followedTopics: Array.isArray(r.followedTopics)
+        ? r.followedTopics.filter((t): t is string => typeof t === 'string')
+        : base.followedTopics,
       onboardingComplete: Boolean(r.onboardingComplete),
       dailyGoal: [5, 10, 15].includes(r.dailyGoal as number) ? (r.dailyGoal as number) : base.dailyGoal,
       triage: r.triage && typeof r.triage === 'object' ? (r.triage as Record<string, TriageRecord>) : {},
@@ -113,6 +182,7 @@ export function migrate(raw: unknown, today: string): StoredStateV3 {
       exportsCount: num(r.exportsCount, 0),
       postsCount: num(r.postsCount, 0),
       surveyTitle: str(r.surveyTitle, base.surveyTitle),
+      readingPreferenceUpdatedAt: readReadingPreferenceUpdates(r.readingPreferenceUpdatedAt),
       lastInboxSeenAt: num(r.lastInboxSeenAt, 0),
       zotero: r.zotero && typeof r.zotero === 'object' ? (r.zotero as StoredStateV3['zotero']) : null,
     };
@@ -152,8 +222,7 @@ function laterDay(a: string | null, b: string | null): string | null {
 /**
  * Merges the cloud copy into the local copy on sign-in. Nothing the user
  * collected on either side is lost: library, decisions and recall are unions;
- * counters take the maximum; preferences follow the side that finished
- * onboarding.
+ * counters take the maximum; reading preferences use per-field choice times.
  */
 export function mergeStates(local: StoredStateV3, cloud: StoredStateV3): StoredStateV3 {
   const library = new Map<string, LibraryEntry>();
@@ -205,5 +274,6 @@ export function mergeStates(local: StoredStateV3, cloud: StoredStateV3): StoredS
     postsCount: Math.max(local.postsCount, cloud.postsCount),
     lastInboxSeenAt: Math.max(local.lastInboxSeenAt, cloud.lastInboxSeenAt),
     zotero: local.zotero || cloud.zotero,
+    ...mergeReadingPreferences(local, cloud),
   };
 }
