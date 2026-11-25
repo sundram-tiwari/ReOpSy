@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { topicLabel } from '../config';
-import { buildDailyBrief, feedStatus } from '../logic/dailyBrief';
+import { buildDailyBrief, FEED_LABELS, feedStatus } from '../logic/dailyBrief';
 import { formatDay } from '../logic/date';
 import { Paper } from '../types';
 import { Button, Card, Sheet, T } from '../ui/kit';
@@ -19,12 +19,7 @@ export function DailyBriefSheet({ visible, today, topics, followed, isLive, gene
 }) {
   const brief = useMemo(() => buildDailyBrief(topics, followed, today), [topics, followed, today]);
   const status = feedStatus(isLive ? 'live' : 'sample', generatedAt, today);
-  const freshLabel = {
-    sample: 'Sample feed · not a live update',
-    updated: 'Live feed updated today',
-    earlier: 'Live feed from an earlier update',
-    unknown: 'Last live update not verified',
-  }[status];
+  const freshLabel = FEED_LABELS[status].detail;
   return (
     <Sheet visible={visible} title="Research brief" onClose={onClose}>
       <View style={styles.content}>
