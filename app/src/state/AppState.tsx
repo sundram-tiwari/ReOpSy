@@ -322,7 +322,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             ? s.followedTopics.filter((t) => t !== slug)
             : [...s.followedTopics, slug],
         })),
-      setDailyGoal: (goal) => update((s) => ({ ...s, dailyGoal: goal })),
+      setDailyGoal: (goal) => update((s) => ({ ...s, dailyGoal: goal, dailyGoalExplicit: true })),
       completeOnboarding: () => update((s) => ({ ...s, onboardingComplete: true })),
       setThemePref: (themePref) => update((s) => ({ ...s, themePref })),
       setSurveyTitle: (surveyTitle) => update((s) => ({ ...s, surveyTitle })),

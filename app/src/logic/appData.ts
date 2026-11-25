@@ -1,4 +1,5 @@
 import { LibraryEntry, Paper, RecallItem, StreakState, TriageRecord } from '../types';
+import { config } from '../config';
 import { initialStreak } from './streak';
 import { daysBetween, isDayKey } from './date';
 
@@ -14,6 +15,8 @@ export interface StoredStateV3 {
   followedTopics: string[];
   onboardingComplete: boolean;
   dailyGoal: number;
+  /** Whether the reader selected a goal instead of inheriting the default. */
+  dailyGoalExplicit: boolean;
   triage: Record<string, TriageRecord>;
   paperLikes: Record<string, PaperLike>;
   library: LibraryEntry[];
@@ -43,7 +46,8 @@ export function defaultState(): StoredStateV3 {
     version: 3,
     followedTopics: [...DEFAULT_TOPICS],
     onboardingComplete: false,
-    dailyGoal: 10,
+    dailyGoal: config.defaultDailyGoal,
+    dailyGoalExplicit: false,
     triage: {},
     paperLikes: {},
     library: [],
@@ -89,6 +93,14 @@ function isPaper(p: unknown): p is Paper {
   return Boolean(p && typeof p === 'object' && typeof (p as Paper).id === 'string' && typeof (p as Paper).originalTitle === 'string');
 }
 
+function readDailyGoal(raw: Record<string, unknown>): Pick<StoredStateV3, 'dailyGoal' | 'dailyGoalExplicit'> {
+  // Old snapshots lack the marker: retain any previously stored valid goal.
+  const chosen = config.dailyGoals.find((goal) => goal === raw.dailyGoal);
+  return chosen !== undefined && raw.dailyGoalExplicit !== false
+    ? { dailyGoal: chosen, dailyGoalExplicit: true }
+    : { dailyGoal: config.defaultDailyGoal, dailyGoalExplicit: false };
+}
+
 /** Accepts anything previously stored (v2 or v3) and returns a valid v3 state. */
 export function migrate(raw: unknown, today: string): StoredStateV3 {
   const base = defaultState();
@@ -100,7 +112,7 @@ export function migrate(raw: unknown, today: string): StoredStateV3 {
       ...base,
       followedTopics: arr<string>(r.followedTopics).filter((t) => typeof t === 'string'),
       onboardingComplete: Boolean(r.onboardingComplete),
-      dailyGoal: [5, 10, 15].includes(r.dailyGoal as number) ? (r.dailyGoal as number) : base.dailyGoal,
+      ...readDailyGoal(r),
       triage: r.triage && typeof r.triage === 'object' ? (r.triage as Record<string, TriageRecord>) : {},
       paperLikes: readPaperLikes(r.paperLikes),
       library: arr<LibraryEntry>(r.library).filter((e) => e && isPaper(e.paper)),
@@ -123,6 +135,7 @@ export function migrate(raw: unknown, today: string): StoredStateV3 {
   const followed = arr<string>(r.followedTopics).filter((t) => typeof t === 'string' && t !== 'global' && t !== 'custom');
   return {
     ...base,
+    ...readDailyGoal(r),
     followedTopics: followed.length ? followed : base.followedTopics,
     onboardingComplete: Boolean(r.onboardingComplete),
     paperLikes: Object.fromEntries(arr<unknown>(r.likedPapers)
@@ -181,12 +194,18 @@ export function mergeStates(local: StoredStateV3, cloud: StoredStateV3): StoredS
   }
 
   const prefsFrom = local.onboardingComplete || !cloud.onboardingComplete ? local : cloud;
+  // A fresh device's inherited default must not replace a chosen cloud
+  // preference just because the reader completed onboarding before sign-in.
+  const goalFrom = local.dailyGoalExplicit === cloud.dailyGoalExplicit
+    ? prefsFrom : local.dailyGoalExplicit ? local : cloud;
   const lastActive = laterDay(local.streak.lastActiveDay, cloud.streak.lastActiveDay);
   const streakFrom = lastActive === local.streak.lastActiveDay ? local.streak : cloud.streak;
 
   return {
     ...prefsFrom,
     version: 3,
+    dailyGoal: goalFrom.dailyGoal,
+    dailyGoalExplicit: goalFrom.dailyGoalExplicit,
     onboardingComplete: local.onboardingComplete || cloud.onboardingComplete,
     triage,
     paperLikes: Object.fromEntries(paperLikes),
